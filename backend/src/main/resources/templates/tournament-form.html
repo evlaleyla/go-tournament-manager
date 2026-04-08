@@ -2,12 +2,15 @@
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Neues Turnier</title>
+    <title th:text="${isEdit} ? 'Turnier bearbeiten' : 'Neues Turnier'">Turnierformular</title>
 </head>
 <body>
-<h1>Neues Turnier anlegen</h1>
+<h1 th:text="${isEdit} ? 'Turnier bearbeiten' : 'Neues Turnier anlegen'"></h1>
 
-<form th:action="@{/tournaments}" th:object="${tournament}" method="post">
+<form th:action="${isEdit} ? @{/tournaments/{id}(id=${tournament.id})} : @{/tournaments}"
+      th:object="${tournament}"
+      method="post">
+
     <div>
         <label for="name">Name:</label>
         <input type="text" id="name" th:field="*{name}" required>
@@ -39,7 +42,7 @@
     </div>
 
     <div>
-        <button type="submit">Speichern</button>
+        <button type="submit" th:text="${isEdit} ? 'Änderungen speichern' : 'Speichern'"></button>
     </div>
 </form>
 

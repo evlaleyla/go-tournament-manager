@@ -20,6 +20,7 @@
         <th>Startdatum</th>
         <th>Enddatum</th>
         <th>Status</th>
+        <th>Aktionen</th>
     </tr>
     </thead>
     <tbody>
@@ -30,6 +31,11 @@
         <td th:text="${tournament.startDate}"></td>
         <td th:text="${tournament.endDate}"></td>
         <td th:text="${tournament.status}"></td>
+        <td>
+            <a th:href="@{/tournaments/{id}(id=${tournament.id})}">Details</a>
+            |
+            <a th:href="@{/tournaments/{id}/edit(id=${tournament.id})}">Bearbeiten</a>
+        </td>
     </tr>
     </tbody>
 </table>

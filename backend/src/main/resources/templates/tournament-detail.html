@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Turnierdetails</title>
+</head>
+<body>
+<h1>Turnierdetails</h1>
+
+<p><strong>ID:</strong> <span th:text="${tournament.id}"></span></p>
+<p><strong>Name:</strong> <span th:text="${tournament.name}"></span></p>
+<p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
+<p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
+<p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
+<p><strong>Beschreibung:</strong> <span th:text="${tournament.description}"></span></p>
+<p><strong>Status:</strong> <span th:text="${tournament.status}"></span></p>
+
+<p>
+  <a th:href="@{/tournaments/{id}/edit(id=${tournament.id})}">Bearbeiten</a>
+</p>
+
+<form th:action="@{/tournaments/{id}/delete(id=${tournament.id})}" method="post">
+  <button type="submit">Turnier löschen</button>
+</form>
+
+<p>
+  <a href="/tournaments">Zurück zur Turnierliste</a>
+</p>
+</body>
+</html>
