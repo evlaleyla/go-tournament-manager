@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Turniere</title>
+</head>
+<body>
+<h1>Turnierliste</h1>
+
+<div th:if="${successMessage}">
+    <p th:text="${successMessage}"></p>
+</div>
+
+<p>
+    <a href="/tournaments/new">Neues Turnier anlegen</a>
+</p>
+
+<form th:action="@{/tournaments}" method="get">
+    <div>
+        <label for="search">Suche nach Name:</label>
+        <input type="text" id="search" name="search" th:value="${search}" list="tournamentNameList">
+        <datalist id="tournamentNameList">
+            <option th:each="name : ${tournamentNames}" th:value="${name}"></option>
+        </datalist>
+    </div>
+
+    <div>
+        <label for="status">Status:</label>
+        <select id="status" name="status">
+            <option value="">Alle</option>
+            <option th:each="statusOption : ${statuses}"
+                    th:value="${statusOption}"
+                    th:text="${statusOption.displayName}"
+                    th:selected="${selectedStatus != null and selectedStatus.name() == statusOption.name()}">
+            </option>
+        </select>
+    </div>
+
+    <div>
+        <button type="submit">Filtern</button>
+        <a href="/tournaments">Zurücksetzen</a>
+    </div>
+</form>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Ort</th>
+        <th>Startdatum</th>
+        <th>Enddatum</th>
+        <th>Anmeldefrist</th>
+        <th>Status</th>
+        <th>Aktionen</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="tournament : ${tournaments}">
+        <td th:text="${tournament.id}"></td>
+        <td th:text="${tournament.name}"></td>
+        <td th:text="${tournament.location}"></td>
+        <td th:text="${tournament.startDate}"></td>
+        <td th:text="${tournament.endDate}"></td>
+        <td th:text="${tournament.registrationDeadline}"></td>
+        <td th:text="${tournament.status.displayName}"></td>
+        <td>
+            <a th:href="@{/tournaments/{id}(id=${tournament.id})}">Details</a>
+            |
+            <a th:href="@{/tournaments/{id}/edit(id=${tournament.id})}">Bearbeiten</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<p>
+    <a href="/">Zur Startseite</a>
+</p>
+</body>
+</html>

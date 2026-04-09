@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="${isEdit} ? 'Turnier bearbeiten' : 'Neues Turnier'">Turnierformular</title>
+</head>
+<body>
+<h1 th:text="${isEdit} ? 'Turnier bearbeiten' : 'Neues Turnier anlegen'"></h1>
+
+<form th:action="${isEdit} ? @{/tournaments/{id}(id=${tournament.id})} : @{/tournaments}"
+      th:object="${tournament}"
+      method="post">
+
+    <input type="hidden" th:field="*{id}">
+
+    <div>
+        <label for="name">Name:</label>
+        <input type="text" id="name" th:field="*{name}">
+        <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
+    </div>
+
+    <div>
+        <label for="location">Ort:</label>
+        <input type="text" id="location" th:field="*{location}">
+    </div>
+
+    <div>
+        <label for="startDate">Startdatum:</label>
+        <input type="date" id="startDate" th:field="*{startDate}">
+        <div th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}"></div>
+    </div>
+
+    <div>
+        <label for="endDate">Enddatum:</label>
+        <input type="date" id="endDate" th:field="*{endDate}">
+        <div th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}"></div>
+    </div>
+
+    <div>
+        <label for="registrationDeadline">Anmeldefrist:</label>
+        <input type="date" id="registrationDeadline" th:field="*{registrationDeadline}">
+        <div th:if="${#fields.hasErrors('registrationDeadline')}" th:errors="*{registrationDeadline}"></div>
+    </div>
+
+    <div>
+        <label for="description">Beschreibung:</label>
+        <textarea id="description" th:field="*{description}"></textarea>
+    </div>
+
+    <div>
+        <label for="status">Status:</label>
+        <select id="status" th:field="*{status}">
+            <option value="">Bitte wählen</option>
+            <option th:each="status : ${statuses}"
+                    th:value="${status}"
+                    th:text="${status}"></option>
+        </select>
+        <div th:if="${#fields.hasErrors('status')}" th:errors="*{status}"></div>
+    </div>
+
+    <div>
+        <button type="submit" th:text="${isEdit} ? 'Änderungen speichern' : 'Speichern'"></button>
+    </div>
+</form>
+
+<p>
+    <a href="/tournaments">Zur Turnierliste</a>
+</p>
+</body>
+</html>
