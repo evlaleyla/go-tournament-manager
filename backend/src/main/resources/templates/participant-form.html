@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title th:text="${isEdit} ? 'Teilnehmer bearbeiten' : 'Neuer Teilnehmer'">Teilnehmerformular</title>
+</head>
+<body>
+<h1 th:text="${isEdit} ? 'Teilnehmer bearbeiten' : 'Neuen Teilnehmer anlegen'"></h1>
+
+<form th:action="${isEdit} ? @{/participants/{id}(id=${participant.id})} : @{/participants}"
+      th:object="${participant}"
+      method="post">
+
+  <input type="hidden" th:field="*{id}">
+
+  <div>
+    <label for="firstName">Vorname:</label>
+    <input type="text" id="firstName" th:field="*{firstName}">
+    <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+  </div>
+
+  <div>
+    <label for="lastName">Nachname:</label>
+    <input type="text" id="lastName" th:field="*{lastName}">
+    <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+  </div>
+
+  <div>
+    <label for="email">E-Mail:</label>
+    <input type="email" id="email" th:field="*{email}">
+    <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+  </div>
+
+  <div>
+    <label for="birthDate">Geburtsdatum:</label>
+    <input type="date" id="birthDate" th:field="*{birthDate}">
+    <div th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></div>
+  </div>
+
+  <div>
+    <label for="club">Verein:</label>
+    <input type="text" id="club" th:field="*{club}">
+  </div>
+
+  <div>
+    <label for="country">Land:</label>
+    <input type="text" id="country" th:field="*{country}">
+  </div>
+
+  <div>
+    <label for="rank">Rang:</label>
+    <input type="text" id="rank" th:field="*{rank}">
+    <div th:if="${#fields.hasErrors('rank')}" th:errors="*{rank}"></div>
+  </div>
+
+  <div>
+    <button type="submit" th:text="${isEdit} ? 'Änderungen speichern' : 'Speichern'"></button>
+  </div>
+</form>
+
+<p>
+  <a href="/participants">Zur Teilnehmerliste</a>
+</p>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Teilnehmerdetails</title>
+</head>
+<body>
+<h1>Teilnehmerdetails</h1>
+
+<div th:if="${successMessage}">
+    <p th:text="${successMessage}"></p>
+</div>
+
+<p><strong>ID:</strong> <span th:text="${participant.id}"></span></p>
+<p><strong>Vorname:</strong> <span th:text="${participant.firstName}"></span></p>
+<p><strong>Nachname:</strong> <span th:text="${participant.lastName}"></span></p>
+<p><strong>E-Mail:</strong> <span th:text="${participant.email}"></span></p>
+<p><strong>Geburtsdatum:</strong> <span th:text="${participant.birthDate}"></span></p>
+<p><strong>Verein:</strong> <span th:text="${participant.club}"></span></p>
+<p><strong>Land:</strong> <span th:text="${participant.country}"></span></p>
+<p><strong>Rang:</strong> <span th:text="${participant.rank}"></span></p>
+
+<p>
+    <a th:href="@{/participants/{id}/edit(id=${participant.id})}">Bearbeiten</a>
+</p>
+
+<form th:action="@{/participants/{id}/delete(id=${participant.id})}"
+      method="post"
+      onsubmit="return confirm('Möchten Sie diesen Teilnehmer wirklich löschen?');">
+    <button type="submit">Teilnehmer löschen</button>
+</form>
+
+<p>
+    <a href="/participants">Zur Teilnehmerliste</a>
+</p>
+</body>
+</html>
