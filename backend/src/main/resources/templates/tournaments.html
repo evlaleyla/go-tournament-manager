@@ -7,9 +7,40 @@
 <body>
 <h1>Turnierliste</h1>
 
+<div th:if="${successMessage}">
+    <p th:text="${successMessage}"></p>
+</div>
+
 <p>
     <a href="/tournaments/new">Neues Turnier anlegen</a>
 </p>
+
+<form th:action="@{/tournaments}" method="get">
+    <div>
+        <label for="search">Suche nach Name:</label>
+        <input type="text" id="search" name="search" th:value="${search}" list="tournamentNameList">
+        <datalist id="tournamentNameList">
+            <option th:each="name : ${tournamentNames}" th:value="${name}"></option>
+        </datalist>
+    </div>
+
+    <div>
+        <label for="status">Status:</label>
+        <select id="status" name="status">
+            <option value="">Alle</option>
+            <option th:each="statusOption : ${statuses}"
+                    th:value="${statusOption}"
+                    th:text="${statusOption.displayName}"
+                    th:selected="${selectedStatus != null and selectedStatus.name() == statusOption.name()}">
+            </option>
+        </select>
+    </div>
+
+    <div>
+        <button type="submit">Filtern</button>
+        <a href="/tournaments">Zurücksetzen</a>
+    </div>
+</form>
 
 <table border="1">
     <thead>
@@ -19,6 +50,7 @@
         <th>Ort</th>
         <th>Startdatum</th>
         <th>Enddatum</th>
+        <th>Anmeldefrist</th>
         <th>Status</th>
         <th>Aktionen</th>
     </tr>
@@ -30,7 +62,8 @@
         <td th:text="${tournament.location}"></td>
         <td th:text="${tournament.startDate}"></td>
         <td th:text="${tournament.endDate}"></td>
-        <td th:text="${tournament.status}"></td>
+        <td th:text="${tournament.registrationDeadline}"></td>
+        <td th:text="${tournament.status.displayName}"></td>
         <td>
             <a th:href="@{/tournaments/{id}(id=${tournament.id})}">Details</a>
             |

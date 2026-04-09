@@ -7,19 +7,26 @@
 <body>
 <h1>Turnierdetails</h1>
 
+<div th:if="${successMessage}">
+  <p th:text="${successMessage}"></p>
+</div>
+
 <p><strong>ID:</strong> <span th:text="${tournament.id}"></span></p>
 <p><strong>Name:</strong> <span th:text="${tournament.name}"></span></p>
 <p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
 <p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
 <p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
+<p><strong>Anmeldefrist:</strong> <span th:text="${tournament.registrationDeadline}"></span></p>
 <p><strong>Beschreibung:</strong> <span th:text="${tournament.description}"></span></p>
-<p><strong>Status:</strong> <span th:text="${tournament.status}"></span></p>
+<p><strong>Status:</strong> <span th:text="${tournament.status.displayName}"></span></p>
 
 <p>
   <a th:href="@{/tournaments/{id}/edit(id=${tournament.id})}">Bearbeiten</a>
 </p>
 
-<form th:action="@{/tournaments/{id}/delete(id=${tournament.id})}" method="post">
+<form th:action="@{/tournaments/{id}/delete(id=${tournament.id})}"
+      method="post"
+      onsubmit="return confirm('Möchten Sie dieses Turnier wirklich löschen?');">
   <button type="submit">Turnier löschen</button>
 </form>
 
