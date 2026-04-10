@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Anmeldungsdetails</title>
+</head>
+<body>
+<h1>Anmeldungsdetails</h1>
+
+<div th:if="${successMessage}">
+  <p th:text="${successMessage}"></p>
+</div>
+
+<p><strong>ID:</strong> <span th:text="${registration.id}"></span></p>
+<p><strong>Turnier:</strong> <span th:text="${registration.tournament.name}"></span></p>
+<p><strong>Teilnehmer:</strong> <span th:text="${registration.participant.fullName}"></span></p>
+<p><strong>Anmeldedatum:</strong> <span th:text="${registration.registrationDate}"></span></p>
+<p><strong>Notizen:</strong> <span th:text="${registration.notes}"></span></p>
+
+<form th:action="@{/registrations/{id}/delete(id=${registration.id})}"
+      method="post"
+      onsubmit="return confirm('Möchten Sie diese Anmeldung wirklich löschen?');">
+  <button type="submit">Anmeldung löschen</button>
+</form>
+
+<p>
+  <a href="/registrations">Zur Anmeldeliste</a>
+</p>
+</body>
+</html>

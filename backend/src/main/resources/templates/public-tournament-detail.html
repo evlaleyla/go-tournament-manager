@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Turnierinformationen</title>
+</head>
+<body>
+<h1 th:text="${tournament.name}"></h1>
+
+<p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
+<p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
+<p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
+<p><strong>Anmeldefrist:</strong> <span th:text="${tournament.registrationDeadline}"></span></p>
+<p><strong>Status:</strong> <span th:text="${tournament.status.displayName}"></span></p>
+<p><strong>Beschreibung:</strong> <span th:text="${tournament.description}"></span></p>
+
+<p th:if="${tournament.status.name() == 'REGISTRATION_OPEN'}">
+    <a th:href="@{/tournaments/{id}/register(id=${tournament.id})}">Zur Online-Anmeldung</a>
+</p>
+
+<p>
+    <a href="/public/tournaments">Zur öffentlichen Turnierübersicht</a>
+</p>
+</body>
+</html>

@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Anmeldungen</title>
+</head>
+<body>
+<h1>Anmeldungen</h1>
+
+<div th:if="${successMessage}">
+    <p th:text="${successMessage}"></p>
+</div>
+
+<p>
+    <a href="/registrations/new">Neue Anmeldung anlegen</a>
+</p>
+
+<form th:action="@{/registrations}" method="get">
+    <div>
+        <label for="tournamentId">Nach Turnier filtern:</label>
+        <select id="tournamentId" name="tournamentId">
+            <option value="">Alle</option>
+            <option th:each="tournament : ${tournaments}"
+                    th:value="${tournament.id}"
+                    th:text="${tournament.name}"
+                    th:selected="${selectedTournamentId != null and selectedTournamentId == tournament.id}">
+            </option>
+        </select>
+        <button type="submit">Filtern</button>
+        <a href="/registrations">Zurücksetzen</a>
+    </div>
+</form>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Turnier</th>
+        <th>Teilnehmer</th>
+        <th>Anmeldedatum</th>
+        <th>Aktionen</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="registration : ${registrations}">
+        <td th:text="${registration.id}"></td>
+        <td th:text="${registration.tournament.name}"></td>
+        <td th:text="${registration.participant.fullName}"></td>
+        <td th:text="${registration.registrationDate}"></td>
+        <td>
+            <a th:href="@{/registrations/{id}(id=${registration.id})}">Details</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<p>
+    <a href="/">Zur Startseite</a>
+</p>
+</body>
+</html>

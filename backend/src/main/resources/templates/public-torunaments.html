@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Öffentliche Turnierübersicht</title>
+</head>
+<body>
+<h1>Öffentliche Turnierübersicht</h1>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Ort</th>
+        <th>Startdatum</th>
+        <th>Enddatum</th>
+        <th>Anmeldefrist</th>
+        <th>Status</th>
+        <th>Aktion</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="tournament : ${tournaments}">
+        <td th:text="${tournament.name}"></td>
+        <td th:text="${tournament.location}"></td>
+        <td th:text="${tournament.startDate}"></td>
+        <td th:text="${tournament.endDate}"></td>
+        <td th:text="${tournament.registrationDeadline}"></td>
+        <td th:text="${tournament.status.displayName}"></td>
+        <td>
+            <a th:href="@{/public/tournaments/{id}(id=${tournament.id})}">Details</a>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

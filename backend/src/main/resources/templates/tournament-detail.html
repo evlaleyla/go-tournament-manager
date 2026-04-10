@@ -24,6 +24,14 @@
   <a th:href="@{/tournaments/{id}/edit(id=${tournament.id})}">Bearbeiten</a>
 </p>
 
+<p>
+  <a th:href="@{/registrations(tournamentId=${tournament.id})}">Anmeldungen dieses Turniers anzeigen</a>
+</p>
+
+<p>
+  <a th:href="@{/registrations/new(tournamentId=${tournament.id})}">Neue Anmeldung für dieses Turnier anlegen</a>
+</p>
+
 <form th:action="@{/tournaments/{id}/delete(id=${tournament.id})}"
       method="post"
       onsubmit="return confirm('Möchten Sie dieses Turnier wirklich löschen?');">
@@ -33,5 +41,10 @@
 <p>
   <a href="/tournaments">Zurück zur Turnierliste</a>
 </p>
+
+<p>
+  <a th:href="@{/tournaments/{id}/startlist(id=${tournament.id})}">Startliste anzeigen</a>
+</p>
+
 </body>
 </html>

@@ -1,5 +1,8 @@
 package com.evlaleyla.gotournamentmanager.backend.tournament;
 
+import com.evlaleyla.gotournamentmanager.backend.participant.Participant;
+import com.evlaleyla.gotournamentmanager.backend.registration.Registration;
+import com.evlaleyla.gotournamentmanager.backend.registration.RegistrationService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,14 +13,24 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import java.nio.charset.StandardCharsets;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 @Controller
 public class TournamentController {
 
     private final TournamentService tournamentService;
+    private final RegistrationService registrationService;
 
-    public TournamentController(TournamentService tournamentService) {
+    public TournamentController(TournamentService tournamentService,
+                                RegistrationService registrationService) {
         this.tournamentService = tournamentService;
+        this.registrationService = registrationService;
     }
 
     @GetMapping("/tournaments")
@@ -126,5 +139,71 @@ public class TournamentController {
                     "Die Anmeldefrist darf nicht nach dem Startdatum liegen."
             );
         }
+    }
+
+    @GetMapping("/public/tournaments/{id}")
+    public String showPublicTournamentDetail(@PathVariable Long id, Model model) {
+        model.addAttribute("tournament", tournamentService.findById(id));
+        return "public-tournament-detail";
+    }
+
+    @GetMapping("public/tournaments")
+    public String showPublicTournaments(Model model){
+        model.addAttribute("tournaments", tournamentService.findAll());
+        return "public-torunaments";
+    }
+
+    @GetMapping("/tournaments/{id}/startlist")
+    public String showTournamentStartList(@PathVariable Long id, Model model) {
+        model.addAttribute("tournament", tournamentService.findById(id));
+        model.addAttribute("registrations", registrationService.findStartListByTournamentId(id));
+        return "tournament-startlist";
+    }
+    @GetMapping("/tournaments/{id}/startlist/export")
+    public ResponseEntity<byte[]> exportTournamentStartList(@PathVariable Long id) {
+        Tournament tournament = tournamentService.findById(id);
+        List<Registration> registrations = registrationService.findStartListByTournamentId(id);
+
+        StringBuilder csv = new StringBuilder();
+
+        csv.append("Nr,Nachname,Vorname,E-Mail,Verein,Land,Rang,Geburtsdatum,Anmeldedatum\n");
+
+        for (int i = 0; i < registrations.size(); i++) {
+            Registration registration = registrations.get(i);
+            Participant participant = registration.getParticipant();
+
+            csv.append(i + 1).append(",");
+            csv.append(escapeCsv(participant.getLastName())).append(",");
+            csv.append(escapeCsv(participant.getFirstName())).append(",");
+            csv.append(escapeCsv(participant.getEmail())).append(",");
+            csv.append(escapeCsv(participant.getClub())).append(",");
+            csv.append(escapeCsv(participant.getCountry())).append(",");
+            csv.append(escapeCsv(participant.getRank())).append(",");
+            csv.append(escapeCsv(formatDate(participant.getBirthDate()))).append(",");
+            csv.append(escapeCsv(formatDate(registration.getRegistrationDate()))).append("\n");
+        }
+
+        String fileName = "startliste_" + tournament.getName().replaceAll("[^a-zA-Z0-9-_]", "_") + ".csv";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+                .body(csv.toString().getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String escapeCsv(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        String escapedValue = value.replace("\"", "\"\"");
+        return "\"" + escapedValue + "\"";
+    }
+
+    private String formatDate(java.time.LocalDate date) {
+        if (date == null) {
+            return "";
+        }
+        return date.format(DateTimeFormatter.ISO_DATE);
     }
 }

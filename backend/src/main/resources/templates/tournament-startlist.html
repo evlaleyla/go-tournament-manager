@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Startliste</title>
+</head>
+<body>
+<h1>Startliste</h1>
+
+<h2 th:text="${tournament.name}"></h2>
+
+<p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
+<p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
+<p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
+
+<p>
+    <a th:href="@{/tournaments/{id}/startlist/export(id=${tournament.id})}">
+        Startliste als CSV exportieren
+    </a>
+</p>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>Nr.</th>
+        <th>Nachname</th>
+        <th>Vorname</th>
+        <th>E-Mail</th>
+        <th>Verein</th>
+        <th>Land</th>
+        <th>Rang</th>
+        <th>Geburtsdatum</th>
+        <th>Anmeldedatum</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="registration, stat : ${registrations}">
+        <td th:text="${stat.count}"></td>
+        <td th:text="${registration.participant.lastName}"></td>
+        <td th:text="${registration.participant.firstName}"></td>
+        <td th:text="${registration.participant.email}"></td>
+        <td th:text="${registration.participant.club}"></td>
+        <td th:text="${registration.participant.country}"></td>
+        <td th:text="${registration.participant.rank}"></td>
+        <td th:text="${registration.participant.birthDate}"></td>
+        <td th:text="${registration.registrationDate}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<p th:if="${#lists.isEmpty(registrations)}">
+    Für dieses Turnier liegen noch keine Anmeldungen vor.
+</p>
+
+<p>
+    <a th:href="@{/tournaments/{id}(id=${tournament.id})}">Zurück zu den Turnierdetails</a>
+</p>
+</body>
+</html>
