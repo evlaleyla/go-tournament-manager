@@ -13,4 +13,6 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     List<Registration> findByTournamentIdOrderByParticipantLastNameAscParticipantFirstNameAsc(Long tournamentId);
 
     boolean existsByTournamentIdAndParticipantId(Long tournamentId, Long participantId);
+
+    void deleteByTournamentId(Long tournamentId);
 }

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Paarungen und Ergebnisse</title>
+</head>
+<body>
+<h1>Paarungen und Ergebnisse</h1>
+
+<h2 th:text="${tournament.name}"></h2>
+
+<p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
+<p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
+<p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
+
+<table border="1">
+    <thead>
+    <tr>
+        <th>Runde</th>
+        <th>Tisch</th>
+        <th>Schwarz</th>
+        <th>Weiß</th>
+        <th>Ergebnis</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="pairing : ${pairings}">
+        <td th:text="${pairing.roundNumber}"></td>
+        <td th:text="${pairing.tableNumber}"></td>
+        <td th:text="${pairing.blackPlayer}"></td>
+        <td th:text="${pairing.whitePlayer}"></td>
+        <td th:text="${pairing.resultDisplay}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<p th:if="${#lists.isEmpty(pairings)}">
+    Für dieses Turnier liegen derzeit noch keine veröffentlichten Paarungen vor.
+</p>
+
+<p>
+    <a th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+        Zurück zur Turnierseite
+    </a>
+</p>
+</body>
+</html>

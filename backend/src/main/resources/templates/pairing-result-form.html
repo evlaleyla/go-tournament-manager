@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Ergebnis bearbeiten</title>
+</head>
+<body>
+<h1>Ergebnis bearbeiten</h1>
+
+<div th:if="${errorMessage}">
+    <p th:text="${errorMessage}"></p>
+</div>
+
+<p><strong>Turnier:</strong> <span th:text="${pairing.tournament.name}"></span></p>
+<p><strong>Runde:</strong> <span th:text="${pairing.roundNumber}"></span></p>
+<p><strong>Tisch:</strong> <span th:text="${pairing.tableNumber}"></span></p>
+<p><strong>Schwarz:</strong> <span th:text="${pairing.blackPlayer}"></span></p>
+<p><strong>Weiß:</strong> <span th:text="${pairing.whitePlayer}"></span></p>
+<p><strong>Aktuelles Ergebnis:</strong> <span th:text="${pairing.resultDisplay}"></span></p>
+
+<form th:action="@{/pairings/{id}/result(id=${pairing.id})}"
+      th:object="${pairingResultForm}"
+      method="post">
+
+    <div>
+        <label for="resultOption">Ergebnis:</label>
+        <select id="resultOption" th:field="*{resultOption}" onchange="togglePointMargin()">
+            <option value="">Bitte wählen</option>
+            <option value="BLACK_POINTS">Schwarz gewinnt nach Punkten</option>
+            <option value="WHITE_POINTS">Weiß gewinnt nach Punkten</option>
+            <option value="BLACK_RESIGNATION">Schwarz gewinnt durch Aufgabe</option>
+            <option value="WHITE_RESIGNATION">Weiß gewinnt durch Aufgabe</option>
+            <option value="BLACK_TIME">Schwarz gewinnt auf Zeit</option>
+            <option value="WHITE_TIME">Weiß gewinnt auf Zeit</option>
+            <option value="BLACK_FORFEIT">Schwarz gewinnt kampflos</option>
+            <option value="WHITE_FORFEIT">Weiß gewinnt kampflos</option>
+            <option value="JIGO">Jigo</option>
+        </select>
+    </div>
+
+    <div id="pointMarginBlock">
+        <label for="pointMargin">Punktedifferenz:</label>
+        <input type="text" id="pointMargin" th:field="*{pointMargin}" placeholder="z. B. 0.5 oder 5.5">
+    </div>
+
+    <div>
+        <button type="submit">Ergebnis speichern</button>
+    </div>
+</form>
+
+<p>
+    <a th:href="@{/tournaments/{id}/pairings(id=${pairing.tournament.id})}">
+        Zurück zur Paarungsliste
+    </a>
+</p>
+
+<script>
+    function togglePointMargin() {
+        const select = document.getElementById('resultOption');
+        const pointMarginBlock = document.getElementById('pointMarginBlock');
+        const needsPoints =
+            select.value === 'BLACK_POINTS' ||
+            select.value === 'WHITE_POINTS';
+
+        pointMarginBlock.style.display = needsPoints ? 'block' : 'none';
+    }
+
+    document.addEventListener('DOMContentLoaded', togglePointMargin);
+</script>
+</body>
+</html>

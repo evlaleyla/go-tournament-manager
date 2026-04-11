@@ -147,10 +147,10 @@ public class TournamentController {
         return "public-tournament-detail";
     }
 
-    @GetMapping("public/tournaments")
+    @GetMapping("/public/tournaments")
     public String showPublicTournaments(Model model){
         model.addAttribute("tournaments", tournamentService.findAll());
-        return "public-torunaments";
+        return "public-tournaments";
     }
 
     @GetMapping("/tournaments/{id}/startlist")
@@ -166,20 +166,20 @@ public class TournamentController {
 
         StringBuilder csv = new StringBuilder();
 
-        csv.append("Nr,Nachname,Vorname,E-Mail,Verein,Land,Rang,Geburtsdatum,Anmeldedatum\n");
+        csv.append("Nr;Nachname;Vorname;E-Mail;Verein;Land;Rang;Geburtsdatum;Anmeldedatum\n");
 
         for (int i = 0; i < registrations.size(); i++) {
             Registration registration = registrations.get(i);
             Participant participant = registration.getParticipant();
 
-            csv.append(i + 1).append(",");
-            csv.append(escapeCsv(participant.getLastName())).append(",");
-            csv.append(escapeCsv(participant.getFirstName())).append(",");
-            csv.append(escapeCsv(participant.getEmail())).append(",");
-            csv.append(escapeCsv(participant.getClub())).append(",");
-            csv.append(escapeCsv(participant.getCountry())).append(",");
-            csv.append(escapeCsv(participant.getRank())).append(",");
-            csv.append(escapeCsv(formatDate(participant.getBirthDate()))).append(",");
+            csv.append(i + 1).append(";");
+            csv.append(escapeCsv(participant.getLastName())).append(";");
+            csv.append(escapeCsv(participant.getFirstName())).append(";");
+            csv.append(escapeCsv(participant.getEmail())).append(";");
+            csv.append(escapeCsv(participant.getClub())).append(";");
+            csv.append(escapeCsv(participant.getCountry())).append(";");
+            csv.append(escapeCsv(participant.getRank())).append(";");
+            csv.append(escapeCsv(formatDate(participant.getBirthDate()))).append(";");
             csv.append(escapeCsv(formatDate(registration.getRegistrationDate()))).append("\n");
         }
 
@@ -188,7 +188,18 @@ public class TournamentController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
                 .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
-                .body(csv.toString().getBytes(StandardCharsets.UTF_8));
+                .body(addUtf8Bom(csv.toString()));
+    }
+
+    private byte[] addUtf8Bom(String content) {
+        byte[] bom = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
+        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
+
+        byte[] result = new byte[bom.length + bytes.length];
+        System.arraycopy(bom, 0, result, 0, bom.length);
+        System.arraycopy(bytes, 0, result, bom.length, bytes.length);
+
+        return result;
     }
 
     private String escapeCsv(String value) {

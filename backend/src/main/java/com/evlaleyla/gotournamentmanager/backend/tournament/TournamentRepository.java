@@ -7,11 +7,11 @@ import java.util.List;
 
 public interface TournamentRepository extends JpaRepository<Tournament, Long> {
 
-    List<Tournament> findByNameContainingIgnoreCaseOrderByStartDateAsc(String name);
+    List<Tournament> findByNameContainingIgnoreCase(String name);
 
-    List<Tournament> findByStatusOrderByStartDateAsc(TournamentStatus status);
+    List<Tournament> findByStatus(TournamentStatus status);
 
-    List<Tournament> findByNameContainingIgnoreCaseAndStatusOrderByStartDateAsc(String name, TournamentStatus status);
+    List<Tournament> findByNameContainingIgnoreCaseAndStatus(String name, TournamentStatus status);
 
     @Query("select distinct t.name from Tournament t order by t.name asc")
     List<String> findDistinctNames();

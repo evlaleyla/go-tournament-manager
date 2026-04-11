@@ -1,6 +1,9 @@
 package com.evlaleyla.gotournamentmanager.backend.tournament;
 
+import com.evlaleyla.gotournamentmanager.backend.pairing.PairingRepository;
+import com.evlaleyla.gotournamentmanager.backend.registration.RegistrationRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -8,39 +11,19 @@ import java.util.List;
 public class TournamentService {
 
     private final TournamentRepository tournamentRepository;
+    private final RegistrationRepository registrationRepository;
+    private final PairingRepository pairingRepository;
 
-    public TournamentService(TournamentRepository tournamentRepository) {
+    public TournamentService(TournamentRepository tournamentRepository,
+                             RegistrationRepository registrationRepository,
+                             PairingRepository pairingRepository) {
         this.tournamentRepository = tournamentRepository;
+        this.registrationRepository = registrationRepository;
+        this.pairingRepository = pairingRepository;
     }
 
     public List<Tournament> findAll() {
         return tournamentRepository.findAll();
-    }
-
-    public List<String> findDistinctNames() {
-        return tournamentRepository.findDistinctNames();
-    }
-
-    public List<Tournament> search(String search, TournamentStatus status) {
-        boolean hasSearch = search != null && !search.isBlank();
-        boolean hasStatus = status != null;
-
-        if (hasSearch && hasStatus) {
-            return tournamentRepository.findByNameContainingIgnoreCaseAndStatusOrderByStartDateAsc(search, status);
-        }
-
-        if (hasSearch) {
-            return tournamentRepository.findByNameContainingIgnoreCaseOrderByStartDateAsc(search);
-        }
-
-        if (hasStatus) {
-            return tournamentRepository.findByStatusOrderByStartDateAsc(status);
-        }
-
-        return tournamentRepository.findAll()
-                .stream()
-                .sorted((a, b) -> a.getStartDate().compareTo(b.getStartDate()))
-                .toList();
     }
 
     public Tournament save(Tournament tournament) {
@@ -59,14 +42,40 @@ public class TournamentService {
         existingTournament.setLocation(updatedTournament.getLocation());
         existingTournament.setStartDate(updatedTournament.getStartDate());
         existingTournament.setEndDate(updatedTournament.getEndDate());
-        existingTournament.setRegistrationDeadline(updatedTournament.getRegistrationDeadline());
         existingTournament.setDescription(updatedTournament.getDescription());
         existingTournament.setStatus(updatedTournament.getStatus());
+        existingTournament.setRegistrationDeadline(updatedTournament.getRegistrationDeadline());
 
         return tournamentRepository.save(existingTournament);
     }
 
+    public List<Tournament> search(String search, TournamentStatus status) {
+        boolean hasSearch = search != null && !search.isBlank();
+        boolean hasStatus = status != null;
+
+        if (hasSearch && hasStatus) {
+            return tournamentRepository.findByNameContainingIgnoreCaseAndStatus(search, status);
+        }
+
+        if (hasSearch) {
+            return tournamentRepository.findByNameContainingIgnoreCase(search);
+        }
+
+        if (hasStatus) {
+            return tournamentRepository.findByStatus(status);
+        }
+
+        return tournamentRepository.findAll();
+    }
+
+    public List<String> findDistinctNames() {
+        return tournamentRepository.findDistinctNames();
+    }
+
+    @Transactional
     public void deleteById(Long id) {
+        pairingRepository.deleteByTournamentId(id);
+        registrationRepository.deleteByTournamentId(id);
         tournamentRepository.deleteById(id);
     }
 }
