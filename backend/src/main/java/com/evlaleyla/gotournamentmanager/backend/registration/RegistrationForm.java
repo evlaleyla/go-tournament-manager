@@ -1,5 +1,6 @@
 package com.evlaleyla.gotournamentmanager.backend.registration;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 
 public class RegistrationForm {
@@ -9,6 +10,10 @@ public class RegistrationForm {
 
     @NotNull(message = "Bitte einen Teilnehmer auswählen.")
     private Long participantId;
+
+    @NotNull(message = "Bitte die geplante Rundenzahl angeben.")
+    @Min(value = 1, message = "Die geplante Rundenzahl muss mindestens 1 sein.")
+    private Integer plannedRounds;
 
     private String notes;
 
@@ -29,6 +34,14 @@ public class RegistrationForm {
 
     public void setParticipantId(Long participantId) {
         this.participantId = participantId;
+    }
+
+    public Integer getPlannedRounds() {
+        return plannedRounds;
+    }
+
+    public void setPlannedRounds(Integer plannedRounds) {
+        this.plannedRounds = plannedRounds;
     }
 
     public String getNotes() {

@@ -15,7 +15,11 @@
 <p><strong>Turnier:</strong> <span th:text="${registration.tournament.name}"></span></p>
 <p><strong>Teilnehmer:</strong> <span th:text="${registration.participant.fullName}"></span></p>
 <p><strong>Anmeldedatum:</strong> <span th:text="${registration.registrationDate}"></span></p>
+<p><strong>Geplante Rundenzahl:</strong> <span th:text="${registration.plannedRounds}"></span></p>
 <p><strong>Notizen:</strong> <span th:text="${registration.notes}"></span></p>
+<p><strong>Verein bei Anmeldung:</strong> <span th:text="${registration.clubAtRegistration}"></span></p>
+<p><strong>Land bei Anmeldung:</strong> <span th:text="${registration.countryAtRegistration}"></span></p>
+<p><strong>Rang bei Anmeldung:</strong> <span th:text="${registration.rankAtRegistration}"></span></p>
 
 <form th:action="@{/registrations/{id}/delete(id=${registration.id})}"
       method="post"

@@ -31,6 +31,10 @@ public class Tournament {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate registrationDeadline;
 
+    @NotNull(message = "Die Anzahl der Runden ist erforderlich.")
+    @Min(value = 1, message = "Die Anzahl der Runden muss mindestens 1 sein.")
+    private Integer numberOfRounds;
+
     private String description;
 
     @NotNull(message = "Der Status ist erforderlich.")
@@ -41,23 +45,20 @@ public class Tournament {
     }
 
     public Tournament(String name, String location, LocalDate startDate, LocalDate endDate,
-                      LocalDate registrationDeadline,
+                      LocalDate registrationDeadline, Integer numberOfRounds,
                       String description, TournamentStatus status) {
         this.name = name;
         this.location = location;
         this.startDate = startDate;
         this.endDate = endDate;
         this.registrationDeadline = registrationDeadline;
+        this.numberOfRounds = numberOfRounds;
         this.description = description;
         this.status = status;
     }
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {
@@ -80,6 +81,9 @@ public class Tournament {
         return registrationDeadline;
     }
 
+    public Integer getNumberOfRounds() {
+        return numberOfRounds;
+    }
 
     public String getDescription() {
         return description;
@@ -87,6 +91,10 @@ public class Tournament {
 
     public TournamentStatus getStatus() {
         return status;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public void setName(String name) {
@@ -107,6 +115,10 @@ public class Tournament {
 
     public void setRegistrationDeadline(LocalDate registrationDeadline) {
         this.registrationDeadline = registrationDeadline;
+    }
+
+    public void setNumberOfRounds(Integer numberOfRounds) {
+        this.numberOfRounds = numberOfRounds;
     }
 
     public void setDescription(String description) {

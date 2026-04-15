@@ -43,7 +43,14 @@ public class ParticipantController {
             return "participant-form";
         }
 
-        participantService.save(participant);
+        try {
+            participantService.save(participant);
+        } catch (IllegalArgumentException e) {
+            bindingResult.rejectValue("email", "participant.email.duplicate", e.getMessage());
+            model.addAttribute("isEdit", false);
+            return "participant-form";
+        }
+
         redirectAttributes.addFlashAttribute("successMessage", "Teilnehmer wurde erfolgreich angelegt.");
         return "redirect:/participants";
     }
@@ -75,7 +82,14 @@ public class ParticipantController {
             return "participant-form";
         }
 
-        participantService.update(id, participant);
+        try {
+            participantService.update(id, participant);
+        } catch (IllegalArgumentException e) {
+            bindingResult.rejectValue("email", "participant.email.duplicate", e.getMessage());
+            model.addAttribute("isEdit", true);
+            return "participant-form";
+        }
+
         redirectAttributes.addFlashAttribute("successMessage", "Teilnehmer wurde erfolgreich aktualisiert.");
         return "redirect:/participants/" + id;
     }
@@ -83,8 +97,13 @@ public class ParticipantController {
     @PostMapping("/participants/{id}/delete")
     public String deleteParticipant(@PathVariable Long id,
                                     RedirectAttributes redirectAttributes) {
-        participantService.deleteById(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Teilnehmer wurde erfolgreich gelöscht.");
-        return "redirect:/participants";
+        try {
+            participantService.deleteById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Teilnehmer wurde erfolgreich gelöscht.");
+            return "redirect:/participants";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/participants/" + id;
+        }
     }
 }

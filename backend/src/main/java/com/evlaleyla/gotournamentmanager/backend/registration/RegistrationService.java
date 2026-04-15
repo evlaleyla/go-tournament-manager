@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class RegistrationService {
@@ -59,49 +60,66 @@ public class RegistrationService {
 
     public Registration create(RegistrationForm registrationForm) {
         Tournament tournament = tournamentRepository.findById(registrationForm.getTournamentId())
-                .orElseThrow(() -> new IllegalArgumentException("Tournament not found: " + registrationForm.getTournamentId()));
+                .orElseThrow(() -> new IllegalArgumentException("Turnier nicht gefunden: " + registrationForm.getTournamentId()));
 
         Participant participant = participantRepository.findById(registrationForm.getParticipantId())
-                .orElseThrow(() -> new IllegalArgumentException("Participant not found: " + registrationForm.getParticipantId()));
+                .orElseThrow(() -> new IllegalArgumentException("Teilnehmer nicht gefunden: " + registrationForm.getParticipantId()));
 
         Registration registration = new Registration(
                 tournament,
                 participant,
                 LocalDate.now(),
+                registrationForm.getPlannedRounds(),
+                participant.getRank(),
+                participant.getClub(),
+                participant.getCountry(),
                 registrationForm.getNotes()
         );
 
         return registrationRepository.save(registration);
     }
-
     public Registration createPublicRegistration(Long tournamentId, SelfRegistrationForm form) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
-                .orElseThrow(() -> new IllegalArgumentException("Tournament not found: " + tournamentId));
+                .orElseThrow(() -> new IllegalArgumentException("Turnier nicht gefunden: " + tournamentId));
 
-        Participant participant = participantRepository.findByEmailIgnoreCase(form.getEmail().trim())
-                .orElseGet(Participant::new);
+        String normalizedEmail = form.getEmail().trim().toLowerCase(java.util.Locale.ROOT);
 
-        participant.setFirstName(form.getFirstName());
-        participant.setLastName(form.getLastName());
-        participant.setEmail(form.getEmail().trim());
-        participant.setClub(form.getClub());
-        participant.setCountry(form.getCountry());
-        participant.setRank(form.getRank());
-        participant.setBirthDate(form.getBirthDate());
-
-        participant = participantRepository.save(participant);
+        Participant participant = participantRepository.findByEmailIgnoreCase(normalizedEmail)
+                .orElseGet(() -> {
+                    Participant newParticipant = new Participant();
+                    newParticipant.setFirstName(form.getFirstName());
+                    newParticipant.setLastName(form.getLastName());
+                    newParticipant.setEmail(normalizedEmail);
+                    newParticipant.setClub(form.getClub());
+                    newParticipant.setCountry(form.getCountry());
+                    newParticipant.setRank(form.getRank());
+                    newParticipant.setBirthDate(form.getBirthDate());
+                    return participantRepository.save(newParticipant);
+                });
 
         Registration registration = new Registration(
                 tournament,
                 participant,
                 LocalDate.now(),
+                form.getPlannedRounds(),
+                form.getRank(),
+                form.getClub(),
+                form.getCountry(),
                 form.getNotes()
         );
 
         return registrationRepository.save(registration);
     }
-
     public void deleteById(Long id) {
         registrationRepository.deleteById(id);
+    }
+
+    public List<Registration> findStartListByTournamentIdAndRound(Long tournamentId, int roundNumber) {
+        return registrationRepository
+                .findByTournamentIdOrderByParticipantLastNameAscParticipantFirstNameAsc(tournamentId)
+                .stream()
+                .filter(registration -> registration.getPlannedRounds() != null
+                        && registration.getPlannedRounds() >= roundNumber)
+                .collect(Collectors.toList());
     }
 }

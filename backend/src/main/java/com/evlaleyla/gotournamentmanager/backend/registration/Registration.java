@@ -3,6 +3,9 @@ package com.evlaleyla.gotournamentmanager.backend.registration;
 import com.evlaleyla.gotournamentmanager.backend.participant.Participant;
 import com.evlaleyla.gotournamentmanager.backend.tournament.Tournament;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
@@ -28,16 +31,38 @@ public class Registration {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate registrationDate;
 
+    @NotNull(message = "Die geplante Rundenzahl ist erforderlich.")
+    @Min(value = 1, message = "Die geplante Rundenzahl muss mindestens 1 sein.")
+    private Integer plannedRounds;
+
+    @NotBlank(message = "Der Rang ist erforderlich.")
+    private String rankAtRegistration;
+
+    private String clubAtRegistration;
+
+    private String countryAtRegistration;
+
     @Column(length = 1000)
     private String notes;
 
     public Registration() {
     }
 
-    public Registration(Tournament tournament, Participant participant, LocalDate registrationDate, String notes) {
+    public Registration(Tournament tournament,
+                        Participant participant,
+                        LocalDate registrationDate,
+                        Integer plannedRounds,
+                        String rankAtRegistration,
+                        String clubAtRegistration,
+                        String countryAtRegistration,
+                        String notes) {
         this.tournament = tournament;
         this.participant = participant;
         this.registrationDate = registrationDate;
+        this.plannedRounds = plannedRounds;
+        this.rankAtRegistration = rankAtRegistration;
+        this.clubAtRegistration = clubAtRegistration;
+        this.countryAtRegistration = countryAtRegistration;
         this.notes = notes;
     }
 
@@ -55,6 +80,22 @@ public class Registration {
 
     public LocalDate getRegistrationDate() {
         return registrationDate;
+    }
+
+    public Integer getPlannedRounds() {
+        return plannedRounds;
+    }
+
+    public String getRankAtRegistration() {
+        return rankAtRegistration;
+    }
+
+    public String getClubAtRegistration() {
+        return clubAtRegistration;
+    }
+
+    public String getCountryAtRegistration() {
+        return countryAtRegistration;
     }
 
     public String getNotes() {
@@ -75,6 +116,22 @@ public class Registration {
 
     public void setRegistrationDate(LocalDate registrationDate) {
         this.registrationDate = registrationDate;
+    }
+
+    public void setPlannedRounds(Integer plannedRounds) {
+        this.plannedRounds = plannedRounds;
+    }
+
+    public void setRankAtRegistration(String rankAtRegistration) {
+        this.rankAtRegistration = rankAtRegistration;
+    }
+
+    public void setClubAtRegistration(String clubAtRegistration) {
+        this.clubAtRegistration = clubAtRegistration;
+    }
+
+    public void setCountryAtRegistration(String countryAtRegistration) {
+        this.countryAtRegistration = countryAtRegistration;
     }
 
     public void setNotes(String notes) {

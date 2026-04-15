@@ -5,7 +5,7 @@
     <title>Paarungen</title>
 </head>
 <body>
-<h1>Paarungen</h1>
+<h1>Paarungen und Ergebnisse</h1>
 
 <h2 th:text="${tournament.name}"></h2>
 
@@ -19,76 +19,71 @@
 
 <h3>Formatdefinition der Schnittstelle</h3>
 
-<p><strong>Paarungsimport:</strong> CSV mit den Spalten
-    <code>Runde,Tisch,Schwarz,Weiß,Ergebnis</code>
+<p><strong>Runden-CSV:</strong> CSV mit den Spalten
+    <code>Runde;Tisch;Schwarz;Weiß;Ergebnis</code>
 </p>
 
-<p><strong>Ergebnisimport:</strong> CSV mit den Spalten
-    <code>Runde,Tisch,Ergebnis</code>
-</p>
+<p>Bitte pro Upload nur Daten für genau eine Runde verwenden.</p>
 
-<p>
-    <a th:href="@{/tournaments/{id}/pairings/template(id=${tournament.id})}">
-        Beispieldatei für Paarungen herunterladen
-    </a>
-    |
-    <a th:href="@{/tournaments/{id}/results/template(id=${tournament.id})}">
-        Beispieldatei für Ergebnisse herunterladen
-    </a>
-</p>
+<p>Die Spalte <strong>Ergebnis</strong> kann beim ersten Upload leer bleiben.
+    Später kann dieselbe CSV-Datei mit eingetragenen Ergebnissen erneut hochgeladen werden.</p>
 
-<h3>Paarungen importieren</h3>
+<div th:each="round : ${availableRounds}"
+     th:with="roundPairings=${pairingsByRound.get(round)}">
 
-<form th:action="@{/tournaments/{id}/pairings/import(id=${tournament.id})}"
-      method="post"
-      enctype="multipart/form-data">
-    <div>
-        <input type="file" name="file" accept=".csv">
-        <button type="submit">Paarungs-CSV importieren</button>
-    </div>
-</form>
+    <details th:attr="id='round-' + ${round}" th:open="${round == 1}">
+        <summary>
+            <strong>Runde <span th:text="${round}"></span></strong>
+        </summary>
 
-<h3>Ergebnisse importieren</h3>
+        <h3 th:text="'Paarungen für Runde ' + ${round}"></h3>
 
-<form th:action="@{/tournaments/{id}/results/import(id=${tournament.id})}"
-      method="post"
-      enctype="multipart/form-data">
-    <div>
-        <input type="file" name="file" accept=".csv">
-        <button type="submit">Ergebnis-CSV importieren</button>
-    </div>
-</form>
+        <p>
+            <a th:href="@{/tournaments/{id}/pairings/template(id=${tournament.id}, round=${round})}">
+                Beispieldatei für Paarungen dieser Runde herunterladen
+            </a>
+        </p>
 
-<h3>Importierte Paarungen</h3>
+        <form th:action="@{/tournaments/{id}/pairings/import(id=${tournament.id})}"
+              method="post"
+              enctype="multipart/form-data">
+            <input type="hidden" name="roundSection" th:value="${round}">
+            <div>
+                <input type="file" name="file" accept=".csv">
+                <button type="submit">CSV für Paarungen und Ergebnisse importieren</button>
+            </div>
+        </form>
 
-<table border="1">
-    <thead>
-    <tr>
-        <th>Runde</th>
-        <th>Tisch</th>
-        <th>Schwarz</th>
-        <th>Weiß</th>
-        <th>Ergebnis</th>
-        <th>Aktion</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="pairing : ${pairings}">
-        <td th:text="${pairing.roundNumber}"></td>
-        <td th:text="${pairing.tableNumber}"></td>
-        <td th:text="${pairing.blackPlayer}"></td>
-        <td th:text="${pairing.whitePlayer}"></td>
-        <td th:text="${pairing.resultDisplay}"></td>
-        <td>
-            <a th:href="@{/pairings/{id}/result(id=${pairing.id})}">Ergebnis bearbeiten</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+        <table border="1">
+            <thead>
+            <tr>
+                <th>Tisch</th>
+                <th>Schwarz</th>
+                <th>Weiß</th>
+                <th>Ergebnis</th>
+                <th>Aktion</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="pairing : ${roundPairings}">
+                <td th:text="${pairing.tableNumber}"></td>
+                <td th:text="${pairing.blackPlayer}"></td>
+                <td th:text="${pairing.whitePlayer}"></td>
+                <td th:text="${pairing.resultDisplay}"></td>
+                <td>
+                    <a th:href="@{/pairings/{id}/result(id=${pairing.id})}">Ergebnis bearbeiten</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
 
-<p th:if="${#lists.isEmpty(pairings)}">
-    Für dieses Turnier wurden noch keine Paarungen importiert.
-</p>
+        <p th:if="${#lists.isEmpty(roundPairings)}">
+            Für diese Runde wurden noch keine Paarungen importiert.
+        </p>
+    </details>
+
+    <hr>
+</div>
 
 <p>
     <a th:href="@{/tournaments/{id}(id=${tournament.id})}">Zurück zu den Turnierdetails</a>

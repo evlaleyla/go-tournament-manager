@@ -1,9 +1,6 @@
 package com.evlaleyla.gotournamentmanager.backend.participant;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
@@ -24,7 +21,9 @@ public class Participant {
     @NotBlank(message = "Der Nachname darf nicht leer sein.")
     private String lastName;
 
+    @NotBlank(message = "Die E-Mail-Adresse darf nicht leer sein.")
     @Email(message = "Bitte eine gültige E-Mail-Adresse eingeben.")
+    @Column(nullable = false, unique = true)
     private String email;
 
     private String club;

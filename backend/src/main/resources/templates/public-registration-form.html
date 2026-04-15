@@ -68,6 +68,12 @@
     </div>
 
     <div>
+        <label for="plannedRounds">Wie viele Runden spielst du mit?</label>
+        <input type="number" id="plannedRounds" th:field="*{plannedRounds}" min="1">
+        <div th:if="${#fields.hasErrors('plannedRounds')}" th:errors="*{plannedRounds}"></div>
+    </div>
+
+    <div>
         <label for="notes">Notizen:</label>
         <textarea id="notes" th:field="*{notes}"></textarea>
     </div>

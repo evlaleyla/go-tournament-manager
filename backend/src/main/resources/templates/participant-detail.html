@@ -11,6 +11,10 @@
     <p th:text="${successMessage}"></p>
 </div>
 
+<div th:if="${errorMessage}">
+    <p th:text="${errorMessage}"></p>
+</div>
+
 <p><strong>ID:</strong> <span th:text="${participant.id}"></span></p>
 <p><strong>Vorname:</strong> <span th:text="${participant.firstName}"></span></p>
 <p><strong>Nachname:</strong> <span th:text="${participant.lastName}"></span></p>

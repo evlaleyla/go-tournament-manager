@@ -38,7 +38,11 @@
         <th>Turnier</th>
         <th>Teilnehmer</th>
         <th>Anmeldedatum</th>
+        <th>Geplante Runden</th>
         <th>Aktionen</th>
+        <th>Verein</th>
+        <th>Land</th>
+        <th>Rang</th>
     </tr>
     </thead>
     <tbody>
@@ -47,9 +51,13 @@
         <td th:text="${registration.tournament.name}"></td>
         <td th:text="${registration.participant.fullName}"></td>
         <td th:text="${registration.registrationDate}"></td>
+        <td th:text="${registration.plannedRounds}"></td>
         <td>
             <a th:href="@{/registrations/{id}(id=${registration.id})}">Details</a>
         </td>
+        <td th:text="${registration.clubAtRegistration}"></td>
+        <td th:text="${registration.countryAtRegistration}"></td>
+        <td th:text="${registration.rankAtRegistration}"></td>
     </tr>
     </tbody>
 </table>

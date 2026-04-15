@@ -69,6 +69,8 @@ public class RegistrationController {
                                      RedirectAttributes redirectAttributes) {
 
         validateRegistrationDate(registrationForm, bindingResult);
+        validatePlannedRounds(registrationForm.getTournamentId(), registrationForm.getPlannedRounds(), bindingResult);
+
 
         if (registrationService.existsByTournamentIdAndParticipantId(
                 registrationForm.getTournamentId(),
@@ -88,6 +90,22 @@ public class RegistrationController {
         Registration registration = registrationService.create(registrationForm);
         redirectAttributes.addFlashAttribute("successMessage", "Anmeldung wurde erfolgreich gespeichert.");
         return "redirect:/registrations/" + registration.getId();
+    }
+
+    private void validatePlannedRounds(Long tournamentId, Integer plannedRounds, BindingResult bindingResult) {
+        if (tournamentId == null || plannedRounds == null) {
+            return;
+        }
+
+        Tournament tournament = tournamentService.findById(tournamentId);
+
+        if (tournament.getNumberOfRounds() != null && plannedRounds > tournament.getNumberOfRounds()) {
+            bindingResult.rejectValue(
+                    "plannedRounds",
+                    "registration.plannedRounds.tooHigh",
+                    "Die geplante Rundenzahl darf nicht größer als die Anzahl der Turnierrunden sein."
+            );
+        }
     }
 
     @GetMapping("/tournaments/{id}/register")
@@ -182,5 +200,16 @@ public class RegistrationController {
                     "Mit dieser E-Mail-Adresse besteht bereits eine Anmeldung für dieses Turnier."
             );
         }
+
+        if (form.getPlannedRounds() != null
+                && tournament.getNumberOfRounds() != null
+                && form.getPlannedRounds() > tournament.getNumberOfRounds()) {
+            bindingResult.rejectValue(
+                    "plannedRounds",
+                    "registration.plannedRounds.tooHigh",
+                    "Die geplante Rundenzahl darf nicht größer als die Anzahl der Turnierrunden sein."
+            );
+        }
+
     }
 }

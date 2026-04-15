@@ -20,6 +20,7 @@ import org.springframework.http.ResponseEntity;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Controller
 public class TournamentController {
@@ -154,19 +155,33 @@ public class TournamentController {
     }
 
     @GetMapping("/tournaments/{id}/startlist")
-    public String showTournamentStartList(@PathVariable Long id, Model model) {
-        model.addAttribute("tournament", tournamentService.findById(id));
-        model.addAttribute("registrations", registrationService.findStartListByTournamentId(id));
+    public String showTournamentStartList(@PathVariable Long id,
+                                          @RequestParam(required = false) Integer round,
+                                          Model model) {
+        Tournament tournament = tournamentService.findById(id);
+        int selectedRound = normalizeRound(round, tournament);
+
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("selectedRound", selectedRound);
+        model.addAttribute("availableRounds",
+                IntStream.rangeClosed(1, tournament.getNumberOfRounds()).boxed().toList());
+        model.addAttribute("registrations",
+                registrationService.findStartListByTournamentIdAndRound(id, selectedRound));
+
         return "tournament-startlist";
     }
+
     @GetMapping("/tournaments/{id}/startlist/export")
-    public ResponseEntity<byte[]> exportTournamentStartList(@PathVariable Long id) {
+    public ResponseEntity<byte[]> exportTournamentStartList(@PathVariable Long id,
+                                                            @RequestParam(required = false) Integer round) {
         Tournament tournament = tournamentService.findById(id);
-        List<Registration> registrations = registrationService.findStartListByTournamentId(id);
+        int selectedRound = normalizeRound(round, tournament);
+        List<Registration> registrations =
+                registrationService.findStartListByTournamentIdAndRound(id, selectedRound);
 
         StringBuilder csv = new StringBuilder();
 
-        csv.append("Nr;Nachname;Vorname;E-Mail;Verein;Land;Rang;Geburtsdatum;Anmeldedatum\n");
+        csv.append("Nr;Nachname;Vorname;E-Mail;Verein;Land;Rang;Geburtsdatum;Anmeldedatum;GeplanteRunden\n");
 
         for (int i = 0; i < registrations.size(); i++) {
             Registration registration = registrations.get(i);
@@ -176,19 +191,42 @@ public class TournamentController {
             csv.append(escapeCsv(participant.getLastName())).append(";");
             csv.append(escapeCsv(participant.getFirstName())).append(";");
             csv.append(escapeCsv(participant.getEmail())).append(";");
-            csv.append(escapeCsv(participant.getClub())).append(";");
-            csv.append(escapeCsv(participant.getCountry())).append(";");
-            csv.append(escapeCsv(participant.getRank())).append(";");
+            csv.append(escapeCsv(registration.getClubAtRegistration())).append(";");
+            csv.append(escapeCsv(registration.getCountryAtRegistration())).append(";");
+            csv.append(escapeCsv(registration.getRankAtRegistration())).append(";");
             csv.append(escapeCsv(formatDate(participant.getBirthDate()))).append(";");
-            csv.append(escapeCsv(formatDate(registration.getRegistrationDate()))).append("\n");
+            csv.append(escapeCsv(formatDate(registration.getRegistrationDate()))).append(";");
+            csv.append(escapeCsv(String.valueOf(registration.getPlannedRounds()))).append("\n");
         }
 
-        String fileName = "startliste_" + tournament.getName().replaceAll("[^a-zA-Z0-9-_]", "_") + ".csv";
+        String safeTournamentName = tournament.getName().replaceAll("[^a-zA-Z0-9-_]", "_");
+        String fileName = "startliste_runde_" + selectedRound + "_" + safeTournamentName + ".csv";
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
                 .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
                 .body(addUtf8Bom(csv.toString()));
+    }
+
+    private int normalizeRound(Integer round, Tournament tournament) {
+        Integer numberOfRounds = tournament.getNumberOfRounds();
+
+        if (numberOfRounds == null || numberOfRounds < 1) {
+            throw new IllegalArgumentException("Für dieses Turnier ist keine gültige Rundenzahl definiert.");
+        }
+
+        if (round == null) {
+            return 1;
+        }
+
+        if (round < 1 || round > numberOfRounds) {
+            throw new IllegalArgumentException(
+                    "Die angeforderte Runde " + round +
+                            " ist ungültig. Erlaubt sind nur Runden von 1 bis " + numberOfRounds + "."
+            );
+        }
+
+        return round;
     }
 
     private byte[] addUtf8Bom(String content) {

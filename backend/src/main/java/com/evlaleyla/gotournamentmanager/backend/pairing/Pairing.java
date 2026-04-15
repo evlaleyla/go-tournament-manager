@@ -7,6 +7,11 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
+@Table(
+        uniqueConstraints = @UniqueConstraint(
+                columnNames = {"tournament_id", "round_number", "table_number"}
+        )
+)
 public class Pairing {
 
     @Id
@@ -22,6 +27,7 @@ public class Pairing {
     @Min(value = 1, message = "Die Rundennummer muss mindestens 1 sein.")
     private Integer roundNumber;
 
+    @NotNull(message = "Die Tischnummer ist erforderlich.")
     @Min(value = 1, message = "Die Tischnummer muss mindestens 1 sein.")
     private Integer tableNumber;
 
@@ -101,6 +107,7 @@ public class Pairing {
     public void setResult(String result) {
         this.result = result;
     }
+
     public String getResultDisplay() {
         if (result == null || result.isBlank()) {
             return "offen";

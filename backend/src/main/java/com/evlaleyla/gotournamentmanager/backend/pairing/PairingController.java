@@ -1,19 +1,21 @@
 package com.evlaleyla.gotournamentmanager.backend.pairing;
 
+import com.evlaleyla.gotournamentmanager.backend.tournament.Tournament;
 import com.evlaleyla.gotournamentmanager.backend.tournament.TournamentService;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 
 @Controller
 public class PairingController {
@@ -29,29 +31,44 @@ public class PairingController {
 
     @GetMapping("/tournaments/{id}/pairings")
     public String showTournamentPairings(@PathVariable Long id, Model model) {
-        model.addAttribute("tournament", tournamentService.findById(id));
-        model.addAttribute("pairings", pairingService.findByTournamentId(id));
+        var tournament = tournamentService.findById(id);
+
+        Map<Integer, List<Pairing>> pairingsByRound = new LinkedHashMap<>();
+
+        for (int round = 1; round <= tournament.getNumberOfRounds(); round++) {
+            pairingsByRound.put(round, pairingService.findByTournamentIdAndRound(id, round));
+        }
+
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("pairingsByRound", pairingsByRound);
+        model.addAttribute("availableRounds",
+                IntStream.rangeClosed(1, tournament.getNumberOfRounds()).boxed().toList());
+
         return "tournament-pairings";
     }
 
     @PostMapping("/tournaments/{id}/pairings/import")
     public String importPairings(@PathVariable Long id,
                                  MultipartFile file,
+                                 Integer roundSection,
                                  RedirectAttributes redirectAttributes) {
+
+        String redirectTarget = "redirect:/tournaments/" + id + "/pairings" +
+                (roundSection != null ? "#round-" + roundSection : "");
 
         if (file == null || file.isEmpty()) {
             redirectAttributes.addFlashAttribute("errorMessage", "Bitte eine CSV-Datei auswählen.");
-            return "redirect:/tournaments/" + id + "/pairings";
+            return redirectTarget;
         }
 
         try {
-            pairingService.replacePairingsFromCsv(id, file);
+            pairingService.replacePairingsFromCsv(id, roundSection, file);
             redirectAttributes.addFlashAttribute("successMessage", "Paarungen wurden erfolgreich importiert.");
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
 
-        return "redirect:/tournaments/" + id + "/pairings";
+        return redirectTarget;
     }
 
     @GetMapping("/pairings/{id}/result")
@@ -80,7 +97,8 @@ public class PairingController {
             Pairing updatedPairing = pairingService.updateResult(id, resultCode);
 
             redirectAttributes.addFlashAttribute("successMessage", "Ergebnis wurde erfolgreich gespeichert.");
-            return "redirect:/tournaments/" + updatedPairing.getTournament().getId() + "/pairings";
+            return "redirect:/tournaments/" + updatedPairing.getTournament().getId()
+                    + "/pairings#round-" + updatedPairing.getRoundNumber();
 
         } catch (IllegalArgumentException e) {
             model.addAttribute("pairing", pairing);
@@ -159,63 +177,54 @@ public class PairingController {
 
     @GetMapping("/public/tournaments/{id}/pairings")
     public String showPublicTournamentPairings(@PathVariable Long id, Model model) {
-        model.addAttribute("tournament", tournamentService.findById(id));
-        model.addAttribute("pairings", pairingService.findByTournamentId(id));
+        Tournament tournament = tournamentService.findById(id);
+
+        Map<Integer, List<Pairing>> pairingsByRound = new LinkedHashMap<>();
+
+        for (int round = 1; round <= tournament.getNumberOfRounds(); round++) {
+            pairingsByRound.put(round, pairingService.findByTournamentIdAndRound(id, round));
+        }
+
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("pairingsByRound", pairingsByRound);
+        model.addAttribute("availableRounds",
+                IntStream.rangeClosed(1, tournament.getNumberOfRounds()).boxed().toList());
+
         return "public-tournament-pairings";
     }
 
-    @PostMapping("/tournaments/{id}/results/import")
-    public String importResults(@PathVariable Long id,
-                                MultipartFile file,
-                                RedirectAttributes redirectAttributes) {
-
-        if (file == null || file.isEmpty()) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Bitte eine Ergebnis-CSV-Datei auswählen.");
-            return "redirect:/tournaments/" + id + "/pairings";
-        }
-
-        try {
-            pairingService.importResultsFromCsv(id, file);
-            redirectAttributes.addFlashAttribute("successMessage", "Ergebnisse wurden erfolgreich importiert.");
-        } catch (IllegalArgumentException e) {
-            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
-        }
-
-        return "redirect:/tournaments/" + id + "/pairings";
-    }
-
     @GetMapping("/tournaments/{id}/pairings/template")
-    public ResponseEntity<byte[]> downloadPairingTemplate(@PathVariable Long id) {
-        String csv = """
-        Runde;Tisch;Schwarz;Weiß;Ergebnis
-        1;1;Anna Müller;Max Schmidt;
-        1;2;Lisa Bauer;Tom Weber;
-        2;1;Anna Müller;Lisa Bauer;B+R
-        2;2;Max Schmidt;Tom Weber;W+5.5
-        """;
-        byte[] bom = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
-        byte[] content = csv.getBytes(StandardCharsets.UTF_8);
+    public ResponseEntity<byte[]> downloadPairingTemplate(@PathVariable Long id,
+                                                          @RequestParam Integer round) {
+        Tournament tournament = tournamentService.findById(id);
+        validateRound(round, tournament);
 
-        byte[] csvWithBom = new byte[bom.length + content.length];
-        System.arraycopy(bom, 0, csvWithBom, 0, bom.length);
-        System.arraycopy(content, 0, csvWithBom, bom.length, content.length);
+        String csv = """
+            Runde;Tisch;Schwarz;Weiß;Ergebnis
+            %d;1;Anna Müller;Max Schmidt;
+            %d;2;Lisa Bauer;Tom Weber;
+            """.formatted(round, round);
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"pairings_template.csv\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"round_template_" + round + ".csv\"")
                 .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
-                .body(csvWithBom);
+                .body(addUtf8Bom(csv));
     }
 
-    @GetMapping("/tournaments/{id}/results/template")
-    public ResponseEntity<byte[]> downloadResultTemplate(@PathVariable Long id) {
-        String csv = """
-        Runde;Tisch;Ergebnis
-        1;1;B+R
-        1;2;W+0.5
-        2;1;W+R
-        2;2;B+5.5
-        """;
+    private void validateRound(Integer round, Tournament tournament) {
+        if (round == null) {
+            throw new IllegalArgumentException("Die Runde ist erforderlich.");
+        }
 
+        if (round < 1 || round > tournament.getNumberOfRounds()) {
+            throw new IllegalArgumentException(
+                    "Die Runde " + round + " liegt außerhalb der definierten Turnierrunden."
+            );
+        }
+    }
+
+    private byte[] addUtf8Bom(String csv) {
         byte[] bom = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
         byte[] content = csv.getBytes(StandardCharsets.UTF_8);
 
@@ -223,9 +232,6 @@ public class PairingController {
         System.arraycopy(bom, 0, csvWithBom, 0, bom.length);
         System.arraycopy(content, 0, csvWithBom, bom.length, content.length);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"results_template.csv\"")
-                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
-                .body(csvWithBom);
+        return csvWithBom;
     }
 }

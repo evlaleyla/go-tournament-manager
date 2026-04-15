@@ -1,7 +1,9 @@
 package com.evlaleyla.gotournamentmanager.backend.registration;
 
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -29,6 +31,10 @@ public class SelfRegistrationForm {
     @PastOrPresent(message = "Das Geburtsdatum darf nicht in der Zukunft liegen.")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate birthDate;
+
+    @NotNull(message = "Bitte die geplante Rundenzahl angeben.")
+    @Min(value = 1, message = "Die geplante Rundenzahl muss mindestens 1 sein.")
+    private Integer plannedRounds;
 
     private String notes;
 
@@ -63,6 +69,10 @@ public class SelfRegistrationForm {
         return birthDate;
     }
 
+    public Integer getPlannedRounds() {
+        return plannedRounds;
+    }
+
     public String getNotes() {
         return notes;
     }
@@ -93,6 +103,10 @@ public class SelfRegistrationForm {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public void setPlannedRounds(Integer plannedRounds) {
+        this.plannedRounds = plannedRounds;
     }
 
     public void setNotes(String notes) {

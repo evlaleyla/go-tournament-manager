@@ -42,9 +42,11 @@ public class TournamentService {
         existingTournament.setLocation(updatedTournament.getLocation());
         existingTournament.setStartDate(updatedTournament.getStartDate());
         existingTournament.setEndDate(updatedTournament.getEndDate());
+        existingTournament.setRegistrationDeadline(updatedTournament.getRegistrationDeadline());
+        existingTournament.setNumberOfRounds(updatedTournament.getNumberOfRounds());
         existingTournament.setDescription(updatedTournament.getDescription());
         existingTournament.setStatus(updatedTournament.getStatus());
-        existingTournament.setRegistrationDeadline(updatedTournament.getRegistrationDeadline());
+
 
         return tournamentRepository.save(existingTournament);
     }

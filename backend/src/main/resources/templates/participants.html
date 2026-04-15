@@ -35,9 +35,9 @@
         <td th:text="${participant.firstName}"></td>
         <td th:text="${participant.lastName}"></td>
         <td th:text="${participant.email}"></td>
-        <td th:text="${participant.birthDate}"></td>
         <td th:text="${participant.club}"></td>
         <td th:text="${participant.country}"></td>
+        <td th:text="${participant.birthDate}"></td>
         <td th:text="${participant.rank}"></td>
         <td>
             <a th:href="@{/participants/{id}(id=${participant.id})}">Details</a>

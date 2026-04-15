@@ -3,6 +3,7 @@ package com.evlaleyla.gotournamentmanager.backend.pairing;
 import com.evlaleyla.gotournamentmanager.backend.tournament.Tournament;
 import com.evlaleyla.gotournamentmanager.backend.tournament.TournamentRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
@@ -28,6 +29,10 @@ public class PairingService {
         return pairingRepository.findByTournamentIdOrderByRoundNumberAscTableNumberAsc(tournamentId);
     }
 
+    public List<Pairing> findByTournamentIdAndRound(Long tournamentId, Integer roundNumber) {
+        return pairingRepository.findByTournamentIdAndRoundNumberOrderByTableNumberAsc(tournamentId, roundNumber);
+    }
+
     public Pairing findById(Long id) {
         return pairingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Paarung nicht gefunden: " + id));
@@ -39,13 +44,43 @@ public class PairingService {
         return pairingRepository.save(pairing);
     }
 
-    public void replacePairingsFromCsv(Long tournamentId, MultipartFile file) {
+    @Transactional
+    public void replacePairingsFromCsv(Long tournamentId, Integer expectedRound, MultipartFile file) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new IllegalArgumentException("Turnier nicht gefunden: " + tournamentId));
 
         List<Pairing> pairings = parseCsv(file, tournament);
 
-        pairingRepository.deleteByTournamentId(tournamentId);
+        if (pairings.isEmpty()) {
+            throw new IllegalArgumentException("Die CSV-Datei enthält keine Paarungen.");
+        }
+
+        Integer roundNumber = pairings.get(0).getRoundNumber();
+
+        boolean containsDifferentRounds = pairings.stream()
+                .anyMatch(pairing -> !pairing.getRoundNumber().equals(roundNumber));
+
+        if (containsDifferentRounds) {
+            throw new IllegalArgumentException("Bitte pro Upload nur Paarungen für genau eine Runde verwenden.");
+        }
+
+        if (roundNumber < 1 || roundNumber > tournament.getNumberOfRounds()) {
+            throw new IllegalArgumentException(
+                    "Die Runde " + roundNumber + " liegt außerhalb der definierten Turnierrunden."
+            );
+        }
+
+        if (expectedRound != null && !roundNumber.equals(expectedRound)) {
+            throw new IllegalArgumentException(
+                    "Die hochgeladene CSV enthält Paarungen für Runde " + roundNumber +
+                            ", wurde aber im Bereich für Runde " + expectedRound + " hochgeladen."
+            );
+        }
+
+        validateUniqueTableNumbers(pairings);
+
+
+        pairingRepository.deleteByTournamentIdAndRoundNumber(tournamentId, roundNumber);
         pairingRepository.saveAll(pairings);
     }
 
@@ -81,7 +116,7 @@ public class PairingService {
                 }
 
                 Integer roundNumber = parseInteger(columns.get(0), "Runde", lineNumber);
-                Integer tableNumber = parseOptionalInteger(columns.size() > 1 ? columns.get(1) : null, lineNumber);
+                Integer tableNumber = parseInteger(columns.get(1), "Tisch", lineNumber);
                 String blackPlayer = columns.size() > 2 ? columns.get(2).trim() : "";
                 String whitePlayer = columns.size() > 3 ? columns.get(3).trim() : "";
                 String result = columns.size() > 4 ? columns.get(4).trim() : "";
@@ -111,79 +146,12 @@ public class PairingService {
         return pairings;
     }
 
-    public void importResultsFromCsv(Long tournamentId, MultipartFile file) {
-        List<Pairing> pairingsToUpdate = new ArrayList<>();
-
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
-
-            String line;
-            boolean firstLine = true;
-            int lineNumber = 0;
-
-            while ((line = reader.readLine()) != null) {
-                lineNumber++;
-
-                if (line.isBlank()) {
-                    continue;
-                }
-
-                if (firstLine) {
-                    firstLine = false;
-                    continue;
-                }
-
-                List<String> columns = parseCsvLine(line);
-
-                if (columns.size() < 3) {
-                    throw new IllegalArgumentException(
-                            "Ungültiges Ergebnis-CSV-Format in Zeile " + lineNumber +
-                                    ". Erwartet werden 3 Spalten: Runde;Tisch;Ergebnis."
-                    );
-                }
-
-                Integer roundNumber = parseInteger(columns.get(0), "Runde", lineNumber);
-                Integer tableNumber = parseInteger(columns.get(1), "Tisch", lineNumber);
-                String result = normalizeAndValidateResultCode(columns.get(2));
-
-                Pairing pairing = pairingRepository
-                        .findByTournamentIdAndRoundNumberAndTableNumber(tournamentId, roundNumber, tableNumber)
-                        .orElseThrow(() -> new IllegalArgumentException(
-                                "Keine Paarung gefunden für Turnier " + tournamentId +
-                                        ", Runde " + roundNumber + ", Tisch " + tableNumber + "."
-                        ));
-
-                pairing.setResult(result);
-                pairingsToUpdate.add(pairing);
-            }
-
-            pairingRepository.saveAll(pairingsToUpdate);
-
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Die Ergebnis-CSV-Datei konnte nicht gelesen werden.", e);
-        }
-    }
-
     private Integer parseInteger(String value, String fieldName, int lineNumber) {
         try {
             return Integer.parseInt(value.trim());
         } catch (Exception e) {
             throw new IllegalArgumentException(
                     fieldName + " ist in Zeile " + lineNumber + " keine gültige Zahl."
-            );
-        }
-    }
-
-    private Integer parseOptionalInteger(String value, int lineNumber) {
-        if (value == null || value.trim().isBlank()) {
-            return null;
-        }
-
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (Exception e) {
-            throw new IllegalArgumentException(
-                    "Tisch ist in Zeile " + lineNumber + " keine gültige Zahl."
             );
         }
     }
@@ -237,5 +205,18 @@ public class PairingService {
         throw new IllegalArgumentException(
                 "Ungültiger Ergebniscode: '" + result + "'. Erlaubt sind z. B. B+R, W+T, B+F, W+5.5 oder 0."
         );
+    }
+
+    private void validateUniqueTableNumbers(List<Pairing> pairings) {
+        java.util.Set<Integer> usedTableNumbers = new java.util.HashSet<>();
+
+        for (Pairing pairing : pairings) {
+            if (!usedTableNumbers.add(pairing.getTableNumber())) {
+                throw new IllegalArgumentException(
+                        "Die Tischnummer " + pairing.getTableNumber() +
+                                " kommt in dieser Runde mehrfach vor. Jede Tischnummer darf pro Runde nur einmal vorkommen."
+                );
+            }
+        }
     }
 }

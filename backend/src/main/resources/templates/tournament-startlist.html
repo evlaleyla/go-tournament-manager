@@ -12,10 +12,25 @@
 <p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
 <p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
 <p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
+<p><strong>Anzahl der Runden:</strong> <span th:text="${tournament.numberOfRounds}"></span></p>
+
+<form th:action="@{/tournaments/{id}/startlist(id=${tournament.id})}" method="get">
+    <div>
+        <label for="round">Runde:</label>
+        <select id="round" name="round">
+            <option th:each="roundOption : ${availableRounds}"
+                    th:value="${roundOption}"
+                    th:text="${roundOption}"
+                    th:selected="${selectedRound == roundOption}">
+            </option>
+        </select>
+        <button type="submit">Anzeigen</button>
+    </div>
+</form>
 
 <p>
-    <a th:href="@{/tournaments/{id}/startlist/export(id=${tournament.id})}">
-        Startliste als CSV exportieren
+    <a th:href="@{/tournaments/{id}/startlist/export(id=${tournament.id}, round=${selectedRound})}">
+        Startliste für Runde <span th:text="${selectedRound}"></span> als CSV exportieren
     </a>
 </p>
 
@@ -31,6 +46,7 @@
         <th>Rang</th>
         <th>Geburtsdatum</th>
         <th>Anmeldedatum</th>
+        <th>Geplante Runden</th>
     </tr>
     </thead>
     <tbody>
@@ -39,17 +55,18 @@
         <td th:text="${registration.participant.lastName}"></td>
         <td th:text="${registration.participant.firstName}"></td>
         <td th:text="${registration.participant.email}"></td>
-        <td th:text="${registration.participant.club}"></td>
-        <td th:text="${registration.participant.country}"></td>
-        <td th:text="${registration.participant.rank}"></td>
+        <td th:text="${registration.clubAtRegistration}"></td>
+        <td th:text="${registration.countryAtRegistration}"></td>
+        <td th:text="${registration.rankAtRegistration}"></td>
         <td th:text="${registration.participant.birthDate}"></td>
         <td th:text="${registration.registrationDate}"></td>
+        <td th:text="${registration.plannedRounds}"></td>
     </tr>
     </tbody>
 </table>
 
 <p th:if="${#lists.isEmpty(registrations)}">
-    Für dieses Turnier liegen noch keine Anmeldungen vor.
+    Für diese Runde liegen noch keine passenden Anmeldungen vor.
 </p>
 
 <p>
