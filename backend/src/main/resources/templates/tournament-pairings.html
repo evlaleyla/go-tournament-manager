@@ -84,10 +84,9 @@
                 <th>Tisch</th>
                 <th>Schwarz</th>
                 <th>Weiß</th>
-                <th>Ergebnis</th>
+                <th>Ergebnis bearbeiten</th>
                 <th>Vorgabe</th>
                 <th>Freilos</th>
-                <th>Aktion</th>
             </tr>
             </thead>
             <tbody>
@@ -96,16 +95,51 @@
                 <td th:text="${pairing.blackPlayer}"></td>
                 <td th:text="${pairing.whitePlayer}"></td>
                 <td>
-                    <span class="badge" th:text="${pairing.resultDisplay}"></span>
+                    <form th:action="@{/pairings/{id}/result(id=${pairing.id})}"
+                          method="post"
+                          class="inline-result-form">
+
+                        <select name="resultOption"
+                                th:id="'resultOption-' + ${pairing.id}">
+                            <option value=""
+                                    th:selected="${pairing.result == null or #strings.isEmpty(pairing.result)}">
+                                Offen
+                            </option>
+
+                            <option value="BLACK_WINS"
+                                    th:selected="${pairing.result == 'B'}">
+                                Schwarz gewinnt
+                            </option>
+
+                            <option value="WHITE_WINS"
+                                    th:selected="${pairing.result == 'W'}">
+                                Weiß gewinnt
+                            </option>
+
+                            <option value="JIGO"
+                                    th:selected="${pairing.result == 'J'}">
+                                Jigo
+                            </option>
+
+                            <option value="BOTH_LOSE"
+                                    th:selected="${pairing.result == 'L'}">
+                                Beide verlieren
+                            </option>
+
+                            <option value="BOTH_WIN"
+                                    th:selected="${pairing.result == 'D'}">
+                                Beide gewinnen
+                            </option>
+                        </select>
+
+                        <button type="submit" class="btn btn-secondary">
+                            Speichern
+                        </button>
+                    </form>
                 </td>
+
                 <td th:text="${pairing.handicapDisplay}"></td>
                 <td th:text="${pairing.byeDisplay}"></td>
-                <td>
-                    <a class="btn btn-secondary"
-                       th:href="@{/pairings/{id}/result(id=${pairing.id})}">
-                        Ergebnis bearbeiten
-                    </a>
-                </td>
             </tr>
             </tbody>
         </table>

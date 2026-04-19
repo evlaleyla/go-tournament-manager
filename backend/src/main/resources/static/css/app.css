@@ -358,3 +358,19 @@ details[open] summary {
     color: var(--muted);
     font-size: 0.9rem;
 }
+
+.inline-result-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin: 0;
+}
+
+.inline-result-form select {
+    min-width: 180px;
+    width: auto;
+}
+
+.inline-result-form button {
+    white-space: nowrap;
+}
