@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 public class MacMahonInterfaceService {
 
     private static final Pattern PAIRING_LINE_PATTERN =
-            Pattern.compile("^\\s*(\\d+)\\s+(.+?)\\s+\\((.+?)\\)\\s+-\\s+(.+?)\\s+\\((.+?)\\)\\s+(\\S+)(?:\\s+(\\S+))?\\s*$");
+            Pattern.compile("^\\s*(\\d+)\\s+(.+?)(?:\\s+\\(([^)]*)\\))?\\s+-\\s+(.+?)(?:\\s+\\(([^)]*)\\))?\\s+(\\?-\\?|1-0|0-1|0-0|1-1|=|jigo|Jigo|-|\\?)(?:\\s+(\\S+))?\\s*$");
 
 
     public List<MacMahonPairingImportRow> parsePairingsExport(MultipartFile file, Integer roundNumber) {
