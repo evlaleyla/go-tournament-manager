@@ -3,46 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <title>Ergebnis bearbeiten</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Ergebnis bearbeiten</h1>
 
-<div th:if="${errorMessage}">
-    <p th:text="${errorMessage}"></p>
-</div>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<p><strong>Turnier:</strong> <span th:text="${pairing.tournament.name}"></span></p>
-<p><strong>Runde:</strong> <span th:text="${pairing.roundNumber}"></span></p>
-<p><strong>Tisch:</strong> <span th:text="${pairing.tableNumber}"></span></p>
-<p><strong>Schwarz:</strong> <span th:text="${pairing.blackPlayer}"></span></p>
-<p><strong>Weiß:</strong> <span th:text="${pairing.whitePlayer}"></span></p>
-<p><strong>Aktuelles Ergebnis:</strong> <span th:text="${pairing.resultDisplay}"></span></p>
+<main class="container">
 
-<form th:action="@{/pairings/{id}/result(id=${pairing.id})}"
-      th:object="${pairingResultForm}"
-      method="post">
+    <div class="page-header">
+        <div>
+            <h1>Ergebnis bearbeiten</h1>
+            <p class="page-subtitle">
+                Ergebnis einer Paarung erfassen oder ändern.
+            </p>
+        </div>
 
-    <div>
-        <label for="resultOption">Ergebnis:</label>
-        <select id="resultOption" th:field="*{resultOption}">
-            <option value="">Bitte wählen</option>
-            <option value="BLACK_WINS">Schwarz gewinnt</option>
-            <option value="WHITE_WINS">Weiß gewinnt</option>
-            <option value="JIGO">Jigo / Unentschieden</option>
-            <option value="BOTH_LOSE">Beide verlieren</option>
-            <option value="BOTH_WIN">Beide gewinnen</option>
-        </select>
+        <div class="actions">
+            <a class="btn btn-secondary"
+               th:href="@{/tournaments/{id}/pairings(id=${pairing.tournament.id})}">
+                Zur Paarungsliste
+            </a>
+        </div>
     </div>
 
-    <div>
-        <button type="submit">Ergebnis speichern</button>
-    </div>
-</form>
+    <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
 
-<p>
-    <a th:href="@{/tournaments/{id}/pairings(id=${pairing.tournament.id})}">
-        Zurück zur Paarungsliste
-    </a>
-</p>
+    <section class="card">
+        <h2>Paarung</h2>
+
+        <dl class="detail-list">
+            <dt>Turnier</dt>
+            <dd th:text="${pairing.tournament.name}"></dd>
+
+            <dt>Runde</dt>
+            <dd th:text="${pairing.roundNumber}"></dd>
+
+            <dt>Tisch</dt>
+            <dd th:text="${pairing.tableNumber}"></dd>
+
+            <dt>Schwarz</dt>
+            <dd th:text="${pairing.blackPlayer}"></dd>
+
+            <dt>Weiß</dt>
+            <dd th:text="${pairing.whitePlayer}"></dd>
+
+            <dt>Vorgabe</dt>
+            <dd th:text="${pairing.handicapDisplay}"></dd>
+
+            <dt>Freilos</dt>
+            <dd th:text="${pairing.byeDisplay}"></dd>
+
+            <dt>Aktuelles Ergebnis</dt>
+            <dd>
+                <span class="badge" th:text="${pairing.resultDisplay}"></span>
+            </dd>
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2>Ergebnis auswählen</h2>
+
+        <form th:action="@{/pairings/{id}/result(id=${pairing.id})}"
+              th:object="${pairingResultForm}"
+              method="post"
+              class="form-grid">
+
+            <div class="form-row">
+                <label for="resultOption">Ergebnis</label>
+                <select id="resultOption" th:field="*{resultOption}">
+                    <option value="">Offen / kein Ergebnis</option>
+                    <option value="BLACK_WINS">Schwarz gewinnt</option>
+                    <option value="WHITE_WINS">Weiß gewinnt</option>
+                    <option value="JIGO">Jigo / Unentschieden</option>
+                    <option value="BOTH_LOSE">Beide verlieren</option>
+                    <option value="BOTH_WIN">Beide gewinnen</option>
+                </select>
+            </div>
+
+            <div class="actions">
+                <button type="submit">Ergebnis speichern</button>
+                <a class="btn btn-secondary"
+                   th:href="@{/tournaments/{id}/pairings(id=${pairing.tournament.id})}">
+                    Abbrechen
+                </a>
+            </div>
+        </form>
+    </section>
+
+</main>
+
 </body>
 </html>

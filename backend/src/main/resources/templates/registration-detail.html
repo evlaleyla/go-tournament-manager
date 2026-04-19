@@ -3,32 +3,77 @@
 <head>
   <meta charset="UTF-8">
   <title>Anmeldungsdetails</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Anmeldungsdetails</h1>
 
-<div th:if="${successMessage}">
-  <p th:text="${successMessage}"></p>
-</div>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<p><strong>ID:</strong> <span th:text="${registration.id}"></span></p>
-<p><strong>Turnier:</strong> <span th:text="${registration.tournament.name}"></span></p>
-<p><strong>Teilnehmer:</strong> <span th:text="${registration.participant.fullName}"></span></p>
-<p><strong>Anmeldedatum:</strong> <span th:text="${registration.registrationDate}"></span></p>
-<p><strong>Geplante Rundenzahl:</strong> <span th:text="${registration.plannedRounds}"></span></p>
-<p><strong>Notizen:</strong> <span th:text="${registration.notes}"></span></p>
-<p><strong>Verein bei Anmeldung:</strong> <span th:text="${registration.clubAtRegistration}"></span></p>
-<p><strong>Land bei Anmeldung:</strong> <span th:text="${registration.countryAtRegistration}"></span></p>
-<p><strong>Rang bei Anmeldung:</strong> <span th:text="${registration.rankAtRegistration}"></span></p>
+<main class="container">
 
-<form th:action="@{/registrations/{id}/delete(id=${registration.id})}"
-      method="post"
-      onsubmit="return confirm('Möchten Sie diese Anmeldung wirklich löschen?');">
-  <button type="submit">Anmeldung löschen</button>
-</form>
+  <div class="page-header">
+    <div>
+      <h1>Anmeldungsdetails</h1>
+      <p class="page-subtitle">
+        Detailinformationen zu einer Turnieranmeldung.
+      </p>
+    </div>
 
-<p>
-  <a href="/registrations">Zur Anmeldeliste</a>
-</p>
+    <div class="actions">
+      <a class="btn btn-secondary" th:href="@{/registrations}">
+        Zur Anmeldeliste
+      </a>
+    </div>
+  </div>
+
+  <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
+
+  <section class="card">
+    <h2>Anmeldung</h2>
+
+    <dl class="detail-list">
+      <dt>ID</dt>
+      <dd th:text="${registration.id}"></dd>
+
+      <dt>Turnier</dt>
+      <dd th:text="${registration.tournament.name}"></dd>
+
+      <dt>Teilnehmer</dt>
+      <dd th:text="${registration.participant.fullName}"></dd>
+
+      <dt>Anmeldedatum</dt>
+      <dd th:text="${registration.registrationDate}"></dd>
+
+      <dt>Geplante Rundenzahl</dt>
+      <dd th:text="${registration.plannedRounds}"></dd>
+
+      <dt>Verein bei Anmeldung</dt>
+      <dd th:text="${registration.clubAtRegistration}"></dd>
+
+      <dt>Land bei Anmeldung</dt>
+      <dd th:text="${registration.countryAtRegistration}"></dd>
+
+      <dt>Rang bei Anmeldung</dt>
+      <dd th:text="${registration.rankAtRegistration}"></dd>
+
+      <dt>Notizen</dt>
+      <dd th:text="${registration.notes}"></dd>
+    </dl>
+  </section>
+
+  <section class="card">
+    <h2>Administration</h2>
+
+    <form th:action="@{/registrations/{id}/delete(id=${registration.id})}"
+          method="post"
+          onsubmit="return confirm('Möchten Sie diese Anmeldung wirklich löschen?');">
+      <button type="submit" class="btn-danger">
+        Anmeldung löschen
+      </button>
+    </form>
+  </section>
+
+</main>
+
 </body>
 </html>

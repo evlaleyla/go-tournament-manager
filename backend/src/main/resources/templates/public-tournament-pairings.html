@@ -3,8 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <title>Paarungen und Ergebnisse</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
+<div th:replace="~{fragments/header :: publicHeader}"></div>
+
+<main class="container">
 <h1>Paarungen und Ergebnisse</h1>
 
 <h2 th:text="${tournament.name}"></h2>
@@ -57,5 +61,6 @@
         Zurück zur Turnierseite
     </a>
 </p>
+</main>
 </body>
 </html>

@@ -3,53 +3,160 @@
 <head>
   <meta charset="UTF-8">
   <title>Turnierdetails</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Turnierdetails</h1>
 
-<div th:if="${successMessage}">
-  <p th:text="${successMessage}"></p>
-</div>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<p><strong>ID:</strong> <span th:text="${tournament.id}"></span></p>
-<p><strong>Name:</strong> <span th:text="${tournament.name}"></span></p>
-<p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
-<p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
-<p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
-<p><strong>Anmeldefrist:</strong> <span th:text="${tournament.registrationDeadline}"></span></p>
-<p><strong>Anzahl der Runden:</strong> <span th:text="${tournament.numberOfRounds}"></span></p>
-<p><strong>Beschreibung:</strong> <span th:text="${tournament.description}"></span></p>
-<p><strong>Status:</strong> <span th:text="${tournament.status.displayName}"></span></p>
+<main class="container">
 
-<p>
-  <a th:href="@{/tournaments/{id}/edit(id=${tournament.id})}">Bearbeiten</a>
-</p>
+  <div class="page-header">
+    <div>
+      <h1 th:text="${tournament.name}">Turniername</h1>
+      <p class="page-subtitle">
+        Turnierdetails und zentrale Verwaltungsfunktionen.
+      </p>
+    </div>
 
-<p>
-  <a th:href="@{/registrations(tournamentId=${tournament.id})}">Anmeldungen dieses Turniers anzeigen</a>
-</p>
+    <div class="actions">
+      <a class="btn btn-secondary" th:href="@{/tournaments}">
+        Zurück zur Turnierliste
+      </a>
 
-<p>
-  <a th:href="@{/registrations/new(tournamentId=${tournament.id})}">Neue Anmeldung für dieses Turnier anlegen</a>
-</p>
+      <a class="btn" th:href="@{/tournaments/{id}/edit(id=${tournament.id})}">
+        Turnier bearbeiten
+      </a>
+    </div>
+  </div>
 
-<form th:action="@{/tournaments/{id}/delete(id=${tournament.id})}"
-      method="post"
-      onsubmit="return confirm('Möchten Sie dieses Turnier wirklich löschen?');">
-  <button type="submit">Turnier löschen</button>
-</form>
+  <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
+  <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
 
-<p>
-  <a href="/tournaments">Zurück zur Turnierliste</a>
-</p>
+  <div class="grid grid-2">
 
-<p>
-  <a th:href="@{/tournaments/{id}/startlist(id=${tournament.id})}">Startliste anzeigen</a>
-</p>
+    <section class="card">
+      <h2>Stammdaten</h2>
 
-<p>
-  <a th:href="@{/tournaments/{id}/pairings(id=${tournament.id})}">Paarungen anzeigen / importieren</a>
-</p>
+      <dl class="detail-list">
+        <dt>ID</dt>
+        <dd th:text="${tournament.id}"></dd>
+
+        <dt>Ort</dt>
+        <dd th:text="${tournament.location}"></dd>
+
+        <dt>Startdatum</dt>
+        <dd th:text="${tournament.startDate}"></dd>
+
+        <dt>Enddatum</dt>
+        <dd th:text="${tournament.endDate}"></dd>
+
+        <dt>Anmeldefrist</dt>
+        <dd th:text="${tournament.registrationDeadline}"></dd>
+
+        <dt>Anzahl der Runden</dt>
+        <dd th:text="${tournament.numberOfRounds}"></dd>
+
+        <dt>Status</dt>
+        <dd>
+          <span class="badge" th:text="${tournament.status.displayName}"></span>
+        </dd>
+      </dl>
+    </section>
+
+    <section class="card">
+      <h2>Organisation</h2>
+      <p class="page-subtitle">
+        Anmeldung, Teilnehmende und Startlisten verwalten.
+      </p>
+
+      <div class="actions">
+        <a class="btn" th:href="@{/registrations(tournamentId=${tournament.id})}">
+          Anmeldungen anzeigen
+        </a>
+
+        <a class="btn btn-secondary" th:href="@{/registrations/new(tournamentId=${tournament.id})}">
+          Neue Anmeldung
+        </a>
+
+        <a class="btn btn-secondary" th:href="@{/tournaments/{id}/startlist(id=${tournament.id})}">
+          Startliste anzeigen
+        </a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Turnierdurchführung</h2>
+      <p class="page-subtitle">
+        Paarungen, Ergebnisse und MacMahon-Dateien verwalten.
+      </p>
+
+      <div class="actions">
+        <a class="btn" th:href="@{/tournaments/{id}/pairings(id=${tournament.id})}">
+          Paarungen und Ergebnisse
+        </a>
+
+        <a class="btn btn-secondary" th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
+          MacMahon Wall List
+        </a>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Öffentliche Ansicht</h2>
+      <p class="page-subtitle">
+        Öffentliche Turnierinformationen und veröffentlichte Paarungen prüfen.
+      </p>
+
+      <div class="actions">
+        <a class="btn" th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+          Öffentliche Turnierseite
+        </a>
+
+        <a class="btn btn-secondary" th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
+          Öffentliche Paarungen
+        </a>
+      </div>
+    </section>
+
+  </div>
+
+  <section class="card">
+    <h2>Beschreibung</h2>
+
+    <p th:if="${tournament.description != null and !#strings.isEmpty(tournament.description)}"
+       th:text="${tournament.description}">
+    </p>
+
+    <p th:if="${tournament.description == null or #strings.isEmpty(tournament.description)}"
+       class="page-subtitle">
+      Für dieses Turnier wurde noch keine Beschreibung hinterlegt.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Administration</h2>
+    <p class="page-subtitle">
+      Administrative Aktionen für dieses Turnier.
+    </p>
+
+    <div class="actions">
+      <a class="btn btn-secondary"
+         th:href="@{/tournaments/{id}/edit(id=${tournament.id})}">
+        Turnier bearbeiten
+      </a>
+
+      <form th:action="@{/tournaments/{id}/delete(id=${tournament.id})}"
+            method="post"
+            onsubmit="return confirm('Möchten Sie dieses Turnier wirklich löschen?');">
+        <button type="submit" class="btn-danger">
+          Turnier löschen
+        </button>
+      </form>
+    </div>
+  </section>
+
+</main>
 
 </body>
 </html>

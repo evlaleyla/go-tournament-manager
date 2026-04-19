@@ -3,53 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <title>Teilnehmende</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Teilnehmerliste</h1>
 
-<div th:if="${successMessage}">
-    <p th:text="${successMessage}"></p>
-</div>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<p>
-    <a href="/participants/new">Neuen Teilnehmer anlegen</a>
-</p>
+<main class="container">
 
-<table border="1">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Vorname</th>
-        <th>Nachname</th>
-        <th>E-Mail</th>
-        <th>Verein</th>
-        <th>Land</th>
-        <th>Geburtsdatum</th>
-        <th>Rang</th>
-        <th>Aktionen</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="participant : ${participants}">
-        <td th:text="${participant.id}"></td>
-        <td th:text="${participant.firstName}"></td>
-        <td th:text="${participant.lastName}"></td>
-        <td th:text="${participant.email}"></td>
-        <td th:text="${participant.club}"></td>
-        <td th:text="${participant.countryDisplay}"></td>
-        <td th:text="${participant.birthDate}"></td>
-        <td th:text="${participant.rank}"></td>
-        <td>
-            <a th:href="@{/participants/{id}(id=${participant.id})}">Details</a>
-            |
-            <a th:href="@{/participants/{id}/edit(id=${participant.id})}">Bearbeiten</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+    <div class="page-header">
+        <div>
+            <h1>Teilnehmerliste</h1>
+            <p class="page-subtitle">
+                Teilnehmende zentral verwalten.
+            </p>
+        </div>
 
-<p>
-    <a href="/">Zur Startseite</a>
-</p>
+        <div class="actions">
+            <a class="btn" th:href="@{/participants/new}">
+                Neuen Teilnehmer anlegen
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
+
+    <section class="card">
+        <h2>Teilnehmende</h2>
+
+        <table th:if="${!#lists.isEmpty(participants)}">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Vorname</th>
+                <th>Nachname</th>
+                <th>E-Mail</th>
+                <th>Verein</th>
+                <th>Land</th>
+                <th>Geburtsdatum</th>
+                <th>Rang</th>
+                <th>Aktionen</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="participant : ${participants}">
+                <td th:text="${participant.id}"></td>
+                <td th:text="${participant.firstName}"></td>
+                <td th:text="${participant.lastName}"></td>
+                <td th:text="${participant.email}"></td>
+                <td th:text="${participant.club}"></td>
+                <td th:text="${participant.countryDisplay}"></td>
+                <td th:text="${participant.birthDate}"></td>
+                <td th:text="${participant.rank}"></td>
+                <td>
+                    <div class="actions">
+                        <a class="btn btn-secondary"
+                           th:href="@{/participants/{id}(id=${participant.id})}">
+                            Details
+                        </a>
+                        <a class="btn btn-secondary"
+                           th:href="@{/participants/{id}/edit(id=${participant.id})}">
+                            Bearbeiten
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${#lists.isEmpty(participants)}" class="empty-state">
+            Es wurden noch keine Teilnehmenden angelegt.
+        </div>
+    </section>
+
+</main>
+
 </body>
 </html>

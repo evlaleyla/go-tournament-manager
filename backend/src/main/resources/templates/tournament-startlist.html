@@ -3,80 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <title>Startliste</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Startliste</h1>
 
-<h2 th:text="${tournament.name}"></h2>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
-<p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
-<p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
-<p><strong>Anzahl der Runden:</strong> <span th:text="${tournament.numberOfRounds}"></span></p>
+<main class="container">
 
-<form th:action="@{/tournaments/{id}/startlist(id=${tournament.id})}" method="get">
-    <div>
-        <label for="round">Runde:</label>
-        <select id="round" name="round">
-            <option th:each="roundOption : ${availableRounds}"
-                    th:value="${roundOption}"
-                    th:text="${roundOption}"
-                    th:selected="${selectedRound == roundOption}">
-            </option>
-        </select>
-        <button type="submit">Anzeigen</button>
+    <div class="page-header">
+        <div>
+            <h1>Startliste</h1>
+            <p class="page-subtitle" th:text="${tournament.name}">
+                Turniername
+            </p>
+        </div>
+
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{/tournaments/{id}(id=${tournament.id})}">
+                Zurück zum Turnier
+            </a>
+        </div>
     </div>
-</form>
 
-<p>
-    <a th:href="@{/tournaments/{id}/startlist/export(id=${tournament.id}, round=${selectedRound})}">
-        Startliste für Runde <span th:text="${selectedRound}"></span> als CSV exportieren
-    </a>
-</p>
+    <section class="card">
+        <h2>Runde auswählen</h2>
 
-<p>
-    <a th:href="@{/tournaments/{id}/startlist/export-macmahon(id=${tournament.id})}">
-        Startliste als MacMahon-Importdatei exportieren
-    </a>
-</p>
+        <form th:action="@{/tournaments/{id}/startlist(id=${tournament.id})}" method="get" class="form-grid">
+            <div class="form-row">
+                <label for="round">Runde</label>
+                <select id="round" name="round">
+                    <option th:each="roundOption : ${availableRounds}"
+                            th:value="${roundOption}"
+                            th:text="${roundOption}"
+                            th:selected="${selectedRound == roundOption}">
+                    </option>
+                </select>
+            </div>
 
-<table border="1">
-    <thead>
-    <tr>
-        <th>Nr.</th>
-        <th>Nachname</th>
-        <th>Vorname</th>
-        <th>E-Mail</th>
-        <th>Verein</th>
-        <th>Land</th>
-        <th>Rang</th>
-        <th>Geburtsdatum</th>
-        <th>Anmeldedatum</th>
-        <th>Geplante Runden</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="registration, stat : ${registrations}">
-        <td th:text="${stat.count}"></td>
-        <td th:text="${registration.participant.lastName}"></td>
-        <td th:text="${registration.participant.firstName}"></td>
-        <td th:text="${registration.participant.email}"></td>
-        <td th:text="${registration.clubAtRegistration}"></td>
-        <td th:text="${registration.countryAtRegistration}"></td>
-        <td th:text="${registration.rankAtRegistration}"></td>
-        <td th:text="${registration.participant.birthDate}"></td>
-        <td th:text="${registration.registrationDate}"></td>
-        <td th:text="${registration.plannedRounds}"></td>
-    </tr>
-    </tbody>
-</table>
+            <div class="actions">
+                <button type="submit">Anzeigen</button>
+                <a class="btn btn-secondary"
+                   th:href="@{/tournaments/{id}/startlist/export(id=${tournament.id}, round=${selectedRound})}">
+                    CSV exportieren
+                </a>
+                <a class="btn btn-secondary"
+                   th:href="@{/tournaments/{id}/startlist/export-macmahon(id=${tournament.id})}">
+                    MacMahon-Importdatei exportieren
+                </a>
+            </div>
+        </form>
+    </section>
 
-<p th:if="${#lists.isEmpty(registrations)}">
-    Für diese Runde liegen noch keine passenden Anmeldungen vor.
-</p>
+    <section class="card">
+        <h2>
+            Startliste für Runde
+            <span th:text="${selectedRound}"></span>
+        </h2>
 
-<p>
-    <a th:href="@{/tournaments/{id}(id=${tournament.id})}">Zurück zu den Turnierdetails</a>
-</p>
+        <table th:if="${!#lists.isEmpty(registrations)}">
+            <thead>
+            <tr>
+                <th>Nr.</th>
+                <th>Nachname</th>
+                <th>Vorname</th>
+                <th>E-Mail</th>
+                <th>Verein</th>
+                <th>Land</th>
+                <th>Rang</th>
+                <th>Geburtsdatum</th>
+                <th>Anmeldedatum</th>
+                <th>Geplante Runden</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="registration, stat : ${registrations}">
+                <td th:text="${stat.count}"></td>
+                <td th:text="${registration.participant.lastName}"></td>
+                <td th:text="${registration.participant.firstName}"></td>
+                <td th:text="${registration.participant.email}"></td>
+                <td th:text="${registration.clubAtRegistration}"></td>
+                <td th:text="${registration.countryAtRegistration}"></td>
+                <td th:text="${registration.rankAtRegistration}"></td>
+                <td th:text="${registration.participant.birthDate}"></td>
+                <td th:text="${registration.registrationDate}"></td>
+                <td th:text="${registration.plannedRounds}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${#lists.isEmpty(registrations)}" class="empty-state">
+            Für diese Runde liegen noch keine passenden Anmeldungen vor.
+        </div>
+    </section>
+
+</main>
+
 </body>
 </html>

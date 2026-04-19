@@ -3,39 +3,85 @@
 <head>
     <meta charset="UTF-8">
     <title>Teilnehmerdetails</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Teilnehmerdetails</h1>
 
-<div th:if="${successMessage}">
-    <p th:text="${successMessage}"></p>
-</div>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<div th:if="${errorMessage}">
-    <p th:text="${errorMessage}"></p>
-</div>
+<main class="container">
 
-<p><strong>ID:</strong> <span th:text="${participant.id}"></span></p>
-<p><strong>Vorname:</strong> <span th:text="${participant.firstName}"></span></p>
-<p><strong>Nachname:</strong> <span th:text="${participant.lastName}"></span></p>
-<p><strong>E-Mail:</strong> <span th:text="${participant.email}"></span></p>
-<p><strong>Geburtsdatum:</strong> <span th:text="${participant.birthDate}"></span></p>
-<p><strong>Verein:</strong> <span th:text="${participant.club}"></span></p>
-<p><strong>Land:</strong> <span th:text="${participant.countryDisplay}"></span>
-<p><strong>Rang:</strong> <span th:text="${participant.rank}"></span></p>
+    <div class="page-header">
+        <div>
+            <h1 th:text="${participant.fullName}">Teilnehmername</h1>
+            <p class="page-subtitle">
+                Stammdaten des Teilnehmers.
+            </p>
+        </div>
 
-<p>
-    <a th:href="@{/participants/{id}/edit(id=${participant.id})}">Bearbeiten</a>
-</p>
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{/participants}">
+                Zur Teilnehmerliste
+            </a>
 
-<form th:action="@{/participants/{id}/delete(id=${participant.id})}"
-      method="post"
-      onsubmit="return confirm('Möchten Sie diesen Teilnehmer wirklich löschen?');">
-    <button type="submit">Teilnehmer löschen</button>
-</form>
+            <a class="btn" th:href="@{/participants/{id}/edit(id=${participant.id})}">
+                Bearbeiten
+            </a>
+        </div>
+    </div>
 
-<p>
-    <a href="/participants">Zur Teilnehmerliste</a>
-</p>
+    <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
+
+    <section class="card">
+        <h2>Stammdaten</h2>
+
+        <dl class="detail-list">
+            <dt>ID</dt>
+            <dd th:text="${participant.id}"></dd>
+
+            <dt>Vorname</dt>
+            <dd th:text="${participant.firstName}"></dd>
+
+            <dt>Nachname</dt>
+            <dd th:text="${participant.lastName}"></dd>
+
+            <dt>E-Mail</dt>
+            <dd th:text="${participant.email}"></dd>
+
+            <dt>Geburtsdatum</dt>
+            <dd th:text="${participant.birthDate}"></dd>
+
+            <dt>Verein</dt>
+            <dd th:text="${participant.club}"></dd>
+
+            <dt>Land</dt>
+            <dd th:text="${participant.countryDisplay}"></dd>
+
+            <dt>Rang</dt>
+            <dd th:text="${participant.rank}"></dd>
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2>Administration</h2>
+
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{/participants/{id}/edit(id=${participant.id})}">
+                Teilnehmer bearbeiten
+            </a>
+
+            <form th:action="@{/participants/{id}/delete(id=${participant.id})}"
+                  method="post"
+                  onsubmit="return confirm('Möchten Sie diesen Teilnehmer wirklich löschen?');">
+                <button type="submit" class="btn-danger">
+                    Teilnehmer löschen
+                </button>
+            </form>
+        </div>
+    </section>
+
+</main>
+
 </body>
 </html>

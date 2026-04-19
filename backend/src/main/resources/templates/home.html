@@ -1,11 +1,34 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Go Tournament Manager</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Go Tournament Manager</h1>
-<p>Das Spring-Boot-Backend läuft.</p>
+
+<div th:replace="~{fragments/header :: publicHeader}"></div>
+
+<main class="container">
+
+    <section class="card">
+        <h1>Go Tournament Manager</h1>
+        <p class="page-subtitle">
+            Öffentliche Turnierübersicht, Online-Anmeldung sowie veröffentlichte Paarungen und Ergebnisse.
+        </p>
+
+        <div class="actions">
+            <a class="btn" th:href="@{/public/tournaments}">
+                Zu den öffentlichen Turnieren
+            </a>
+
+            <a class="btn btn-secondary" th:href="@{/admin}">
+                Zum Organisationsbereich
+            </a>
+        </div>
+    </section>
+
+</main>
+
 </body>
 </html>

@@ -3,65 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <title>MacMahon Wall List</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>MacMahon Wall List</h1>
 
-<h2 th:text="${tournament.name}"></h2>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<div th:if="${successMessage}">
-    <p th:text="${successMessage}"></p>
-</div>
+<main class="container">
 
-<div th:if="${errorMessage}">
-    <p th:text="${errorMessage}"></p>
-</div>
+    <div class="page-header">
+        <div>
+            <h1>MacMahon Wall List</h1>
+            <p class="page-subtitle" th:text="${tournament.name}">
+                Turniername
+            </p>
+        </div>
 
-<form th:action="@{/tournaments/{id}/walllist/import-macmahon(id=${tournament.id})}"
-      method="post"
-      enctype="multipart/form-data">
-    <div>
-        <input type="file" name="file">
-        <button type="submit">MacMahon-Wall-List importieren</button>
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{/tournaments/{id}/pairings(id=${tournament.id})}">
+                Zurück zu den Paarungen
+            </a>
+        </div>
     </div>
-</form>
 
-<table border="1" th:if="${wallListEntries != null}">
-    <thead>
-    <tr>
-        <th>Platz</th>
-        <th>Name</th>
-        <th>Club</th>
-        <th>Level</th>
-        <th>Score</th>
-        <th th:each="i : ${#numbers.sequence(1, roundColumnCount)}"
-            th:text="'Runde ' + ${i}"></th>
-        <th>Punkte</th>
-        <th>ScoreX</th>
-        <th>SOS</th>
-        <th>SOSOS</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="entry : ${wallListEntries}">
-        <td th:text="${entry.place}"></td>
-        <td th:text="${entry.name}"></td>
-        <td th:text="${entry.club}"></td>
-        <td th:text="${entry.level}"></td>
-        <td th:text="${entry.score}"></td>
-        <td th:each="status : ${entry.roundStatuses}" th:text="${status}"></td>
-        <td th:text="${entry.points}"></td>
-        <td th:text="${entry.scoreX}"></td>
-        <td th:text="${entry.sos}"></td>
-        <td th:text="${entry.sosos}"></td>
-    </tr>
-    </tbody>
-</table>
+    <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
 
-<p>
-    <a th:href="@{/tournaments/{id}/pairings(id=${tournament.id})}">
-        Zurück zu den Paarungen
-    </a>
-</p>
+    <section class="card">
+        <h2>Wall List importieren</h2>
+        <p class="page-subtitle">
+            Importiert eine aus MacMahon exportierte Wall-List-Datei und zeigt die Tabelle in der Anwendung an.
+        </p>
+
+        <form th:action="@{/tournaments/{id}/walllist/import-macmahon(id=${tournament.id})}"
+              method="post"
+              enctype="multipart/form-data"
+              class="form-grid">
+
+            <div class="form-row">
+                <label for="file">MacMahon-Wall-List-Datei</label>
+                <input id="file" type="file" name="file">
+            </div>
+
+            <div class="actions">
+                <button type="submit">Wall List importieren</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card" th:if="${wallListEntries != null}">
+        <h2>Importierte Wall List</h2>
+
+        <table th:if="${!#lists.isEmpty(wallListEntries)}">
+            <thead>
+            <tr>
+                <th>Platz</th>
+                <th>Name</th>
+                <th>Club</th>
+                <th>Level</th>
+                <th>Score</th>
+                <th th:each="i : ${#numbers.sequence(1, roundColumnCount)}"
+                    th:text="'Runde ' + ${i}">
+                </th>
+                <th>Punkte</th>
+                <th>ScoreX</th>
+                <th>SOS</th>
+                <th>SOSOS</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="entry : ${wallListEntries}">
+                <td th:text="${entry.place}"></td>
+                <td th:text="${entry.name}"></td>
+                <td th:text="${entry.club}"></td>
+                <td th:text="${entry.level}"></td>
+                <td th:text="${entry.score}"></td>
+                <td th:each="status : ${entry.roundStatuses}" th:text="${status}"></td>
+                <td th:text="${entry.points}"></td>
+                <td th:text="${entry.scoreX}"></td>
+                <td th:text="${entry.sos}"></td>
+                <td th:text="${entry.sosos}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${#lists.isEmpty(wallListEntries)}" class="empty-state">
+            Es wurden keine Wall-List-Einträge gefunden.
+        </div>
+    </section>
+
+</main>
+
 </body>
 </html>

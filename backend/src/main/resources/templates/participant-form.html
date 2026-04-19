@@ -3,87 +3,107 @@
 <head>
   <meta charset="UTF-8">
   <title th:text="${isEdit} ? 'Teilnehmer bearbeiten' : 'Neuer Teilnehmer'">Teilnehmerformular</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1 th:text="${isEdit} ? 'Teilnehmer bearbeiten' : 'Neuen Teilnehmer anlegen'"></h1>
 
-<form th:action="${isEdit} ? @{/participants/{id}(id=${participant.id})} : @{/participants}"
-      th:object="${participant}"
-      method="post">
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-  <div th:if="${#fields.hasGlobalErrors()}">
-    <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+<main class="container">
+
+  <div class="page-header">
+    <div>
+      <h1 th:text="${isEdit} ? 'Teilnehmer bearbeiten' : 'Neuen Teilnehmer anlegen'"></h1>
+      <p class="page-subtitle">
+        Personendaten, Verein, Land und Spielrang erfassen.
+      </p>
+    </div>
+
+    <div class="actions">
+      <a class="btn btn-secondary" th:href="@{/participants}">
+        Zur Teilnehmerliste
+      </a>
+    </div>
   </div>
 
-  <input type="hidden" th:field="*{id}">
+  <section class="card">
+    <form th:action="${isEdit} ? @{/participants/{id}(id=${participant.id})} : @{/participants}"
+          th:object="${participant}"
+          method="post"
+          class="form-grid">
 
-  <div>
-    <label for="firstName">Vorname:</label>
-    <input type="text" id="firstName" th:field="*{firstName}">
-    <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
-  </div>
+      <div th:if="${#fields.hasGlobalErrors()}" class="flash-error">
+        <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+      </div>
 
-  <div>
-    <label for="lastName">Nachname:</label>
-    <input type="text" id="lastName" th:field="*{lastName}">
-    <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
-  </div>
+      <input type="hidden" th:field="*{id}">
 
-  <div>
-    <label for="email">E-Mail:</label>
-    <input type="email" id="email" th:field="*{email}">
-    <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-  </div>
+      <div class="grid grid-2">
+        <div class="form-row">
+          <label for="firstName">Vorname</label>
+          <input type="text" id="firstName" th:field="*{firstName}">
+          <div class="field-error" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+        </div>
 
-  <div>
-    <label for="birthDate">Geburtsdatum:</label>
-    <input type="date" id="birthDate" th:field="*{birthDate}">
-    <div th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></div>
-  </div>
+        <div class="form-row">
+          <label for="lastName">Nachname</label>
+          <input type="text" id="lastName" th:field="*{lastName}">
+          <div class="field-error" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+        </div>
+      </div>
 
-  <div>
-    <label for="country">Land:</label>
-    <select id="country" th:field="*{country}">
-      <option value="">Bitte wählen</option>
-      <option th:each="country : ${countryOptions}"
-              th:value="${country.code}"
-              th:text="${country.name}">
-      </option>
-    </select>
-  </div>
+      <div class="form-row">
+        <label for="email">E-Mail</label>
+        <input type="email" id="email" th:field="*{email}">
+        <div class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+      </div>
 
-  <div>
-    <label for="club">Verein:</label>
-    <input type="text"
-           id="club"
-           th:field="*{club}"
-           list="clubList"
-           placeholder="Bitte zuerst Land wählen">
+      <div class="form-row">
+        <label for="birthDate">Geburtsdatum</label>
+        <input type="date" id="birthDate" th:field="*{birthDate}">
+        <div class="field-error" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></div>
+      </div>
 
-    <datalist id="clubList"></datalist>
-  </div>
+      <div class="form-row">
+        <label for="country">Land</label>
+        <select id="country" th:field="*{country}">
+          <option value="">Bitte wählen</option>
+          <option th:each="country : ${countryOptions}"
+                  th:value="${country.code}"
+                  th:text="${country.name}">
+          </option>
+        </select>
+      </div>
 
-  <div>
-    <label for="rank">Rang:</label>
-    <input type="text" id="rank" th:field="*{rank}" list="rankList">
+      <div class="form-row">
+        <label for="club">Verein</label>
+        <input type="text"
+               id="club"
+               th:field="*{club}"
+               list="clubList"
+               placeholder="Bitte zuerst Land wählen">
+        <datalist id="clubList"></datalist>
+      </div>
 
-    <datalist id="rankList">
-      <option th:each="rank : ${rankOptions}"
-              th:value="${rank}">
-      </option>
-    </datalist>
+      <div class="form-row">
+        <label for="rank">Rang</label>
+        <input type="text" id="rank" th:field="*{rank}" list="rankList" placeholder="z. B. 10k, 1d oder 2p">
 
-    <div th:if="${#fields.hasErrors('rank')}" th:errors="*{rank}"></div>
-  </div>
+        <datalist id="rankList">
+          <option th:each="rank : ${rankOptions}" th:value="${rank}"></option>
+        </datalist>
 
-  <div>
-    <button type="submit" th:text="${isEdit} ? 'Änderungen speichern' : 'Speichern'"></button>
-  </div>
-</form>
+        <div class="field-error" th:if="${#fields.hasErrors('rank')}" th:errors="*{rank}"></div>
+      </div>
 
-<p>
-  <a href="/participants">Zur Teilnehmerliste</a>
-</p>
+      <div class="actions">
+        <button type="submit" th:text="${isEdit} ? 'Änderungen speichern' : 'Teilnehmer speichern'"></button>
+        <a class="btn btn-secondary" th:href="@{/participants}">Abbrechen</a>
+      </div>
+    </form>
+  </section>
+
+</main>
 
 <script th:inline="javascript">
   const clubsByCountry = /*[[${clubsByCountry}]]*/ {};

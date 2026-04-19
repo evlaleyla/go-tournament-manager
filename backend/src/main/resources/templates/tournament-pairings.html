@@ -3,59 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <title>Paarungen</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Paarungen und Ergebnisse</h1>
 
-<h2 th:text="${tournament.name}"></h2>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<div th:if="${successMessage}">
-    <p th:text="${successMessage}"></p>
-</div>
+<main class="container">
 
-<div th:if="${errorMessage}">
-    <p th:text="${errorMessage}"></p>
-</div>
+    <div class="page-header">
+        <div>
+            <h1>Paarungen und Ergebnisse</h1>
+            <p class="page-subtitle" th:text="${tournament.name}">
+                Turniername
+            </p>
+        </div>
 
-<h3>MacMahon-Schnittstelle</h3>
-
-<p>Hier können aus dem MacMahon-Programm exportierte Pairing-Dateien importiert werden.</p>
-
-<form th:action="@{/tournaments/{id}/pairings/import-macmahon(id=${tournament.id})}"
-      method="post"
-      enctype="multipart/form-data">
-
-    <div>
-        <label for="roundNumber">Runde:</label>
-        <select id="roundNumber" name="roundNumber">
-            <option th:each="round : ${availableRounds}"
-                    th:value="${round}"
-                    th:text="${round}">
-            </option>
-        </select>
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{/tournaments/{id}(id=${tournament.id})}">
+                Zurück zum Turnier
+            </a>
+            <a class="btn btn-secondary" th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
+                Öffentliche Ansicht prüfen
+            </a>
+        </div>
     </div>
 
-    <div>
-        <input type="file" name="file">
-        <button type="submit">MacMahon-Pairing-Export importieren</button>
-    </div>
-</form>
+    <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
 
-<p>
-    <a th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
-        MacMahon-Wall-List importieren und anzeigen
-    </a>
-</p>
+    <section class="card">
+        <h2>MacMahon-Schnittstelle</h2>
+        <p class="page-subtitle">
+            Hier können aus dem MacMahon-Programm exportierte Pairing-Dateien importiert werden.
+        </p>
 
-<div th:each="round : ${availableRounds}"
-     th:with="roundPairings=${pairingsByRound.get(round)}">
+        <form th:action="@{/tournaments/{id}/pairings/import-macmahon(id=${tournament.id})}"
+              method="post"
+              enctype="multipart/form-data"
+              class="form-grid">
 
-    <details th:attr="id='round-' + ${round}" th:open="${round == 1}">
-        <summary>
-            <strong>Runde <span th:text="${round}"></span></strong>
-        </summary>
+            <div class="form-row">
+                <label for="roundNumber">Runde</label>
+                <select id="roundNumber" name="roundNumber">
+                    <option value="">Bitte wählen</option>
+                    <option th:each="round : ${availableRounds}"
+                            th:value="${round}"
+                            th:text="${round}">
+                    </option>
+                </select>
+            </div>
 
-        <table border="1">
+            <div class="form-row">
+                <label for="file">MacMahon-Pairing-Datei</label>
+                <input id="file" type="file" name="file">
+            </div>
+
+            <div class="actions">
+                <button type="submit">Pairing-Datei importieren</button>
+                <a class="btn btn-secondary" th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
+                    Wall List importieren
+                </a>
+            </div>
+        </form>
+    </section>
+
+    <section th:each="round : ${availableRounds}"
+             th:with="roundPairings=${pairingsByRound.get(round)}"
+             class="card"
+             th:attr="id='round-' + ${round}">
+
+        <h2>
+            Runde
+            <span th:text="${round}"></span>
+        </h2>
+
+        <table th:if="${!#lists.isEmpty(roundPairings)}">
             <thead>
             <tr>
                 <th>Tisch</th>
@@ -72,26 +95,27 @@
                 <td th:text="${pairing.tableNumber}"></td>
                 <td th:text="${pairing.blackPlayer}"></td>
                 <td th:text="${pairing.whitePlayer}"></td>
-                <td th:text="${pairing.resultDisplay}"></td>
+                <td>
+                    <span class="badge" th:text="${pairing.resultDisplay}"></span>
+                </td>
                 <td th:text="${pairing.handicapDisplay}"></td>
                 <td th:text="${pairing.byeDisplay}"></td>
                 <td>
-                    <a th:href="@{/pairings/{id}/result(id=${pairing.id})}">Ergebnis bearbeiten</a>
+                    <a class="btn btn-secondary"
+                       th:href="@{/pairings/{id}/result(id=${pairing.id})}">
+                        Ergebnis bearbeiten
+                    </a>
                 </td>
             </tr>
             </tbody>
         </table>
 
-        <p th:if="${#lists.isEmpty(roundPairings)}">
+        <div th:if="${#lists.isEmpty(roundPairings)}" class="empty-state">
             Für diese Runde wurden noch keine Paarungen importiert.
-        </p>
-    </details>
+        </div>
+    </section>
 
-    <hr>
-</div>
+</main>
 
-<p>
-    <a th:href="@{/tournaments/{id}(id=${tournament.id})}">Zurück zu den Turnierdetails</a>
-</p>
 </body>
 </html>

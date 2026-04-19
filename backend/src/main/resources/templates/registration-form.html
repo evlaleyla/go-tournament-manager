@@ -3,58 +3,82 @@
 <head>
   <meta charset="UTF-8">
   <title>Neue Anmeldung</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Neue Anmeldung anlegen</h1>
 
-<form th:action="@{/registrations}" th:object="${registrationForm}" method="post">
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-  <div th:if="${#fields.hasGlobalErrors()}">
-    <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+<main class="container">
+
+  <div class="page-header">
+    <div>
+      <h1>Neue Anmeldung anlegen</h1>
+      <p class="page-subtitle">
+        Einen bestehenden Teilnehmer für ein Turnier anmelden.
+      </p>
+    </div>
+
+    <div class="actions">
+      <a class="btn btn-secondary" th:href="@{/registrations}">
+        Zur Anmeldeliste
+      </a>
+    </div>
   </div>
 
-  <div>
-    <label for="tournamentId">Turnier:</label>
-    <select id="tournamentId" th:field="*{tournamentId}">
-      <option value="">Bitte wählen</option>
-      <option th:each="tournament : ${tournaments}"
-              th:value="${tournament.id}"
-              th:text="${tournament.name}">
-      </option>
-    </select>
-    <div th:if="${#fields.hasErrors('tournamentId')}" th:errors="*{tournamentId}"></div>
-  </div>
+  <section class="card">
+    <form th:action="@{/registrations}"
+          th:object="${registrationForm}"
+          method="post"
+          class="form-grid">
 
-  <div>
-    <label for="participantId">Teilnehmer:</label>
-    <select id="participantId" th:field="*{participantId}">
-      <option value="">Bitte wählen</option>
-      <option th:each="participant : ${participants}"
-              th:value="${participant.id}"
-              th:text="${participant.fullName}">
-      </option>
-    </select>
-    <div th:if="${#fields.hasErrors('participantId')}" th:errors="*{participantId}"></div>
-  </div>
+      <div th:if="${#fields.hasGlobalErrors()}" class="flash-error">
+        <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+      </div>
 
-  <div>
-    <label for="plannedRounds">Geplante Rundenzahl:</label>
-    <input type="number" id="plannedRounds" th:field="*{plannedRounds}" min="1">
-    <div th:if="${#fields.hasErrors('plannedRounds')}" th:errors="*{plannedRounds}"></div>
-  </div>
+      <div class="form-row">
+        <label for="tournamentId">Turnier</label>
+        <select id="tournamentId" th:field="*{tournamentId}">
+          <option value="">Bitte wählen</option>
+          <option th:each="tournament : ${tournaments}"
+                  th:value="${tournament.id}"
+                  th:text="${tournament.name}">
+          </option>
+        </select>
+        <div class="field-error" th:if="${#fields.hasErrors('tournamentId')}" th:errors="*{tournamentId}"></div>
+      </div>
 
-  <div>
-    <label for="notes">Notizen:</label>
-    <textarea id="notes" th:field="*{notes}"></textarea>
-  </div>
+      <div class="form-row">
+        <label for="participantId">Teilnehmer</label>
+        <select id="participantId" th:field="*{participantId}">
+          <option value="">Bitte wählen</option>
+          <option th:each="participant : ${participants}"
+                  th:value="${participant.id}"
+                  th:text="${participant.fullName}">
+          </option>
+        </select>
+        <div class="field-error" th:if="${#fields.hasErrors('participantId')}" th:errors="*{participantId}"></div>
+      </div>
 
-  <div>
-    <button type="submit">Speichern</button>
-  </div>
-</form>
+      <div class="form-row">
+        <label for="plannedRounds">Geplante Rundenzahl</label>
+        <input type="number" id="plannedRounds" th:field="*{plannedRounds}" min="1">
+        <div class="field-error" th:if="${#fields.hasErrors('plannedRounds')}" th:errors="*{plannedRounds}"></div>
+      </div>
 
-<p>
-  <a href="/registrations">Zur Anmeldeliste</a>
-</p>
+      <div class="form-row">
+        <label for="notes">Notizen</label>
+        <textarea id="notes" th:field="*{notes}"></textarea>
+      </div>
+
+      <div class="actions">
+        <button type="submit">Anmeldung speichern</button>
+        <a class="btn btn-secondary" th:href="@{/registrations}">Abbrechen</a>
+      </div>
+    </form>
+  </section>
+
+</main>
+
 </body>
 </html>

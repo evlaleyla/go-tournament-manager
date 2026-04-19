@@ -3,30 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <title>Turnierinformationen</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1 th:text="${tournament.name}"></h1>
 
-<p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
-<p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
-<p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
-<p><strong>Anmeldefrist:</strong> <span th:text="${tournament.registrationDeadline}"></span></p>
-<p><strong>Anzahl der Runden:</strong> <span th:text="${tournament.numberOfRounds}"></span></p>
-<p><strong>Status:</strong> <span th:text="${tournament.status.displayName}"></span></p>
-<p><strong>Beschreibung:</strong> <span th:text="${tournament.description}"></span></p>
+<div th:replace="~{fragments/header :: publicHeader}"></div>
 
-<p th:if="${tournament.status.name() == 'REGISTRATION_OPEN'}">
-    <a th:href="@{/tournaments/{id}/register(id=${tournament.id})}">Zur Online-Anmeldung</a>
-</p>
+<main class="container">
 
-<p>
-    <a th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
-        Paarungen und Ergebnisse ansehen
-    </a>
-</p>
+    <div class="page-header">
+        <div>
+            <h1 th:text="${tournament.name}">Turniername</h1>
+            <p class="page-subtitle">
+                Öffentliche Turnierinformationen für Teilnehmende.
+            </p>
+        </div>
 
-<p>
-    <a href="/public/tournaments">Zur öffentlichen Turnierübersicht</a>
-</p>
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{/public/tournaments}">
+                Zur Turnierübersicht
+            </a>
+        </div>
+    </div>
+
+    <section class="card">
+        <h2>Turnierdaten</h2>
+
+        <dl class="detail-list">
+            <dt>Ort</dt>
+            <dd th:text="${tournament.location}"></dd>
+
+            <dt>Startdatum</dt>
+            <dd th:text="${tournament.startDate}"></dd>
+
+            <dt>Enddatum</dt>
+            <dd th:text="${tournament.endDate}"></dd>
+
+            <dt>Anmeldefrist</dt>
+            <dd th:text="${tournament.registrationDeadline}"></dd>
+
+            <dt>Anzahl der Runden</dt>
+            <dd th:text="${tournament.numberOfRounds}"></dd>
+
+            <dt>Status</dt>
+            <dd>
+                <span class="badge" th:text="${tournament.status.displayName}"></span>
+            </dd>
+        </dl>
+    </section>
+
+    <section class="card">
+        <h2>Aktionen</h2>
+
+        <div class="actions">
+            <a class="btn"
+               th:if="${tournament.status.name() == 'REGISTRATION_OPEN'}"
+               th:href="@{/tournaments/{id}/register(id=${tournament.id})}">
+                Zur Online-Anmeldung
+            </a>
+
+            <a class="btn btn-secondary"
+               th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
+                Paarungen und Ergebnisse ansehen
+            </a>
+        </div>
+
+        <p th:if="${tournament.status.name() != 'REGISTRATION_OPEN'}"
+           class="page-subtitle">
+            Die Online-Anmeldung ist derzeit nicht geöffnet.
+        </p>
+    </section>
+
+    <section class="card">
+        <h2>Beschreibung</h2>
+
+        <p th:if="${tournament.description != null and !#strings.isEmpty(tournament.description)}"
+           th:text="${tournament.description}">
+        </p>
+
+        <p th:if="${tournament.description == null or #strings.isEmpty(tournament.description)}"
+           class="page-subtitle">
+            Für dieses Turnier wurde noch keine Beschreibung hinterlegt.
+        </p>
+    </section>
+
+</main>
+
 </body>
 </html>
