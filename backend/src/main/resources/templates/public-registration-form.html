@@ -46,18 +46,37 @@
     </div>
 
     <div>
-        <label for="club">Verein:</label>
-        <input type="text" id="club" th:field="*{club}">
+        <label for="country">Land:</label>
+        <select id="country" th:field="*{country}">
+            <option value="">Bitte wählen</option>
+            <option th:each="country : ${countryOptions}"
+                    th:value="${country.code}"
+                    th:text="${country.name}">
+            </option>
+        </select>
     </div>
 
     <div>
-        <label for="country">Land:</label>
-        <input type="text" id="country" th:field="*{country}">
+        <label for="club">Verein:</label>
+        <input type="text"
+               id="club"
+               th:field="*{club}"
+               list="clubList"
+               placeholder="Bitte zuerst Land wählen">
+
+        <datalist id="clubList"></datalist>
     </div>
 
     <div>
         <label for="rank">Rang:</label>
-        <input type="text" id="rank" th:field="*{rank}">
+        <input type="text" id="rank" th:field="*{rank}" list="rankList">
+
+        <datalist id="rankList">
+            <option th:each="rank : ${rankOptions}"
+                    th:value="${rank}">
+            </option>
+        </datalist>
+
         <div th:if="${#fields.hasErrors('rank')}" th:errors="*{rank}"></div>
     </div>
 
@@ -86,5 +105,58 @@
 <p>
     <a th:href="@{/public/tournaments/{id}(id=${tournament.id})}">Zurück zur Turnierseite</a>
 </p>
+
+<script th:inline="javascript">
+    const clubsByCountry = /*[[${clubsByCountry}]]*/ {};
+
+    const countrySelect = document.getElementById("country");
+    const clubInput = document.getElementById("club");
+    const clubList = document.getElementById("clubList");
+
+    function updateClubOptions(clearInvalidClub) {
+        const selectedCountry = countrySelect.value;
+        const clubs = clubsByCountry[selectedCountry] || [];
+
+        clubList.innerHTML = "";
+
+        clubs.forEach(function (club) {
+            const option = document.createElement("option");
+            option.value = club;
+            clubList.appendChild(option);
+        });
+
+        const currentClub = clubInput.value.trim();
+
+        if (clearInvalidClub && currentClub !== "") {
+            const isStillValid = clubs.some(function (club) {
+                return club.toLowerCase() === currentClub.toLowerCase();
+            });
+
+            if (!isStillValid) {
+                clubInput.value = "";
+            }
+        }
+
+        if (!selectedCountry) {
+            clubInput.disabled = true;
+            clubInput.placeholder = "Bitte zuerst Land wählen";
+        } else if (clubs.length === 0) {
+            clubInput.disabled = true;
+            clubInput.placeholder = "Für dieses Land sind keine Vereine hinterlegt";
+        } else {
+            clubInput.disabled = false;
+            clubInput.placeholder = "Verein auswählen";
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        updateClubOptions(false);
+
+        countrySelect.addEventListener("change", function () {
+            updateClubOptions(true);
+        });
+    });
+</script>
+
 </body>
 </html>

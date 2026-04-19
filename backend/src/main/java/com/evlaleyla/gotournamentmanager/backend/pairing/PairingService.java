@@ -1,28 +1,31 @@
 package com.evlaleyla.gotournamentmanager.backend.pairing;
 
+import com.evlaleyla.gotournamentmanager.backend.macmahon.MacMahonInterfaceService;
+import com.evlaleyla.gotournamentmanager.backend.macmahon.MacMahonPairingImportRow;
 import com.evlaleyla.gotournamentmanager.backend.tournament.Tournament;
 import com.evlaleyla.gotournamentmanager.backend.tournament.TournamentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class PairingService {
 
     private final PairingRepository pairingRepository;
     private final TournamentRepository tournamentRepository;
+    private final MacMahonInterfaceService macMahonInterfaceService;
 
     public PairingService(PairingRepository pairingRepository,
-                          TournamentRepository tournamentRepository) {
+                          TournamentRepository tournamentRepository,
+                          MacMahonInterfaceService macMahonInterfaceService) {
         this.pairingRepository = pairingRepository;
         this.tournamentRepository = tournamentRepository;
+        this.macMahonInterfaceService = macMahonInterfaceService;
     }
 
     public List<Pairing> findByTournamentId(Long tournamentId) {
@@ -40,183 +43,148 @@ public class PairingService {
 
     public Pairing updateResult(Long pairingId, String result) {
         Pairing pairing = findById(pairingId);
-        pairing.setResult(normalizeAndValidateResultCode(result));
+        pairing.setResult(normalizeAndValidateSimpleResult(result));
         return pairingRepository.save(pairing);
     }
 
     @Transactional
-    public void replacePairingsFromCsv(Long tournamentId, Integer expectedRound, MultipartFile file) {
+    public void importPairingsFromMacMahon(Long tournamentId, Integer roundNumber, MultipartFile file) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new IllegalArgumentException("Turnier nicht gefunden: " + tournamentId));
 
-        List<Pairing> pairings = parseCsv(file, tournament);
-
-        if (pairings.isEmpty()) {
-            throw new IllegalArgumentException("Die CSV-Datei enthält keine Paarungen.");
-        }
-
-        Integer roundNumber = pairings.get(0).getRoundNumber();
-
-        boolean containsDifferentRounds = pairings.stream()
-                .anyMatch(pairing -> !pairing.getRoundNumber().equals(roundNumber));
-
-        if (containsDifferentRounds) {
-            throw new IllegalArgumentException("Bitte pro Upload nur Paarungen für genau eine Runde verwenden.");
-        }
-
-        if (roundNumber < 1 || roundNumber > tournament.getNumberOfRounds()) {
+        if (roundNumber == null || roundNumber < 1 || roundNumber > tournament.getNumberOfRounds()) {
             throw new IllegalArgumentException(
                     "Die Runde " + roundNumber + " liegt außerhalb der definierten Turnierrunden."
             );
         }
 
-        if (expectedRound != null && !roundNumber.equals(expectedRound)) {
-            throw new IllegalArgumentException(
-                    "Die hochgeladene CSV enthält Paarungen für Runde " + roundNumber +
-                            ", wurde aber im Bereich für Runde " + expectedRound + " hochgeladen."
-            );
+        List<MacMahonPairingImportRow> importedRows =
+                macMahonInterfaceService.parsePairingsExport(file, roundNumber);
+
+        if (importedRows.isEmpty()) {
+            throw new IllegalArgumentException("Die Datei enthält keine Paarungen.");
         }
 
-        validateUniqueTableNumbers(pairings);
+        validateUniqueTableNumbersFromRows(importedRows);
 
+        List<Pairing> entitiesToSave = new ArrayList<>();
 
-        pairingRepository.deleteByTournamentIdAndRoundNumber(tournamentId, roundNumber);
-        pairingRepository.saveAll(pairings);
-    }
+        for (MacMahonPairingImportRow imported : importedRows) {
+            Pairing existing = pairingRepository
+                    .findByTournamentIdAndRoundNumberAndTableNumber(
+                            tournamentId,
+                            imported.roundNumber(),
+                            imported.tableNumber()
+                    )
+                    .orElse(null);
 
-    private List<Pairing> parseCsv(MultipartFile file, Tournament tournament) {
-        List<Pairing> pairings = new ArrayList<>();
-
-        try (BufferedReader reader = new BufferedReader(
-                new InputStreamReader(file.getInputStream(), StandardCharsets.UTF_8))) {
-
-            String line;
-            boolean firstLine = true;
-            int lineNumber = 0;
-
-            while ((line = reader.readLine()) != null) {
-                lineNumber++;
-
-                if (line.isBlank()) {
-                    continue;
-                }
-
-                if (firstLine) {
-                    firstLine = false;
-                    continue;
-                }
-
-                List<String> columns = parseCsvLine(line);
-
-                if (columns.size() < 4) {
-                    throw new IllegalArgumentException(
-                            "Ungültiges CSV-Format in Zeile " + lineNumber +
-                                    ". Erwartet werden mindestens 4 Spalten."
-                    );
-                }
-
-                Integer roundNumber = parseInteger(columns.get(0), "Runde", lineNumber);
-                Integer tableNumber = parseInteger(columns.get(1), "Tisch", lineNumber);
-                String blackPlayer = columns.size() > 2 ? columns.get(2).trim() : "";
-                String whitePlayer = columns.size() > 3 ? columns.get(3).trim() : "";
-                String result = columns.size() > 4 ? columns.get(4).trim() : "";
-
-                if (blackPlayer.isBlank()) {
-                    throw new IllegalArgumentException("Schwarz-Spieler fehlt in Zeile " + lineNumber + ".");
-                }
-
-                if (whitePlayer.isBlank()) {
-                    throw new IllegalArgumentException("Weiß-Spieler fehlt in Zeile " + lineNumber + ".");
-                }
-
-                pairings.add(new Pairing(
-                        tournament,
-                        roundNumber,
-                        tableNumber,
-                        blackPlayer,
-                        whitePlayer,
-                        normalizeAndValidateResultCode(result)
-                ));
+            if (existing == null) {
+                entitiesToSave.add(mapImportRowToPairing(tournament, imported));
+                continue;
             }
 
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Die CSV-Datei konnte nicht gelesen werden.", e);
+            updatePairingFromImportRow(existing, imported);
+            entitiesToSave.add(existing);
         }
 
-        return pairings;
+        pairingRepository.saveAll(entitiesToSave);
     }
 
-    private Integer parseInteger(String value, String fieldName, int lineNumber) {
-        try {
-            return Integer.parseInt(value.trim());
-        } catch (Exception e) {
-            throw new IllegalArgumentException(
-                    fieldName + " ist in Zeile " + lineNumber + " keine gültige Zahl."
-            );
-        }
-    }
-
-    private List<String> parseCsvLine(String line) {
-        List<String> result = new ArrayList<>();
-        StringBuilder current = new StringBuilder();
-        boolean inQuotes = false;
-
-        for (int i = 0; i < line.length(); i++) {
-            char c = line.charAt(i);
-
-            if (c == '"') {
-                if (inQuotes && i + 1 < line.length() && line.charAt(i + 1) == '"') {
-                    current.append('"');
-                    i++;
-                } else {
-                    inQuotes = !inQuotes;
-                }
-            } else if (c == ';' && !inQuotes) {
-                result.add(current.toString());
-                current.setLength(0);
-            } else {
-                current.append(c);
-            }
-        }
-
-        result.add(current.toString());
-        return result;
-    }
-
-    private String normalizeAndValidateResultCode(String result) {
+    private String normalizeAndValidateSimpleResult(String result) {
         if (result == null || result.isBlank()) {
             return null;
         }
 
-        String normalized = result.trim().toUpperCase().replace(",", ".");
+        String normalized = result.trim().toUpperCase();
 
-        if ("0".equals(normalized)) {
-            return normalized;
+        if (!normalized.equals("B")
+                && !normalized.equals("W")
+                && !normalized.equals("J")
+                && !normalized.equals("L")
+                && !normalized.equals("D")) {
+            throw new IllegalArgumentException("Ungültiges Ergebnis. Erlaubt sind B, W, J, L, D oder leer.");
         }
 
-        if (normalized.matches("^[BW]\\+[RTF]$")) {
-            return normalized;
-        }
-
-        if (normalized.matches("^[BW]\\+\\d+(\\.\\d+)?$")) {
-            return normalized;
-        }
-
-        throw new IllegalArgumentException(
-                "Ungültiger Ergebniscode: '" + result + "'. Erlaubt sind z. B. B+R, W+T, B+F, W+5.5 oder 0."
-        );
+        return normalized;
     }
 
-    private void validateUniqueTableNumbers(List<Pairing> pairings) {
-        java.util.Set<Integer> usedTableNumbers = new java.util.HashSet<>();
+    private void validateUniqueTableNumbersFromRows(List<MacMahonPairingImportRow> rows) {
+        Set<Integer> usedTableNumbers = new HashSet<>();
 
-        for (Pairing pairing : pairings) {
-            if (!usedTableNumbers.add(pairing.getTableNumber())) {
+        for (MacMahonPairingImportRow row : rows) {
+            if (!usedTableNumbers.add(row.tableNumber())) {
                 throw new IllegalArgumentException(
-                        "Die Tischnummer " + pairing.getTableNumber() +
-                                " kommt in dieser Runde mehrfach vor. Jede Tischnummer darf pro Runde nur einmal vorkommen."
+                        "Die Tischnummer " + row.tableNumber() +
+                                " kommt in dieser Runde mehrfach vor."
                 );
             }
         }
+    }
+
+    private Pairing mapImportRowToPairing(Tournament tournament, MacMahonPairingImportRow imported) {
+        validateImportRow(imported);
+
+        return new Pairing(
+                tournament,
+                imported.roundNumber(),
+                imported.tableNumber(),
+                imported.blackPlayer().trim(),
+                imported.whitePlayer().trim(),
+                normalizeAndValidateSimpleResult(imported.result()),
+                normalizeHandicap(imported.handicap()),
+                imported.bye()
+        );
+    }
+
+    private void updatePairingFromImportRow(Pairing existing, MacMahonPairingImportRow imported) {
+        validateImportRow(imported);
+
+        existing.setBlackPlayer(imported.blackPlayer().trim());
+        existing.setWhitePlayer(imported.whitePlayer().trim());
+        existing.setResult(normalizeAndValidateSimpleResult(imported.result()));
+        existing.setHandicap(normalizeHandicap(imported.handicap()));
+        existing.setBye(imported.bye());
+    }
+
+    private void validateImportRow(MacMahonPairingImportRow imported) {
+        if (imported == null) {
+            throw new IllegalArgumentException("Leerer MacMahon-Importdatensatz.");
+        }
+
+        if (imported.roundNumber() == null || imported.roundNumber() < 1) {
+            throw new IllegalArgumentException("Ungültige Rundennummer im MacMahon-Import.");
+        }
+
+        if (imported.tableNumber() == null || imported.tableNumber() < 1) {
+            throw new IllegalArgumentException("Ungültige Tischnummer im MacMahon-Import.");
+        }
+
+        if (imported.blackPlayer() == null || imported.blackPlayer().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Für Tisch " + imported.tableNumber() + " fehlt der Name von Schwarz."
+            );
+        }
+
+        if (imported.whitePlayer() == null || imported.whitePlayer().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Für Tisch " + imported.tableNumber() + " fehlt der Name von Weiß."
+            );
+        }
+
+        normalizeAndValidateSimpleResult(imported.result());
+    }
+
+    private String normalizeHandicap(String handicap) {
+        if (handicap == null || handicap.isBlank()) {
+            return null;
+        }
+
+        String normalized = handicap.trim();
+
+        if (normalized.equals("-")) {
+            return null;
+        }
+
+        return normalized;
     }
 }

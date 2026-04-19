@@ -1,5 +1,8 @@
 package com.evlaleyla.gotournamentmanager.backend.registration;
 
+import com.evlaleyla.gotournamentmanager.backend.ClubOptions;
+import com.evlaleyla.gotournamentmanager.backend.CountryOptions;
+import com.evlaleyla.gotournamentmanager.backend.RankOptions;
 import com.evlaleyla.gotournamentmanager.backend.participant.ParticipantService;
 import com.evlaleyla.gotournamentmanager.backend.tournament.Tournament;
 import com.evlaleyla.gotournamentmanager.backend.tournament.TournamentService;
@@ -114,6 +117,7 @@ public class RegistrationController {
 
         model.addAttribute("tournament", tournament);
         model.addAttribute("selfRegistrationForm", new SelfRegistrationForm());
+        addPublicRegistrationFormOptions(model);
         return "public-registration-form";
     }
 
@@ -130,10 +134,19 @@ public class RegistrationController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("tournament", tournament);
+            addPublicRegistrationFormOptions(model);
             return "public-registration-form";
         }
 
-        registrationService.createPublicRegistration(id, selfRegistrationForm);
+        try {
+            registrationService.createPublicRegistration(id, selfRegistrationForm);
+        } catch (IllegalArgumentException e) {
+            bindingResult.reject("registration.invalid", e.getMessage());
+            model.addAttribute("tournament", tournament);
+            addPublicRegistrationFormOptions(model);
+            return "public-registration-form";
+        }
+
         redirectAttributes.addFlashAttribute("successMessage", "Die Anmeldung wurde erfolgreich abgesendet.");
         return "redirect:/tournaments/" + id + "/register";
     }
@@ -155,6 +168,9 @@ public class RegistrationController {
     private void addFormData(Model model) {
         model.addAttribute("tournaments", tournamentService.findAll());
         model.addAttribute("participants", participantService.findAll());
+        model.addAttribute("countryOptions", CountryOptions.all());
+        model.addAttribute("rankOptions", RankOptions.all());
+        model.addAttribute("clubOptions", ClubOptions.all());
     }
 
     private void validateRegistrationDate(RegistrationForm registrationForm, BindingResult bindingResult) {
@@ -211,5 +227,12 @@ public class RegistrationController {
             );
         }
 
+    }
+
+    private void addPublicRegistrationFormOptions(Model model) {
+        model.addAttribute("countryOptions", CountryOptions.all());
+        model.addAttribute("rankOptions", RankOptions.all());
+        model.addAttribute("clubOptions", ClubOptions.all());
+        model.addAttribute("clubsByCountry", ClubOptions.byCountry());
     }
 }

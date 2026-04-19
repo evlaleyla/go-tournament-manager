@@ -1,5 +1,6 @@
 package com.evlaleyla.gotournamentmanager.backend.tournament;
 
+import com.evlaleyla.gotournamentmanager.backend.macmahon.MacMahonExportService;
 import com.evlaleyla.gotournamentmanager.backend.participant.Participant;
 import com.evlaleyla.gotournamentmanager.backend.registration.Registration;
 import com.evlaleyla.gotournamentmanager.backend.registration.RegistrationService;
@@ -27,11 +28,14 @@ public class TournamentController {
 
     private final TournamentService tournamentService;
     private final RegistrationService registrationService;
+    private final MacMahonExportService macMahonExportService;
 
     public TournamentController(TournamentService tournamentService,
-                                RegistrationService registrationService) {
+                                RegistrationService registrationService,
+                                MacMahonExportService macMahonExportService) {
         this.tournamentService = tournamentService;
         this.registrationService = registrationService;
+        this.macMahonExportService = macMahonExportService;
     }
 
     @GetMapping("/tournaments")
@@ -254,5 +258,20 @@ public class TournamentController {
             return "";
         }
         return date.format(DateTimeFormatter.ISO_DATE);
+    }
+
+    @GetMapping("/tournaments/{id}/startlist/export-macmahon")
+    public ResponseEntity<byte[]> exportTournamentStartListForMacMahon(@PathVariable Long id) {
+        Tournament tournament = tournamentService.findById(id);
+        byte[] content = macMahonExportService.exportParticipantsForMacMahon(id);
+
+        String safeTournamentName = tournament.getName().replaceAll("[^a-zA-Z0-9-_]", "_");
+        String fileName = "macmahon_startliste_" + safeTournamentName + ".txt";
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + fileName + "\"")
+                .contentType(MediaType.parseMediaType("text/plain;charset=UTF-8"))
+                .body(content);
     }
 }

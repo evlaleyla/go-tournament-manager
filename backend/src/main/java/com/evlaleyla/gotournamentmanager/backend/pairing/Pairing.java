@@ -37,19 +37,51 @@ public class Pairing {
     @NotBlank(message = "Der Name von Weiß ist erforderlich.")
     private String whitePlayer;
 
+    /**
+     * Erlaubte Werte:
+     * null = offen
+     * B = Schwarz gewinnt
+     * W = Weiß gewinnt
+     * J = Jigo / Unentschieden
+     * L = beide verlieren
+     * D = beide gewinnen
+     */
     private String result;
+
+    @Column(length = 20)
+    private String handicap;
+
+    @Column(name = "bye_game", nullable = false)
+    private boolean bye;
 
     public Pairing() {
     }
 
-    public Pairing(Tournament tournament, Integer roundNumber, Integer tableNumber,
-                   String blackPlayer, String whitePlayer, String result) {
+    public Pairing(Tournament tournament,
+                   Integer roundNumber,
+                   Integer tableNumber,
+                   String blackPlayer,
+                   String whitePlayer,
+                   String result) {
+        this(tournament, roundNumber, tableNumber, blackPlayer, whitePlayer, result, null, false);
+    }
+
+    public Pairing(Tournament tournament,
+                   Integer roundNumber,
+                   Integer tableNumber,
+                   String blackPlayer,
+                   String whitePlayer,
+                   String result,
+                   String handicap,
+                   boolean bye) {
         this.tournament = tournament;
         this.roundNumber = roundNumber;
         this.tableNumber = tableNumber;
         this.blackPlayer = blackPlayer;
         this.whitePlayer = whitePlayer;
         this.result = result;
+        this.handicap = handicap;
+        this.bye = bye;
     }
 
     public Long getId() {
@@ -113,27 +145,41 @@ public class Pairing {
             return "offen";
         }
 
-        if ("0".equals(result)) {
-            return "Jigo";
-        }
-
-        if (result.startsWith("B+")) {
-            return buildReadableResult("Schwarz", result.substring(2));
-        }
-
-        if (result.startsWith("W+")) {
-            return buildReadableResult("Weiß", result.substring(2));
-        }
-
-        return result;
+        return switch (result) {
+            case "B" -> "Schwarz gewinnt";
+            case "W" -> "Weiß gewinnt";
+            case "J" -> "Jigo";
+            case "L" -> "Beide verlieren";
+            case "D" -> "Beide gewinnen";
+            default -> result;
+        };
     }
 
-    private String buildReadableResult(String winner, String suffix) {
-        return switch (suffix) {
-            case "R" -> winner + " gewinnt durch Aufgabe";
-            case "T" -> winner + " gewinnt auf Zeit";
-            case "F" -> winner + " gewinnt kampflos";
-            default -> winner + " gewinnt mit " + suffix.replace(".", ",") + " Punkten";
-        };
+    public String getHandicap() {
+        return handicap;
+    }
+
+    public void setHandicap(String handicap) {
+        this.handicap = handicap;
+    }
+
+    public boolean isBye() {
+        return bye;
+    }
+
+    public void setBye(boolean bye) {
+        this.bye = bye;
+    }
+
+    public String getHandicapDisplay() {
+        if (handicap == null || handicap.isBlank()) {
+            return "-";
+        }
+
+        return handicap;
+    }
+
+    public String getByeDisplay() {
+        return bye ? "Ja" : "Nein";
     }
 }

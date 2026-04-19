@@ -1,5 +1,8 @@
 package com.evlaleyla.gotournamentmanager.backend.participant;
 
+import com.evlaleyla.gotournamentmanager.backend.ClubOptions;
+import com.evlaleyla.gotournamentmanager.backend.CountryOptions;
+import com.evlaleyla.gotournamentmanager.backend.RankOptions;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -29,6 +32,7 @@ public class ParticipantController {
     public String showParticipantForm(Model model) {
         model.addAttribute("participant", new Participant());
         model.addAttribute("isEdit", false);
+        addParticipantFormOptions(model);
         return "participant-form";
     }
 
@@ -40,14 +44,15 @@ public class ParticipantController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("isEdit", false);
+            addParticipantFormOptions(model);
             return "participant-form";
         }
-
         try {
             participantService.save(participant);
         } catch (IllegalArgumentException e) {
-            bindingResult.rejectValue("email", "participant.email.duplicate", e.getMessage());
+            bindingResult.reject("participant.invalid", e.getMessage());
             model.addAttribute("isEdit", false);
+            addParticipantFormOptions(model);
             return "participant-form";
         }
 
@@ -65,6 +70,7 @@ public class ParticipantController {
     public String showEditForm(@PathVariable Long id, Model model) {
         model.addAttribute("participant", participantService.findById(id));
         model.addAttribute("isEdit", true);
+        addParticipantFormOptions(model);
         return "participant-form";
     }
 
@@ -79,14 +85,15 @@ public class ParticipantController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("isEdit", true);
+            addParticipantFormOptions(model);
             return "participant-form";
         }
-
         try {
             participantService.update(id, participant);
         } catch (IllegalArgumentException e) {
-            bindingResult.rejectValue("email", "participant.email.duplicate", e.getMessage());
+            bindingResult.reject("participant.invalid", e.getMessage());
             model.addAttribute("isEdit", true);
+            addParticipantFormOptions(model);
             return "participant-form";
         }
 
@@ -105,5 +112,12 @@ public class ParticipantController {
             redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
             return "redirect:/participants/" + id;
         }
+    }
+
+    private void addParticipantFormOptions(Model model) {
+        model.addAttribute("countryOptions", CountryOptions.all());
+        model.addAttribute("rankOptions", RankOptions.all());
+        model.addAttribute("clubOptions", ClubOptions.all());
+        model.addAttribute("clubsByCountry", ClubOptions.byCountry());
     }
 }

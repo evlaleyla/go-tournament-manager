@@ -31,6 +31,10 @@ public class Participant {
     private String country;
 
     @NotBlank(message = "Der Spielrang darf nicht leer sein.")
+    @jakarta.validation.constraints.Pattern(
+            regexp = "(?i)^([1-9]|[12][0-9]|30)\\s*(k|kyu|d|dan|p|pro)$",
+            message = "Bitte einen gültigen Go-Rang eingeben, z. B. 10k, 1d oder 2p."
+    )
     private String rank;
 
     @PastOrPresent(message = "Das Geburtsdatum darf nicht in der Zukunft liegen.")
@@ -116,5 +120,9 @@ public class Participant {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
+    }
+
+    public String getCountryDisplay() {
+        return com.evlaleyla.gotournamentmanager.backend.CountryOptions.displayName(country);
     }
 }

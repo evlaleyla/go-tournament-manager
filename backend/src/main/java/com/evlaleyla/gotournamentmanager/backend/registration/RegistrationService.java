@@ -1,5 +1,8 @@
 package com.evlaleyla.gotournamentmanager.backend.registration;
 
+import com.evlaleyla.gotournamentmanager.backend.ClubOptions;
+import com.evlaleyla.gotournamentmanager.backend.CountryOptions;
+import com.evlaleyla.gotournamentmanager.backend.RankOptions;
 import com.evlaleyla.gotournamentmanager.backend.participant.Participant;
 import com.evlaleyla.gotournamentmanager.backend.participant.ParticipantRepository;
 import com.evlaleyla.gotournamentmanager.backend.tournament.Tournament;
@@ -65,17 +68,22 @@ public class RegistrationService {
         Participant participant = participantRepository.findById(registrationForm.getParticipantId())
                 .orElseThrow(() -> new IllegalArgumentException("Teilnehmer nicht gefunden: " + registrationForm.getParticipantId()));
 
+        String normalizedCountry = CountryOptions.normalize(participant.getCountry());
+        String normalizedRank = RankOptions.normalize(participant.getRank());
+        String normalizedClub = ClubOptions.normalize(participant.getClub());
+
+        validateClubMatchesCountry(normalizedCountry, normalizedClub);
+
         Registration registration = new Registration(
                 tournament,
                 participant,
                 LocalDate.now(),
                 registrationForm.getPlannedRounds(),
-                participant.getRank(),
-                participant.getClub(),
-                participant.getCountry(),
+                normalizedRank,
+                normalizedClub,
+                normalizedCountry,
                 registrationForm.getNotes()
         );
-
         return registrationRepository.save(registration);
     }
     public Registration createPublicRegistration(Long tournamentId, SelfRegistrationForm form) {
@@ -83,6 +91,12 @@ public class RegistrationService {
                 .orElseThrow(() -> new IllegalArgumentException("Turnier nicht gefunden: " + tournamentId));
 
         String normalizedEmail = form.getEmail().trim().toLowerCase(java.util.Locale.ROOT);
+        String normalizedCountry = CountryOptions.normalize(form.getCountry());
+        String normalizedRank = RankOptions.normalize(form.getRank());
+        String normalizedClub = ClubOptions.normalize(form.getClub());
+
+
+        validateClubMatchesCountry(normalizedCountry, normalizedClub);
 
         Participant participant = participantRepository.findByEmailIgnoreCase(normalizedEmail)
                 .orElseGet(() -> {
@@ -90,9 +104,9 @@ public class RegistrationService {
                     newParticipant.setFirstName(form.getFirstName());
                     newParticipant.setLastName(form.getLastName());
                     newParticipant.setEmail(normalizedEmail);
-                    newParticipant.setClub(form.getClub());
-                    newParticipant.setCountry(form.getCountry());
-                    newParticipant.setRank(form.getRank());
+                    newParticipant.setClub(normalizedClub);
+                    newParticipant.setCountry(normalizedCountry);
+                    newParticipant.setRank(normalizedRank);
                     newParticipant.setBirthDate(form.getBirthDate());
                     return participantRepository.save(newParticipant);
                 });
@@ -102,9 +116,9 @@ public class RegistrationService {
                 participant,
                 LocalDate.now(),
                 form.getPlannedRounds(),
-                form.getRank(),
-                form.getClub(),
-                form.getCountry(),
+                normalizedRank,
+                normalizedClub,
+                normalizedCountry,
                 form.getNotes()
         );
 
@@ -121,5 +135,13 @@ public class RegistrationService {
                 .filter(registration -> registration.getPlannedRounds() != null
                         && registration.getPlannedRounds() >= roundNumber)
                 .collect(Collectors.toList());
+    }
+
+    private void validateClubMatchesCountry(String country, String club) {
+        if (!ClubOptions.isValidForCountry(country, club)) {
+            throw new IllegalArgumentException(
+                    "Der Verein „" + club + "“ passt nicht zum ausgewählten Land."
+            );
+        }
     }
 }
