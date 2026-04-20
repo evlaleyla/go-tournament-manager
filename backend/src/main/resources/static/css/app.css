@@ -374,3 +374,78 @@ details[open] summary {
 .inline-result-form button {
     white-space: nowrap;
 }
+
+.print-only {
+    display: none;
+}
+
+@media print {
+    @page {
+        margin: 1.2cm;
+    }
+
+    body {
+        background: white;
+        color: black;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    .print-area,
+    .print-area * {
+        visibility: visible !important;
+    }
+
+    .print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .no-print,
+    .no-print * {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    .print-only {
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid black;
+        background: white;
+    }
+
+    th,
+    td {
+        border: 1px solid black;
+        padding: 0.35rem;
+        color: black;
+        background: white !important;
+        font-size: 10pt;
+    }
+
+    th {
+        font-weight: 700;
+    }
+
+    tr {
+        page-break-inside: avoid;
+    }
+
+    .card {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+    }
+}

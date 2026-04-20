@@ -11,7 +11,7 @@
 
 <main class="container">
 
-    <div class="page-header">
+    <div class="page-header no-print">
         <div>
             <h1>Paarungen und Ergebnisse</h1>
             <p class="page-subtitle" th:text="${tournament.name}">
@@ -20,19 +20,33 @@
         </div>
 
         <div class="actions">
-            <a class="btn btn-secondary" th:href="@{/tournaments/{id}(id=${tournament.id})}">
+            <button type="button" onclick="window.print()">
+                Paarungen drucken
+            </button>
+
+            <a class="btn btn-secondary"
+               th:href="@{/tournaments/{id}(id=${tournament.id})}">
                 Zurück zum Turnier
             </a>
-            <a class="btn btn-secondary" th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
+
+            <a class="btn btn-secondary"
+               th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
                 Öffentliche Ansicht prüfen
             </a>
         </div>
     </div>
 
-    <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
-    <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
+    <div th:if="${successMessage}"
+         class="flash-success no-print"
+         th:text="${successMessage}">
+    </div>
 
-    <section class="card">
+    <div th:if="${errorMessage}"
+         class="flash-error no-print"
+         th:text="${errorMessage}">
+    </div>
+
+    <section class="card no-print">
         <h2>MacMahon-Schnittstelle</h2>
         <p class="page-subtitle">
             Hier können aus dem MacMahon-Programm exportierte Pairing-Dateien importiert werden.
@@ -61,93 +75,113 @@
 
             <div class="actions">
                 <button type="submit">Pairing-Datei importieren</button>
-                <a class="btn btn-secondary" th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
+
+                <a class="btn btn-secondary"
+                   th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
                     Wall List importieren
                 </a>
             </div>
         </form>
     </section>
 
-    <section th:each="round : ${availableRounds}"
-             th:with="roundPairings=${pairingsByRound.get(round)}"
-             class="card"
-             th:attr="id='round-' + ${round}">
+    <div class="print-area">
 
-        <h2>
-            Runde
-            <span th:text="${round}"></span>
-        </h2>
+        <h1 class="print-only print-area-title">
+            Paarungen und Ergebnisse -
+            <span th:text="${tournament.name}"></span>
+        </h1>
 
-        <table th:if="${!#lists.isEmpty(roundPairings)}">
-            <thead>
-            <tr>
-                <th>Tisch</th>
-                <th>Schwarz</th>
-                <th>Weiß</th>
-                <th>Ergebnis bearbeiten</th>
-                <th>Vorgabe</th>
-                <th>Freilos</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="pairing : ${roundPairings}">
-                <td th:text="${pairing.tableNumber}"></td>
-                <td th:text="${pairing.blackPlayer}"></td>
-                <td th:text="${pairing.whitePlayer}"></td>
-                <td>
-                    <form th:action="@{/pairings/{id}/result(id=${pairing.id})}"
-                          method="post"
-                          class="inline-result-form">
+        <section th:each="round : ${availableRounds}"
+                 th:with="roundPairings=${pairingsByRound.get(round)}"
+                 class="card"
+                 th:classappend="${#lists.isEmpty(roundPairings)} ? ' print-hide-empty' : ''"
+                 th:attr="id='round-' + ${round}">
 
-                        <select name="resultOption"
-                                th:id="'resultOption-' + ${pairing.id}">
-                            <option value=""
-                                    th:selected="${pairing.result == null or #strings.isEmpty(pairing.result)}">
-                                Offen
-                            </option>
+            <h2>
+                Runde
+                <span th:text="${round}"></span>
+            </h2>
 
-                            <option value="BLACK_WINS"
-                                    th:selected="${pairing.result == 'B'}">
-                                Schwarz gewinnt
-                            </option>
+            <table th:if="${!#lists.isEmpty(roundPairings)}">
+                <thead>
+                <tr>
+                    <th>Tisch</th>
+                    <th>Schwarz</th>
+                    <th>Weiß</th>
+                    <th>Ergebnis</th>
+                    <th>Vorgabe</th>
+                    <th>Freilos</th>
+                </tr>
+                </thead>
 
-                            <option value="WHITE_WINS"
-                                    th:selected="${pairing.result == 'W'}">
-                                Weiß gewinnt
-                            </option>
+                <tbody>
+                <tr th:each="pairing : ${roundPairings}">
+                    <td th:text="${pairing.tableNumber}"></td>
+                    <td th:text="${pairing.blackPlayer}"></td>
+                    <td th:text="${pairing.whitePlayer}"></td>
 
-                            <option value="JIGO"
-                                    th:selected="${pairing.result == 'J'}">
-                                Jigo
-                            </option>
+                    <td>
+                        <form th:action="@{/pairings/{id}/result(id=${pairing.id})}"
+                              method="post"
+                              class="inline-result-form no-print">
 
-                            <option value="BOTH_LOSE"
-                                    th:selected="${pairing.result == 'L'}">
-                                Beide verlieren
-                            </option>
+                            <select name="resultOption"
+                                    th:id="'resultOption-' + ${pairing.id}">
+                                <option value=""
+                                        th:selected="${pairing.result == null or #strings.isEmpty(pairing.result)}">
+                                    Offen
+                                </option>
 
-                            <option value="BOTH_WIN"
-                                    th:selected="${pairing.result == 'D'}">
-                                Beide gewinnen
-                            </option>
-                        </select>
+                                <option value="BLACK_WINS"
+                                        th:selected="${pairing.result == 'B'}">
+                                    Schwarz gewinnt
+                                </option>
 
-                        <button type="submit" class="btn btn-secondary">
-                            Speichern
-                        </button>
-                    </form>
-                </td>
+                                <option value="WHITE_WINS"
+                                        th:selected="${pairing.result == 'W'}">
+                                    Weiß gewinnt
+                                </option>
 
-                <td th:text="${pairing.handicapDisplay}"></td>
-                <td th:text="${pairing.byeDisplay}"></td>
-            </tr>
-            </tbody>
-        </table>
+                                <option value="JIGO"
+                                        th:selected="${pairing.result == 'J'}">
+                                    Jigo
+                                </option>
 
-        <div th:if="${#lists.isEmpty(roundPairings)}" class="empty-state">
-            Für diese Runde wurden noch keine Paarungen importiert.
-        </div>
-    </section>
+                                <option value="BOTH_LOSE"
+                                        th:selected="${pairing.result == 'L'}">
+                                    Beide verlieren
+                                </option>
+
+                                <option value="BOTH_WIN"
+                                        th:selected="${pairing.result == 'D'}">
+                                    Beide gewinnen
+                                </option>
+                            </select>
+
+                            <button type="submit" class="btn btn-secondary">
+                                Speichern
+                            </button>
+                        </form>
+
+                        <span class="print-only"
+                              th:text="${pairing.resultDisplay}">
+                            Ergebnis
+                        </span>
+                    </td>
+
+                    <td th:text="${pairing.handicapDisplay}"></td>
+                    <td th:text="${pairing.byeDisplay}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${#lists.isEmpty(roundPairings)}"
+                 class="empty-state no-print">
+                Für diese Runde wurden noch keine Paarungen importiert.
+            </div>
+        </section>
+
+    </div>
 
 </main>
 

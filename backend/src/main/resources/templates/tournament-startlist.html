@@ -11,7 +11,7 @@
 
 <main class="container">
 
-    <div class="page-header">
+    <div class="page-header no-print">
         <div>
             <h1>Startliste</h1>
             <p class="page-subtitle" th:text="${tournament.name}">
@@ -20,16 +20,24 @@
         </div>
 
         <div class="actions">
-            <a class="btn btn-secondary" th:href="@{/tournaments/{id}(id=${tournament.id})}">
+            <button type="button" onclick="window.print()">
+                Startliste drucken
+            </button>
+
+            <a class="btn btn-secondary"
+               th:href="@{/tournaments/{id}(id=${tournament.id})}">
                 Zurück zum Turnier
             </a>
         </div>
     </div>
 
-    <section class="card">
+    <section class="card no-print">
         <h2>Runde auswählen</h2>
 
-        <form th:action="@{/tournaments/{id}/startlist(id=${tournament.id})}" method="get" class="form-grid">
+        <form th:action="@{/tournaments/{id}/startlist(id=${tournament.id})}"
+              method="get"
+              class="form-grid">
+
             <div class="form-row">
                 <label for="round">Runde</label>
                 <select id="round" name="round">
@@ -43,10 +51,12 @@
 
             <div class="actions">
                 <button type="submit">Anzeigen</button>
+
                 <a class="btn btn-secondary"
                    th:href="@{/tournaments/{id}/startlist/export(id=${tournament.id}, round=${selectedRound})}">
                     CSV exportieren
                 </a>
+
                 <a class="btn btn-secondary"
                    th:href="@{/tournaments/{id}/startlist/export-macmahon(id=${tournament.id})}">
                     MacMahon-Importdatei exportieren
@@ -56,44 +66,60 @@
     </section>
 
     <section class="card">
-        <h2>
+        <h2 class="no-print">
             Startliste für Runde
             <span th:text="${selectedRound}"></span>
         </h2>
 
-        <table th:if="${!#lists.isEmpty(registrations)}">
-            <thead>
-            <tr>
-                <th>Nr.</th>
-                <th>Nachname</th>
-                <th>Vorname</th>
-                <th>E-Mail</th>
-                <th>Verein</th>
-                <th>Land</th>
-                <th>Rang</th>
-                <th>Geburtsdatum</th>
-                <th>Anmeldedatum</th>
-                <th>Geplante Runden</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="registration, stat : ${registrations}">
-                <td th:text="${stat.count}"></td>
-                <td th:text="${registration.participant.lastName}"></td>
-                <td th:text="${registration.participant.firstName}"></td>
-                <td th:text="${registration.participant.email}"></td>
-                <td th:text="${registration.clubAtRegistration}"></td>
-                <td th:text="${registration.countryAtRegistration}"></td>
-                <td th:text="${registration.rankAtRegistration}"></td>
-                <td th:text="${registration.participant.birthDate}"></td>
-                <td th:text="${registration.registrationDate}"></td>
-                <td th:text="${registration.plannedRounds}"></td>
-            </tr>
-            </tbody>
-        </table>
+        <div class="print-area">
 
-        <div th:if="${#lists.isEmpty(registrations)}" class="empty-state">
-            Für diese Runde liegen noch keine passenden Anmeldungen vor.
+            <h1 class="print-only">
+                Startliste -
+                <span th:text="${tournament.name}"></span>
+            </h1>
+
+            <h2 class="print-only">
+                Runde
+                <span th:text="${selectedRound}"></span>
+            </h2>
+
+            <table th:if="${!#lists.isEmpty(registrations)}">
+                <thead>
+                <tr>
+                    <th>Nr.</th>
+                    <th>Nachname</th>
+                    <th>Vorname</th>
+                    <th>E-Mail</th>
+                    <th>Verein</th>
+                    <th>Land</th>
+                    <th>Rang</th>
+                    <th>Geburtsdatum</th>
+                    <th>Anmeldedatum</th>
+                    <th>Geplante Runden</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="registration, stat : ${registrations}">
+                    <td th:text="${stat.count}"></td>
+                    <td th:text="${registration.participant.lastName}"></td>
+                    <td th:text="${registration.participant.firstName}"></td>
+                    <td th:text="${registration.participant.email}"></td>
+                    <td th:text="${registration.clubAtRegistration}"></td>
+                    <td th:text="${registration.countryAtRegistration}"></td>
+                    <td th:text="${registration.rankAtRegistration}"></td>
+                    <td th:text="${registration.participant.birthDate}"></td>
+                    <td th:text="${registration.registrationDate}"></td>
+                    <td th:text="${registration.plannedRounds}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${#lists.isEmpty(registrations)}"
+                 class="empty-state">
+                Für diese Runde liegen noch keine passenden Anmeldungen vor.
+            </div>
+
         </div>
     </section>
 

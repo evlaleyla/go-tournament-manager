@@ -20,7 +20,7 @@
 <div th:each="round : ${availableRounds}"
      th:with="roundPairings=${pairingsByRound.get(round)}">
 
-    <details th:attr="id='round-' + ${round}" th:open="${round == 1}">
+    <details th:attr="id='round-' + ${round}">
         <summary>
             <strong>Runde <span th:text="${round}"></span></strong>
         </summary>
