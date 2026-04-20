@@ -32,7 +32,7 @@ public class MacMahonController {
     @PostMapping("/tournaments/{id}/pairings/import-macmahon")
     public String importMacMahonPairings(@PathVariable Long id,
                                          @RequestParam(required = false) Integer roundNumber,
-                                         @RequestParam MultipartFile file,
+                                         @RequestParam("file") MultipartFile file,
                                          RedirectAttributes redirectAttributes) {
         if (roundNumber == null) {
             redirectAttributes.addFlashAttribute(
@@ -78,7 +78,7 @@ public class MacMahonController {
 
     @PostMapping("/tournaments/{id}/walllist/import-macmahon")
     public String importMacMahonWallList(@PathVariable Long id,
-                                         MultipartFile file,
+                                         @RequestParam("file") MultipartFile file,
                                          Model model) {
         Tournament tournament = tournamentService.findById(id);
 

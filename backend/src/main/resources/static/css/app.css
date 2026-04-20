@@ -398,6 +398,10 @@ details[open] summary {
         visibility: visible !important;
     }
 
+    .print-hide-empty {
+        display: none !important;
+    }
+
     .print-area {
         position: absolute;
         left: 0;
