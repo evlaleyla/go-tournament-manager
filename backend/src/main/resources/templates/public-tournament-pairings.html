@@ -6,61 +6,116 @@
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
+
 <div th:replace="~{fragments/header :: publicHeader}"></div>
 
 <main class="container">
-<h1>Paarungen und Ergebnisse</h1>
 
-<h2 th:text="${tournament.name}"></h2>
+    <div class="page-header no-print">
+        <div>
+            <h1>Paarungen und Ergebnisse</h1>
+            <p class="page-subtitle" th:text="${tournament.name}">
+                Turniername
+            </p>
+        </div>
 
-<p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
-<p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
-<p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
+        <div class="actions">
+            <button type="button" onclick="window.print()">
+                Paarungen drucken
+            </button>
 
-<div th:each="round : ${availableRounds}"
-     th:with="roundPairings=${pairingsByRound.get(round)}">
+            <a class="btn btn-secondary"
+               th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+                Zurück zur Turnierseite
+            </a>
+        </div>
+    </div>
 
-    <details th:attr="id='round-' + ${round}">
-        <summary>
-            <strong>Runde <span th:text="${round}"></span></strong>
-        </summary>
+    <section class="card no-print">
+        <h2>Turnierdaten</h2>
 
-        <table border="1">
-            <thead>
-            <tr>
-                <th>Tisch</th>
-                <th>Schwarz</th>
-                <th>Weiß</th>
-                <th>Ergebnis</th>
-                <th>Vorgabe</th>
-                <th>Freilos</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="pairing : ${roundPairings}">
-                <td th:text="${pairing.tableNumber}"></td>
-                <td th:text="${pairing.blackPlayer}"></td>
-                <td th:text="${pairing.whitePlayer}"></td>
-                <td th:text="${pairing.resultDisplay}"></td>
-                <td th:text="${pairing.handicapDisplay}"></td>
-                <td th:text="${pairing.byeDisplay}"></td>
-            </tr>
-            </tbody>
-        </table>
+        <dl class="detail-list">
+            <dt>Ort</dt>
+            <dd th:text="${tournament.location}">Ort</dd>
 
-        <p th:if="${#lists.isEmpty(roundPairings)}">
-            Für diese Runde liegen derzeit noch keine veröffentlichten Paarungen vor.
-        </p>
-    </details>
+            <dt>Startdatum</dt>
+            <dd th:text="${tournament.startDate}">Startdatum</dd>
 
-    <hr>
-</div>
+            <dt>Enddatum</dt>
+            <dd th:text="${tournament.endDate}">Enddatum</dd>
 
-<p>
-    <a th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
-        Zurück zur Turnierseite
-    </a>
-</p>
+            <dt>Status</dt>
+            <dd>
+                <span class="badge" th:text="${tournament.status.displayName}">
+                    Status
+                </span>
+            </dd>
+        </dl>
+    </section>
+
+    <div class="print-area">
+
+        <h1 class="print-only print-area-title">
+            Paarungen und Ergebnisse -
+            <span th:text="${tournament.name}">Turniername</span>
+        </h1>
+
+        <section th:each="round : ${availableRounds}"
+                 th:with="roundPairings=${pairingsByRound.get(round)}"
+                 class="card"
+                 th:classappend="${#lists.isEmpty(roundPairings)} ? ' print-hide-empty' : ''"
+                 th:attr="id='round-' + ${round}">
+
+            <h2>
+                Runde
+                <span th:text="${round}">1</span>
+            </h2>
+
+            <table th:if="${!#lists.isEmpty(roundPairings)}">
+                <thead>
+                <tr>
+                    <th>Tisch</th>
+                    <th>Schwarz</th>
+                    <th>Weiß</th>
+                    <th>Ergebnis</th>
+                    <th>Vorgabe</th>
+                    <th>Freilos</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="pairing : ${roundPairings}">
+                    <td th:text="${pairing.tableNumber}">1</td>
+                    <td th:text="${pairing.blackPlayer}">Schwarz</td>
+                    <td th:text="${pairing.whitePlayer}">Weiß</td>
+                    <td>
+                        <span class="badge" th:text="${pairing.resultDisplay}">
+                            offen
+                        </span>
+                    </td>
+                    <td th:text="${pairing.handicapDisplay}">-</td>
+                    <td th:text="${pairing.byeDisplay}">Nein</td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${#lists.isEmpty(roundPairings)}"
+                 class="empty-state no-print">
+                Für diese Runde liegen derzeit noch keine veröffentlichten Paarungen vor.
+            </div>
+
+        </section>
+
+    </div>
+
+    <div class="actions no-print">
+        <a class="btn btn-secondary"
+           th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+            Zurück zur Turnierseite
+        </a>
+    </div>
+
 </main>
+
 </body>
 </html>

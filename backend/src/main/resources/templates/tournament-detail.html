@@ -11,17 +11,40 @@
 
 <main class="container">
 
-  <div class="page-header">
+  <div class="tournament-hero">
     <div>
+      <div class="breadcrumb">
+        <a th:href="@{/admin}">Dashboard</a>
+        <span>/</span>
+        <a th:href="@{/tournaments}">Turniere</a>
+        <span>/</span>
+        <span th:text="${tournament.name}">Turniername</span>
+      </div>
+
       <h1 th:text="${tournament.name}">Turniername</h1>
+
       <p class="page-subtitle">
-        Turnierdetails und zentrale Verwaltungsfunktionen.
+        Zentrale Verwaltung für Anmeldung, Startliste, Paarungen und öffentliche Ansicht.
       </p>
+
+      <div class="hero-meta">
+        <span class="badge" th:text="${tournament.status.displayName}">Status</span>
+        <span th:text="${tournament.location}">Ort</span>
+        <span>
+          <span th:text="${tournament.startDate}">Start</span>
+          –
+          <span th:text="${tournament.endDate}">Ende</span>
+        </span>
+        <span>
+          <span th:text="${tournament.numberOfRounds}">5</span>
+          Runden
+        </span>
+      </div>
     </div>
 
-    <div class="actions">
+    <div class="hero-actions no-print">
       <a class="btn btn-secondary" th:href="@{/tournaments}">
-        Zurück zur Turnierliste
+        Zurück zur Liste
       </a>
 
       <a class="btn" th:href="@{/tournaments/{id}/edit(id=${tournament.id})}">
@@ -33,99 +56,152 @@
   <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
   <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
 
-  <div class="grid grid-2">
+  <section class="overview-grid">
+    <div class="overview-card">
+      <span class="overview-label">Ort</span>
+      <strong th:text="${tournament.location}">Frankfurt</strong>
+    </div>
 
-    <section class="card">
-      <h2>Stammdaten</h2>
+    <div class="overview-card">
+      <span class="overview-label">Zeitraum</span>
+      <strong>
+        <span th:text="${tournament.startDate}">2026-04-27</span>
+        –
+        <span th:text="${tournament.endDate}">2026-04-29</span>
+      </strong>
+    </div>
 
-      <dl class="detail-list">
-        <dt>ID</dt>
-        <dd th:text="${tournament.id}"></dd>
+    <div class="overview-card">
+      <span class="overview-label">Anmeldefrist</span>
+      <strong th:text="${tournament.registrationDeadline}">2026-04-26</strong>
+    </div>
 
-        <dt>Ort</dt>
-        <dd th:text="${tournament.location}"></dd>
+    <div class="overview-card">
+      <span class="overview-label">Runden</span>
+      <strong th:text="${tournament.numberOfRounds}">5</strong>
+    </div>
+  </section>
 
-        <dt>Startdatum</dt>
-        <dd th:text="${tournament.startDate}"></dd>
+  <section class="card">
+    <div class="section-heading">
+      <div>
+        <h2>Turnierablauf</h2>
+        <p class="page-subtitle">
+          Die wichtigsten Schritte für die Durchführung des Turniers.
+        </p>
+      </div>
+    </div>
 
-        <dt>Enddatum</dt>
-        <dd th:text="${tournament.endDate}"></dd>
+    <div class="workflow-grid">
 
-        <dt>Anmeldefrist</dt>
-        <dd th:text="${tournament.registrationDeadline}"></dd>
+      <article class="workflow-card">
+        <div class="workflow-number">1</div>
+        <div>
+          <h3>Anmeldungen verwalten</h3>
+          <p>
+            Teilnehmende anmelden, bestehende Anmeldungen prüfen und verwalten.
+          </p>
 
-        <dt>Anzahl der Runden</dt>
-        <dd th:text="${tournament.numberOfRounds}"></dd>
+          <div class="actions">
+            <a class="btn" th:href="@{/registrations(tournamentId=${tournament.id})}">
+              Anmeldungen anzeigen
+            </a>
 
-        <dt>Status</dt>
-        <dd>
-          <span class="badge" th:text="${tournament.status.displayName}"></span>
-        </dd>
-      </dl>
-    </section>
+            <a class="btn btn-secondary" th:href="@{/registrations/new(tournamentId=${tournament.id})}">
+              Neue Anmeldung
+            </a>
+          </div>
+        </div>
+      </article>
 
-    <section class="card">
-      <h2>Organisation</h2>
+      <article class="workflow-card">
+        <div class="workflow-number">2</div>
+        <div>
+          <h3>Startliste vorbereiten</h3>
+          <p>
+            Startliste je Runde anzeigen, drucken und für MacMahon exportieren.
+          </p>
+
+          <div class="actions">
+            <a class="btn" th:href="@{/tournaments/{id}/startlist(id=${tournament.id})}">
+              Startliste öffnen
+            </a>
+          </div>
+        </div>
+      </article>
+
+      <article class="workflow-card workflow-card-primary">
+        <div class="workflow-number">3</div>
+        <div>
+          <h3>Paarungen und Ergebnisse</h3>
+          <p>
+            MacMahon-Paarungen importieren und Ergebnisse direkt verwalten.
+          </p>
+
+          <div class="actions">
+            <a class="btn" th:href="@{/tournaments/{id}/pairings(id=${tournament.id})}">
+              Paarungen öffnen
+            </a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="grid grid-2">
+
+    <div class="card">
+      <h2>MacMahon</h2>
       <p class="page-subtitle">
-        Anmeldung, Teilnehmende und Startlisten verwalten.
+        Import und Export für die externe Turniersoftware.
       </p>
 
-      <div class="actions">
-        <a class="btn" th:href="@{/registrations(tournamentId=${tournament.id})}">
-          Anmeldungen anzeigen
+      <div class="actions vertical-actions">
+        <a class="btn btn-secondary"
+           th:href="@{/tournaments/{id}/startlist/export-macmahon(id=${tournament.id})}">
+          Startliste für MacMahon exportieren
         </a>
 
-        <a class="btn btn-secondary" th:href="@{/registrations/new(tournamentId=${tournament.id})}">
-          Neue Anmeldung
-        </a>
-
-        <a class="btn btn-secondary" th:href="@{/tournaments/{id}/startlist(id=${tournament.id})}">
-          Startliste anzeigen
+        <a class="btn btn-secondary"
+           th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
+          Rangliste aus MacMahon importieren
         </a>
       </div>
-    </section>
+    </div>
 
-    <section class="card">
-      <h2>Turnierdurchführung</h2>
-      <p class="page-subtitle">
-        Paarungen, Ergebnisse und MacMahon-Dateien verwalten.
-      </p>
-
-      <div class="actions">
-        <a class="btn" th:href="@{/tournaments/{id}/pairings(id=${tournament.id})}">
-          Paarungen und Ergebnisse
-        </a>
-
-        <a class="btn btn-secondary" th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
-          MacMahon Wall List
-        </a>
-      </div>
-    </section>
-
-    <section class="card">
+    <div class="card">
       <h2>Öffentliche Ansicht</h2>
       <p class="page-subtitle">
-        Öffentliche Turnierinformationen und veröffentlichte Paarungen prüfen.
+        Prüfen, was Teilnehmende öffentlich sehen können.
       </p>
 
-      <div class="actions">
-        <a class="btn" th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+      <div class="actions vertical-actions">
+        <a class="btn"
+           th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
           Öffentliche Turnierseite
         </a>
 
-        <a class="btn btn-secondary" th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
+        <a class="btn btn-secondary"
+           th:href="@{/public/tournaments/{id}/startlist(id=${tournament.id})}">
+          Öffentliche Startliste
+        </a>
+
+        <a class="btn btn-secondary"
+           th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
           Öffentliche Paarungen
         </a>
       </div>
-    </section>
+    </div>
 
-  </div>
+  </section>
 
   <section class="card">
     <h2>Beschreibung</h2>
 
     <p th:if="${tournament.description != null and !#strings.isEmpty(tournament.description)}"
        th:text="${tournament.description}">
+      Beschreibung des Turniers.
     </p>
 
     <p th:if="${tournament.description == null or #strings.isEmpty(tournament.description)}"
@@ -134,11 +210,13 @@
     </p>
   </section>
 
-  <section class="card">
-    <h2>Administration</h2>
-    <p class="page-subtitle">
-      Administrative Aktionen für dieses Turnier.
-    </p>
+  <section class="card danger-zone">
+    <div>
+      <h2>Administration</h2>
+      <p class="page-subtitle">
+        Vorsichtige administrative Aktionen für dieses Turnier.
+      </p>
+    </div>
 
     <div class="actions">
       <a class="btn btn-secondary"

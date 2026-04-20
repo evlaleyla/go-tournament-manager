@@ -6,107 +6,229 @@
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
+
 <div th:replace="~{fragments/header :: publicHeader}"></div>
 
 <main class="container">
-<h1>Online-Anmeldung</h1>
 
-    <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
+    <div class="page-header">
+        <div>
+            <h1>Online-Anmeldung</h1>
+            <p class="page-subtitle" th:text="${tournament.name}">
+                Turniername
+            </p>
+        </div>
 
-<h2 th:text="${tournament.name}"></h2>
-
-<p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
-<p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
-<p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
-<p><strong>Anmeldefrist:</strong> <span th:text="${tournament.registrationDeadline}"></span></p>
-<p><strong>Status:</strong> <span th:text="${tournament.status.displayName}"></span></p>
-
-<form th:action="@{/tournaments/{id}/register(id=${tournament.id})}"
-      th:object="${selfRegistrationForm}"
-      method="post">
-
-    <div th:if="${#fields.hasGlobalErrors()}">
-        <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+        <div class="actions">
+            <a class="btn btn-secondary"
+               th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+                Zurück zur Turnierseite
+            </a>
+        </div>
     </div>
 
-    <div>
-        <label for="firstName">Vorname:</label>
-        <input type="text" id="firstName" th:field="*{firstName}">
-        <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+    <div th:if="${successMessage}"
+         class="flash-success"
+         th:text="${successMessage}">
     </div>
 
-    <div>
-        <label for="lastName">Nachname:</label>
-        <input type="text" id="lastName" th:field="*{lastName}">
-        <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
-    </div>
+    <section class="card">
+        <h2>Turnierdaten</h2>
 
-    <div>
-        <label for="email">E-Mail:</label>
-        <input type="email" id="email" th:field="*{email}">
-        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-    </div>
+        <dl class="detail-list">
+            <dt>Ort</dt>
+            <dd th:text="${tournament.location}">Ort</dd>
 
-    <div>
-        <label for="country">Land:</label>
-        <select id="country" th:field="*{country}">
-            <option value="">Bitte wählen</option>
-            <option th:each="country : ${countryOptions}"
-                    th:value="${country.code}"
-                    th:text="${country.name}">
-            </option>
-        </select>
-    </div>
+            <dt>Startdatum</dt>
+            <dd th:text="${tournament.startDate}">Startdatum</dd>
 
-    <div>
-        <label for="club">Verein:</label>
-        <input type="text"
-               id="club"
-               th:field="*{club}"
-               list="clubList"
-               placeholder="Bitte zuerst Land wählen">
+            <dt>Enddatum</dt>
+            <dd th:text="${tournament.endDate}">Enddatum</dd>
 
-        <datalist id="clubList"></datalist>
-    </div>
+            <dt>Anmeldefrist</dt>
+            <dd th:text="${tournament.registrationDeadline}">Anmeldefrist</dd>
 
-    <div>
-        <label for="rank">Rang:</label>
-        <input type="text" id="rank" th:field="*{rank}" list="rankList">
+            <dt>Status</dt>
+            <dd>
+                <span class="badge" th:text="${tournament.status.displayName}">
+                    Status
+                </span>
+            </dd>
 
-        <datalist id="rankList">
-            <option th:each="rank : ${rankOptions}"
-                    th:value="${rank}">
-            </option>
-        </datalist>
+            <dt>Runden</dt>
+            <dd th:text="${tournament.numberOfRounds}">Anzahl der Runden</dd>
+        </dl>
+    </section>
 
-        <div th:if="${#fields.hasErrors('rank')}" th:errors="*{rank}"></div>
-    </div>
+    <section class="card">
+        <h2>Teilnahmedaten</h2>
+        <p class="page-subtitle">
+            Bitte fülle die folgenden Angaben aus, um dich für das Turnier anzumelden.
+        </p>
 
-    <div>
-        <label for="birthDate">Geburtsdatum:</label>
-        <input type="date" id="birthDate" th:field="*{birthDate}">
-        <div th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></div>
-    </div>
+        <form th:action="@{/tournaments/{id}/register(id=${tournament.id})}"
+              th:object="${selfRegistrationForm}"
+              method="post"
+              class="form-grid">
 
-    <div>
-        <label for="plannedRounds">Wie viele Runden spielst du mit?</label>
-        <input type="number" id="plannedRounds" th:field="*{plannedRounds}" min="1">
-        <div th:if="${#fields.hasErrors('plannedRounds')}" th:errors="*{plannedRounds}"></div>
-    </div>
+            <div th:if="${#fields.hasGlobalErrors()}" class="flash-error">
+                <p th:each="err : ${#fields.globalErrors()}"
+                   th:text="${err}">
+                </p>
+            </div>
 
-    <div>
-        <label for="notes">Notizen:</label>
-        <textarea id="notes" th:field="*{notes}"></textarea>
-    </div>
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="firstName">Vorname</label>
+                    <input type="text"
+                           id="firstName"
+                           th:field="*{firstName}"
+                           autocomplete="given-name">
 
-    <div>
-        <button type="submit">Anmeldung absenden</button>
-    </div>
-</form>
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('firstName')}"
+                         th:errors="*{firstName}">
+                    </div>
+                </div>
 
-<p>
-    <a th:href="@{/public/tournaments/{id}(id=${tournament.id})}">Zurück zur Turnierseite</a>
-</p>
+                <div class="form-row">
+                    <label for="lastName">Nachname</label>
+                    <input type="text"
+                           id="lastName"
+                           th:field="*{lastName}"
+                           autocomplete="family-name">
+
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('lastName')}"
+                         th:errors="*{lastName}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="email">E-Mail</label>
+                <input type="email"
+                       id="email"
+                       th:field="*{email}"
+                       autocomplete="email">
+
+                <div class="field-error"
+                     th:if="${#fields.hasErrors('email')}"
+                     th:errors="*{email}">
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="birthDate">Geburtsdatum</label>
+                    <input type="date"
+                           id="birthDate"
+                           th:field="*{birthDate}">
+
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('birthDate')}"
+                         th:errors="*{birthDate}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label for="rank">Rang</label>
+                    <input type="text"
+                           id="rank"
+                           th:field="*{rank}"
+                           list="rankList"
+                           placeholder="z. B. 10k, 1d oder 2p">
+
+                    <datalist id="rankList">
+                        <option th:each="rank : ${rankOptions}"
+                                th:value="${rank}">
+                        </option>
+                    </datalist>
+
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('rank')}"
+                         th:errors="*{rank}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="country">Land</label>
+                    <select id="country"
+                            th:field="*{country}">
+                        <option value="">Bitte wählen</option>
+                        <option th:each="country : ${countryOptions}"
+                                th:value="${country.code}"
+                                th:text="${country.name}">
+                        </option>
+                    </select>
+
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('country')}"
+                         th:errors="*{country}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label for="club">Verein</label>
+                    <input type="text"
+                           id="club"
+                           th:field="*{club}"
+                           list="clubList"
+                           placeholder="Bitte zuerst Land wählen">
+
+                    <datalist id="clubList"></datalist>
+
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('club')}"
+                         th:errors="*{club}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="plannedRounds">Wie viele Runden spielst du mit?</label>
+                <input type="number"
+                       id="plannedRounds"
+                       th:field="*{plannedRounds}"
+                       min="1"
+                       th:attr="max=${tournament.numberOfRounds}">
+
+                <p class="table-note">
+                    Maximal möglich:
+                    <span th:text="${tournament.numberOfRounds}">0</span>
+                    Runden.
+                </p>
+
+                <div class="field-error"
+                     th:if="${#fields.hasErrors('plannedRounds')}"
+                     th:errors="*{plannedRounds}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="notes">Notizen</label>
+                <textarea id="notes"
+                          th:field="*{notes}"
+                          placeholder="Optionale Hinweise, z. B. spätere Anreise oder besondere organisatorische Hinweise.">
+                </textarea>
+            </div>
+
+            <div class="actions">
+                <button type="submit">
+                    Anmeldung absenden
+                </button>
+
+                <a class="btn btn-secondary"
+                   th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+                    Abbrechen
+                </a>
+            </div>
+        </form>
+    </section>
+
+</main>
 
 <script th:inline="javascript">
     const clubsByCountry = /*[[${clubsByCountry}]]*/ {};
@@ -159,6 +281,6 @@
         });
     });
 </script>
-</main>
+
 </body>
 </html>
