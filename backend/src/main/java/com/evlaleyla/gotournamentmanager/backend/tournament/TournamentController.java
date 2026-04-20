@@ -274,4 +274,21 @@ public class TournamentController {
                 .contentType(MediaType.parseMediaType("text/plain;charset=UTF-8"))
                 .body(content);
     }
+
+    @GetMapping("/public/tournaments/{id}/startlist")
+    public String showPublicTournamentStartList(@PathVariable Long id,
+                                                @RequestParam(required = false) Integer round,
+                                                Model model) {
+        Tournament tournament = tournamentService.findById(id);
+        int selectedRound = normalizeRound(round, tournament);
+
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("selectedRound", selectedRound);
+        model.addAttribute("availableRounds",
+                IntStream.rangeClosed(1, tournament.getNumberOfRounds()).boxed().toList());
+        model.addAttribute("registrations",
+                registrationService.findStartListByTournamentIdAndRound(id, selectedRound));
+
+        return "public-tournament-startlist";
+    }
 }

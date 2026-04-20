@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Öffentliche Startliste</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: publicHeader}"></div>
+
+<main class="container">
+
+    <div class="page-header no-print">
+        <div>
+            <h1>Startliste</h1>
+            <p class="page-subtitle" th:text="${tournament.name}">
+                Turniername
+            </p>
+        </div>
+
+        <div class="actions">
+            <button type="button" onclick="window.print()">
+                Startliste drucken
+            </button>
+
+            <a class="btn btn-secondary"
+               th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+                Zurück zur Turnierseite
+            </a>
+        </div>
+    </div>
+
+    <section class="card no-print">
+        <h2>Runde auswählen</h2>
+
+        <form th:action="@{/public/tournaments/{id}/startlist(id=${tournament.id})}"
+              method="get"
+              class="form-grid">
+
+            <div class="form-row">
+                <label for="round">Runde</label>
+                <select id="round" name="round">
+                    <option th:each="roundOption : ${availableRounds}"
+                            th:value="${roundOption}"
+                            th:text="${roundOption}"
+                            th:selected="${selectedRound == roundOption}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="actions">
+                <button type="submit">Anzeigen</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+
+        <div class="print-area">
+
+            <h1>
+                Startliste -
+                <span th:text="${tournament.name}">Turniername</span>
+            </h1>
+
+            <h2>
+                Runde
+                <span th:text="${selectedRound}">1</span>
+            </h2>
+
+            <table th:if="${!#lists.isEmpty(registrations)}">
+                <thead>
+                <tr>
+                    <th>Nr.</th>
+                    <th>Nachname</th>
+                    <th>Vorname</th>
+                    <th>Verein</th>
+                    <th>Land</th>
+                    <th>Rang</th>
+                    <th>Geplante Runden</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="registration, stat : ${registrations}">
+                    <td th:text="${stat.count}"></td>
+                    <td th:text="${registration.participant.lastName}"></td>
+                    <td th:text="${registration.participant.firstName}"></td>
+                    <td th:text="${registration.clubAtRegistration}"></td>
+                    <td th:text="${registration.countryAtRegistration}"></td>
+                    <td th:text="${registration.rankAtRegistration}"></td>
+                    <td th:text="${registration.plannedRounds}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${#lists.isEmpty(registrations)}"
+                 class="empty-state">
+                Für diese Runde liegen noch keine Teilnehmenden vor.
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
+
+</body>
+</html>

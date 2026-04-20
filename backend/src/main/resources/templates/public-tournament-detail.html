@@ -63,6 +63,11 @@
             </a>
 
             <a class="btn btn-secondary"
+               th:href="@{/public/tournaments/{id}/startlist(id=${tournament.id})}">
+                Startliste ansehen
+            </a>
+
+            <a class="btn btn-secondary"
                th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
                 Paarungen und Ergebnisse ansehen
             </a>
