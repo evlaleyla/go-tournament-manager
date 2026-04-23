@@ -107,15 +107,19 @@
       <article class="workflow-card">
         <div class="workflow-number">2</div>
         <div>
-          <h3>Startliste vorbereiten</h3>
+          <h3>Startliste exportieren</h3>
           <p>
-            Vollständige Turnierstartliste für MacMahon exportieren sowie rundenbezogene
-            Startlisten anzeigen und drucken.
+            Vollständige Turnierstartliste anzeigen und für MacMahon exportieren.
           </p>
 
           <div class="actions">
             <a class="btn" th:href="@{/tournaments/{id}/startlist(id=${tournament.id})}">
               Startliste öffnen
+            </a>
+
+            <a class="btn btn-secondary"
+               th:href="@{/tournaments/{id}/startlist/export-macmahon(id=${tournament.id})}">
+              Für MacMahon exportieren
             </a>
           </div>
         </div>
@@ -124,9 +128,9 @@
       <article class="workflow-card workflow-card-primary">
         <div class="workflow-number">3</div>
         <div>
-          <h3>Paarungen und Ergebnisse</h3>
+          <h3>Paarungen importieren und Ergebnisse verwalten</h3>
           <p>
-            MacMahon-Paarungen importieren und Ergebnisse direkt verwalten.
+            Pro Runde in MacMahon erzeugte Paarungen importieren und Ergebnisse verwalten.
           </p>
 
           <div class="actions">
@@ -137,55 +141,47 @@
         </div>
       </article>
 
+      <article class="workflow-card">
+        <div class="workflow-number">4</div>
+        <div>
+          <h3>Wall-List importieren</h3>
+          <p>
+            Aktuelle Wall-List aus MacMahon importieren und den Ranglistenstand übernehmen.
+          </p>
+
+          <div class="actions">
+            <a class="btn" th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
+              Wall-List öffnen
+            </a>
+          </div>
+        </div>
+      </article>
+
     </div>
   </section>
 
-  <section class="grid grid-2">
+  <section class="card">
+    <h2>Öffentliche Ansicht</h2>
+    <p class="page-subtitle">
+      Prüfen, was Teilnehmende öffentlich sehen können.
+    </p>
 
-    <div class="card">
-      <h2>MacMahon</h2>
-      <p class="page-subtitle">
-        Komplette Startliste für MacMahon exportieren und aktualisierte MacMahon-Rangliste importieren.
-        Paarungen werden in MacMahon erzeugt und anschließend im Bereich „Paarungen und Ergebnisse“ importiert.
-      </p>
+    <div class="actions">
+      <a class="btn"
+         th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+        Öffentliche Turnierseite
+      </a>
 
-      <div class="actions vertical-actions">
-        <a class="btn btn-secondary"
-           th:href="@{/tournaments/{id}/startlist/export-macmahon(id=${tournament.id})}">
-          Komplette Startliste für MacMahon exportieren
-        </a>
+      <a class="btn btn-secondary"
+         th:href="@{/public/tournaments/{id}/startlist(id=${tournament.id})}">
+        Öffentliche Startliste
+      </a>
 
-        <a class="btn btn-secondary"
-           th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
-          Rangliste aus MacMahon importieren
-        </a>
-      </div>
+      <a class="btn btn-secondary"
+         th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
+        Öffentliche Paarungen
+      </a>
     </div>
-
-    <div class="card">
-      <h2>Öffentliche Ansicht</h2>
-      <p class="page-subtitle">
-        Prüfen, was Teilnehmende öffentlich sehen können.
-      </p>
-
-      <div class="actions vertical-actions">
-        <a class="btn"
-           th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
-          Öffentliche Turnierseite
-        </a>
-
-        <a class="btn btn-secondary"
-           th:href="@{/public/tournaments/{id}/startlist(id=${tournament.id})}">
-          Öffentliche Startliste
-        </a>
-
-        <a class="btn btn-secondary"
-           th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
-          Öffentliche Paarungen
-        </a>
-      </div>
-    </div>
-
   </section>
 
   <section class="card">
