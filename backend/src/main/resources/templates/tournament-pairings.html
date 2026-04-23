@@ -45,7 +45,8 @@
     <section class="card no-print">
         <h2>MacMahon-Schnittstelle</h2>
         <p class="page-subtitle">
-            Hier können aus dem MacMahon-Programm exportierte Pairing-Dateien importiert werden.
+            Hier können aus MacMahon exportierte Pairing-Dateien für einzelne Runden importiert werden.
+            Die Paarungen werden in MacMahon erzeugt und anschließend in diese Anwendung übernommen.
         </p>
 
         <form th:action="@{/tournaments/{id}/pairings/import-macmahon(id=${tournament.id})}"
