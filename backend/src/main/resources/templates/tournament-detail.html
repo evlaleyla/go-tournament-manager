@@ -109,7 +109,8 @@
         <div>
           <h3>Startliste vorbereiten</h3>
           <p>
-            Startliste je Runde anzeigen, drucken und für MacMahon exportieren.
+            Vollständige Turnierstartliste für MacMahon exportieren sowie rundenbezogene
+            Startlisten anzeigen und drucken.
           </p>
 
           <div class="actions">
@@ -144,13 +145,14 @@
     <div class="card">
       <h2>MacMahon</h2>
       <p class="page-subtitle">
-        Import und Export für die externe Turniersoftware.
+        Komplette Startliste für MacMahon exportieren und die aktuelle MacMahon-Rangliste importieren.
+        Der Import von Paarungen erfolgt im Bereich „Paarungen und Ergebnisse“.
       </p>
 
       <div class="actions vertical-actions">
         <a class="btn btn-secondary"
            th:href="@{/tournaments/{id}/startlist/export-macmahon(id=${tournament.id})}">
-          Startliste für MacMahon exportieren
+          Komplette Startliste für MacMahon exportieren
         </a>
 
         <a class="btn btn-secondary"

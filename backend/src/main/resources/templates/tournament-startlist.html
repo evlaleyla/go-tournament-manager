@@ -32,6 +32,22 @@
     </div>
 
     <section class="card no-print">
+        <h2>MacMahon-Export</h2>
+        <p class="page-subtitle">
+            Exportiert die vollständige Turnierstartliste für MacMahon. Die geplanten Runden
+            der Teilnehmenden werden automatisch berücksichtigt. Der Export gilt für das
+            gesamte Turnier und ist unabhängig von der unten ausgewählten Runde.
+        </p>
+
+        <div class="actions">
+            <a class="btn btn-secondary"
+               th:href="@{/tournaments/{id}/startlist/export-macmahon(id=${tournament.id})}">
+                Komplette Startliste für MacMahon exportieren
+            </a>
+        </div>
+    </section>
+
+    <section class="card no-print">
         <h2>Runde auswählen</h2>
 
         <form th:action="@{/tournaments/{id}/startlist(id=${tournament.id})}"
@@ -55,11 +71,6 @@
                 <a class="btn btn-secondary"
                    th:href="@{/tournaments/{id}/startlist/export(id=${tournament.id}, round=${selectedRound})}">
                     CSV exportieren
-                </a>
-
-                <a class="btn btn-secondary"
-                   th:href="@{/tournaments/{id}/startlist/export-macmahon(id=${tournament.id})}">
-                    MacMahon-Importdatei exportieren
                 </a>
             </div>
         </form>
