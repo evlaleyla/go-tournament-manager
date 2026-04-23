@@ -402,8 +402,8 @@ section[id^="round-"],
 .hero-meta {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.7rem;
-    margin-top: 1rem;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
     color: var(--muted);
 }
 

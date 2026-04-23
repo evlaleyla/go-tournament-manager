@@ -24,21 +24,11 @@
       <h1 th:text="${tournament.name}">Turniername</h1>
 
       <p class="page-subtitle">
-        Zentrale Verwaltung für Anmeldung, Startliste, Paarungen und öffentliche Ansicht.
+        Zentrale Verwaltung des Turniers.
       </p>
 
       <div class="hero-meta">
         <span class="badge" th:text="${tournament.status.displayName}">Status</span>
-        <span th:text="${tournament.location}">Ort</span>
-        <span>
-          <span th:text="${tournament.startDate}">Start</span>
-          –
-          <span th:text="${tournament.endDate}">Ende</span>
-        </span>
-        <span>
-          <span th:text="${tournament.numberOfRounds}">5</span>
-          Runden
-        </span>
       </div>
     </div>
 
