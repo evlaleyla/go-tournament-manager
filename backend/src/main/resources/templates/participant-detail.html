@@ -2,7 +2,7 @@
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Teilnehmerdetails</title>
+    <title>Details der teilnehmenden Person</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
@@ -15,13 +15,14 @@
         <div>
             <h1 th:text="${participant.fullName}">Teilnehmername</h1>
             <p class="page-subtitle">
-                Stammdaten des Teilnehmers.
+                Stammdaten der teilnehmenden Person.
+
             </p>
         </div>
 
         <div class="actions">
             <a class="btn btn-secondary" th:href="@{/participants}">
-                Zur Teilnehmerliste
+                Zur Teilnehmendenliste
             </a>
 
             <a class="btn" th:href="@{/participants/{id}/edit(id=${participant.id})}">
@@ -68,14 +69,14 @@
 
         <div class="actions">
             <a class="btn btn-secondary" th:href="@{/participants/{id}/edit(id=${participant.id})}">
-                Teilnehmer bearbeiten
+                Teilnehmende Person bearbeiten
             </a>
 
             <form th:action="@{/participants/{id}/delete(id=${participant.id})}"
                   method="post"
-                  onsubmit="return confirm('Möchten Sie diesen Teilnehmer wirklich löschen?');">
+                  onsubmit="return confirm('Möchten Sie diesen Teilnehmenden wirklich löschen?');">
                 <button type="submit" class="btn-danger">
-                    Teilnehmer löschen
+                    Teilnehmende Person löschen
                 </button>
             </form>
         </div>

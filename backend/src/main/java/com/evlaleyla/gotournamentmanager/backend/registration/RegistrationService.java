@@ -41,7 +41,7 @@ public class RegistrationService {
     }
     public Registration findById(Long id) {
         return registrationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Registration not found: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Anmeldung nicht gefunden: " + id));
     }
 
     public boolean existsByTournamentIdAndParticipantId(Long tournamentId, Long participantId) {
@@ -95,21 +95,25 @@ public class RegistrationService {
         String normalizedRank = RankOptions.normalize(form.getRank());
         String normalizedClub = ClubOptions.normalize(form.getClub());
 
-
         validateClubMatchesCountry(normalizedCountry, normalizedClub);
 
-        Participant participant = participantRepository.findByEmailIgnoreCase(normalizedEmail)
-                .orElseGet(() -> {
-                    Participant newParticipant = new Participant();
-                    newParticipant.setFirstName(form.getFirstName());
-                    newParticipant.setLastName(form.getLastName());
-                    newParticipant.setEmail(normalizedEmail);
-                    newParticipant.setClub(normalizedClub);
-                    newParticipant.setCountry(normalizedCountry);
-                    newParticipant.setRank(normalizedRank);
-                    newParticipant.setBirthDate(form.getBirthDate());
-                    return participantRepository.save(newParticipant);
-                });
+        if (participantRepository.existsByEmailIgnoreCase(normalizedEmail)) {
+            throw new IllegalArgumentException(
+                    "Zu dieser E-Mail-Adresse existiert bereits ein Teilnehmerdatensatz. " +
+                            "Bitte wenden Sie sich an die Turnierorganisation."
+            );
+        }
+
+        Participant participant = new Participant();
+        participant.setFirstName(form.getFirstName().trim());
+        participant.setLastName(form.getLastName().trim());
+        participant.setEmail(normalizedEmail);
+        participant.setClub(normalizedClub);
+        participant.setCountry(normalizedCountry);
+        participant.setRank(normalizedRank);
+        participant.setBirthDate(form.getBirthDate());
+
+        participant = participantRepository.save(participant);
 
         Registration registration = new Registration(
                 tournament,
@@ -124,6 +128,7 @@ public class RegistrationService {
 
         return registrationRepository.save(registration);
     }
+
     public void deleteById(Long id) {
         registrationRepository.deleteById(id);
     }

@@ -111,7 +111,7 @@ public class RegistrationController {
         }
     }
 
-    @GetMapping("/tournaments/{id}/register")
+    @GetMapping("/public/tournaments/{id}/register")
     public String showPublicRegistrationForm(@PathVariable Long id, Model model) {
         Tournament tournament = tournamentService.findById(id);
 
@@ -121,7 +121,7 @@ public class RegistrationController {
         return "public-registration-form";
     }
 
-    @PostMapping("/tournaments/{id}/register")
+    @PostMapping("/public/tournaments/{id}/register")
     public String submitPublicRegistration(@PathVariable Long id,
                                            @Valid @ModelAttribute("selfRegistrationForm") SelfRegistrationForm selfRegistrationForm,
                                            BindingResult bindingResult,
@@ -146,9 +146,8 @@ public class RegistrationController {
             addPublicRegistrationFormOptions(model);
             return "public-registration-form";
         }
-
         redirectAttributes.addFlashAttribute("successMessage", "Die Anmeldung wurde erfolgreich abgesendet.");
-        return "redirect:/tournaments/" + id + "/register";
+        return "redirect:/public/tournaments/" + id + "/register";
     }
 
     @GetMapping("/registrations/{id}")
@@ -168,9 +167,6 @@ public class RegistrationController {
     private void addFormData(Model model) {
         model.addAttribute("tournaments", tournamentService.findAll());
         model.addAttribute("participants", participantService.findAll());
-        model.addAttribute("countryOptions", CountryOptions.all());
-        model.addAttribute("rankOptions", RankOptions.all());
-        model.addAttribute("clubOptions", ClubOptions.all());
     }
 
     private void validateRegistrationDate(RegistrationForm registrationForm, BindingResult bindingResult) {

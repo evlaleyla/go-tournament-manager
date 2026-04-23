@@ -45,7 +45,7 @@
     <section class="card no-print">
         <h2>MacMahon-Schnittstelle</h2>
         <p class="page-subtitle">
-            Hier können aus MacMahon exportierte Pairing-Dateien für einzelne Runden importiert werden.
+            Hier können aus MacMahon exportierte Paarungsdateien für einzelne Runden importiert werden.
             Die Paarungen werden in MacMahon erzeugt und anschließend in diese Anwendung übernommen.
         </p>
 
@@ -66,12 +66,12 @@
             </div>
 
             <div class="form-row">
-                <label for="file">MacMahon-Pairing-Datei</label>
+                <label for="file">MacMahon-Paarungsdatei</label>
                 <input id="file" type="file" name="file">
             </div>
 
             <div class="actions">
-                <button type="submit">Pairing-Datei importieren</button>
+                <button type="submit">Paarungsdatei importieren</button>
 
                 <a class="btn btn-secondary"
                    th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">

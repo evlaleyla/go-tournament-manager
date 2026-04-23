@@ -36,7 +36,7 @@ public class TournamentService {
 
     public Tournament findById(Long id) {
         return tournamentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Tournament not found: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Turnier nicht gefunden: " + id));
     }
 
     public Tournament update(Long id, Tournament updatedTournament) {

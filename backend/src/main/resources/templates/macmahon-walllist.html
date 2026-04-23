@@ -2,7 +2,7 @@
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Rangliste aus MacMahon</title>
+    <title>MacMahon-Rangliste</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
@@ -13,7 +13,7 @@
 
     <div class="page-header">
         <div>
-            <h1>Rangliste aus MacMahon</h1>
+            <h1>MacMahon-Rangliste</h1>
             <p class="page-subtitle" th:text="${tournament.name}">
                 Turniername
             </p>
@@ -30,7 +30,7 @@
     <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
 
     <section class="card">
-        <h2>Rangliste aus MacMahon importieren</h2>
+        <h2>MacMahon-Rangliste importieren</h2>
         <p class="page-subtitle">
             Importiert eine aus MacMahon exportierte Wall-List-Datei mit Platzierungen,
             Punkten und Feinwertungen für den aktuellen Turnierstand.
@@ -47,13 +47,13 @@
             </div>
 
             <div class="actions">
-                <button type="submit">Rangliste importieren</button>
+                <button type="submit">MacMahon-Rangliste importieren</button>
             </div>
         </form>
     </section>
 
     <section class="card" th:if="${wallListEntries != null}">
-        <h2>Importierte Rangliste</h2>
+        <h2>Aktueller Ranglistenstand</h2>
 
         <table th:if="${!#lists.isEmpty(wallListEntries)}">
             <thead>

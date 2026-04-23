@@ -19,16 +19,13 @@ public class MacMahonController {
 
     private final TournamentService tournamentService;
     private final PairingService pairingService;
-    private final MacMahonInterfaceService macMahonInterfaceService;
     private final TournamentStandingService tournamentStandingService;
 
     public MacMahonController(TournamentService tournamentService,
                               PairingService pairingService,
-                              MacMahonInterfaceService macMahonInterfaceService,
                               TournamentStandingService tournamentStandingService) {
         this.tournamentService = tournamentService;
         this.pairingService = pairingService;
-        this.macMahonInterfaceService = macMahonInterfaceService;
         this.tournamentStandingService = tournamentStandingService;
     }
 

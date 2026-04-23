@@ -42,23 +42,9 @@ public class PairingController {
         return "tournament-pairings";
     }
 
-    @GetMapping("/pairings/{id}/result")
-    public String showResultForm(@PathVariable Long id, Model model) {
-        Pairing pairing = pairingService.findById(id);
-
-        PairingResultForm pairingResultForm = new PairingResultForm();
-        fillFormFromResult(pairing.getResult(), pairingResultForm);
-
-        model.addAttribute("pairing", pairing);
-        model.addAttribute("pairingResultForm", pairingResultForm);
-
-        return "pairing-result-form";
-    }
-
     @PostMapping("/pairings/{id}/result")
     public String saveResult(@PathVariable Long id,
                              @ModelAttribute PairingResultForm pairingResultForm,
-                             Model model,
                              RedirectAttributes redirectAttributes) {
 
         Pairing pairing = pairingService.findById(id);
@@ -72,25 +58,9 @@ public class PairingController {
                     + "/pairings#round-" + updatedPairing.getRoundNumber();
 
         } catch (IllegalArgumentException e) {
-            model.addAttribute("pairing", pairing);
-            model.addAttribute("pairingResultForm", pairingResultForm);
-            model.addAttribute("errorMessage", e.getMessage());
-            return "pairing-result-form";
-        }
-    }
-
-    private void fillFormFromResult(String result, PairingResultForm form) {
-        if (result == null || result.isBlank()) {
-            return;
-        }
-
-        switch (result) {
-            case "B" -> form.setResultOption("BLACK_WINS");
-            case "W" -> form.setResultOption("WHITE_WINS");
-            case "J" -> form.setResultOption("JIGO");
-            case "L" -> form.setResultOption("BOTH_LOSE");
-            case "D" -> form.setResultOption("BOTH_WIN");
-            default -> throw new IllegalArgumentException("Unbekanntes Ergebnisformat.");
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/tournaments/" + pairing.getTournament().getId()
+                    + "/pairings#round-" + pairing.getRoundNumber();
         }
     }
 

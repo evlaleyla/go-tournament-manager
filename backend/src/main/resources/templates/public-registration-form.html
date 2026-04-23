@@ -66,7 +66,7 @@
             Bitte fülle die folgenden Angaben aus, um dich für das Turnier anzumelden.
         </p>
 
-        <form th:action="@{/tournaments/{id}/register(id=${tournament.id})}"
+        <form th:action="@{/public/tournaments/{id}/register(id=${tournament.id})}"
               th:object="${selfRegistrationForm}"
               method="post"
               class="form-grid">
@@ -133,17 +133,13 @@
 
                 <div class="form-row">
                     <label for="rank">Rang</label>
-                    <input type="text"
-                           id="rank"
-                           th:field="*{rank}"
-                           list="rankList"
-                           placeholder="z. B. 10k, 1d oder 2p">
-
-                    <datalist id="rankList">
+                    <select id="rank" th:field="*{rank}">
+                        <option value="">Bitte wählen</option>
                         <option th:each="rank : ${rankOptions}"
-                                th:value="${rank}">
+                                th:value="${rank}"
+                                th:text="${rank}">
                         </option>
-                    </datalist>
+                    </select>
 
                     <div class="field-error"
                          th:if="${#fields.hasErrors('rank')}"
@@ -172,13 +168,9 @@
 
                 <div class="form-row">
                     <label for="club">Verein</label>
-                    <input type="text"
-                           id="club"
-                           th:field="*{club}"
-                           list="clubList"
-                           placeholder="Bitte zuerst Land wählen">
-
-                    <datalist id="clubList"></datalist>
+                    <select id="club" th:field="*{club}">
+                        <option value="">Bitte zuerst Land wählen</option>
+                    </select>
 
                     <div class="field-error"
                          th:if="${#fields.hasErrors('club')}"
@@ -232,45 +224,61 @@
 
 <script th:inline="javascript">
     const clubsByCountry = /*[[${clubsByCountry}]]*/ {};
+    let selectedClub = /*[[${selfRegistrationForm.club}]]*/ "";
 
     const countrySelect = document.getElementById("country");
-    const clubInput = document.getElementById("club");
-    const clubList = document.getElementById("clubList");
+    const clubSelect = document.getElementById("club");
 
     function updateClubOptions(clearInvalidClub) {
         const selectedCountry = countrySelect.value;
         const clubs = clubsByCountry[selectedCountry] || [];
+        const currentClub = (selectedClub || "").trim();
 
-        clubList.innerHTML = "";
+        clubSelect.innerHTML = "";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+
+        if (!selectedCountry) {
+            selectedClub = "";
+            defaultOption.textContent = "Bitte zuerst Land wählen";
+            clubSelect.appendChild(defaultOption);
+            clubSelect.disabled = true;
+            return;
+        }
+
+        if (clubs.length === 0) {
+            selectedClub = "";
+            defaultOption.textContent = "Für dieses Land sind keine Vereine hinterlegt";
+            clubSelect.appendChild(defaultOption);
+            clubSelect.disabled = true;
+            return;
+        }
+
+        defaultOption.textContent = "Bitte wählen";
+        clubSelect.appendChild(defaultOption);
+
+        let currentClubStillValid = false;
 
         clubs.forEach(function (club) {
             const option = document.createElement("option");
             option.value = club;
-            clubList.appendChild(option);
+            option.textContent = club;
+
+            if (currentClub && club.toLowerCase() === currentClub.toLowerCase()) {
+                option.selected = true;
+                currentClubStillValid = true;
+            }
+
+            clubSelect.appendChild(option);
         });
 
-        const currentClub = clubInput.value.trim();
-
-        if (clearInvalidClub && currentClub !== "") {
-            const isStillValid = clubs.some(function (club) {
-                return club.toLowerCase() === currentClub.toLowerCase();
-            });
-
-            if (!isStillValid) {
-                clubInput.value = "";
-            }
+        if (clearInvalidClub && !currentClubStillValid) {
+            selectedClub = "";
+            clubSelect.value = "";
         }
 
-        if (!selectedCountry) {
-            clubInput.disabled = true;
-            clubInput.placeholder = "Bitte zuerst Land wählen";
-        } else if (clubs.length === 0) {
-            clubInput.disabled = true;
-            clubInput.placeholder = "Für dieses Land sind keine Vereine hinterlegt";
-        } else {
-            clubInput.disabled = false;
-            clubInput.placeholder = "Verein auswählen";
-        }
+        clubSelect.disabled = false;
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -279,8 +287,11 @@
         countrySelect.addEventListener("change", function () {
             updateClubOptions(true);
         });
+
+        clubSelect.addEventListener("change", function () {
+            selectedClub = clubSelect.value;
+        });
     });
 </script>
-
 </body>
 </html>

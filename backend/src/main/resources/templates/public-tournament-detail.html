@@ -58,7 +58,7 @@
         <div class="actions">
             <a class="btn"
                th:if="${tournament.status.name() == 'REGISTRATION_OPEN'}"
-               th:href="@{/tournaments/{id}/register(id=${tournament.id})}">
+               th:href="@{/public/tournaments/{id}/register(id=${tournament.id})}">
                 Zur Online-Anmeldung
             </a>
 
