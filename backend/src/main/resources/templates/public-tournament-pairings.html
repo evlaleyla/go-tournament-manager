@@ -11,7 +11,7 @@
 
 <main class="container">
 
-    <div class="page-header no-print">
+    <div class="page-header">
         <div>
             <h1>Paarungen und Ergebnisse</h1>
             <p class="page-subtitle" th:text="${tournament.name}">
@@ -20,10 +20,6 @@
         </div>
 
         <div class="actions">
-            <button type="button" onclick="window.print()">
-                Paarungen drucken
-            </button>
-
             <a class="btn btn-secondary"
                th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
                 Zurück zur Turnierseite
@@ -31,7 +27,7 @@
         </div>
     </div>
 
-    <section class="card no-print">
+    <section class="card">
         <h2>Turnierdaten</h2>
 
         <dl class="detail-list">
@@ -53,62 +49,52 @@
         </dl>
     </section>
 
-    <div class="print-area">
+    <section th:each="round : ${availableRounds}"
+             th:with="roundPairings=${pairingsByRound.get(round)}"
+             class="card"
+             th:attr="id='round-' + ${round}">
 
-        <h1 class="print-only print-area-title">
-            Paarungen und Ergebnisse -
-            <span th:text="${tournament.name}">Turniername</span>
-        </h1>
+        <h2>
+            Runde
+            <span th:text="${round}">1</span>
+        </h2>
 
-        <section th:each="round : ${availableRounds}"
-                 th:with="roundPairings=${pairingsByRound.get(round)}"
-                 class="card"
-                 th:classappend="${#lists.isEmpty(roundPairings)} ? ' print-hide-empty' : ''"
-                 th:attr="id='round-' + ${round}">
+        <table th:if="${!#lists.isEmpty(roundPairings)}">
+            <thead>
+            <tr>
+                <th>Tisch</th>
+                <th>Schwarz</th>
+                <th>Weiß</th>
+                <th>Ergebnis</th>
+                <th>Vorgabe</th>
+                <th>Freilos</th>
+            </tr>
+            </thead>
 
-            <h2>
-                Runde
-                <span th:text="${round}">1</span>
-            </h2>
+            <tbody>
+            <tr th:each="pairing : ${roundPairings}">
+                <td th:text="${pairing.tableNumber}">1</td>
+                <td th:text="${pairing.blackPlayer}">Schwarz</td>
+                <td th:text="${pairing.whitePlayer}">Weiß</td>
+                <td>
+                    <span class="badge" th:text="${pairing.resultDisplay}">
+                        offen
+                    </span>
+                </td>
+                <td th:text="${pairing.handicapDisplay}">-</td>
+                <td th:text="${pairing.byeDisplay}">Nein</td>
+            </tr>
+            </tbody>
+        </table>
 
-            <table th:if="${!#lists.isEmpty(roundPairings)}">
-                <thead>
-                <tr>
-                    <th>Tisch</th>
-                    <th>Schwarz</th>
-                    <th>Weiß</th>
-                    <th>Ergebnis</th>
-                    <th>Vorgabe</th>
-                    <th>Freilos</th>
-                </tr>
-                </thead>
+        <div th:if="${#lists.isEmpty(roundPairings)}"
+             class="empty-state">
+            Für diese Runde liegen derzeit noch keine veröffentlichten Paarungen vor.
+        </div>
 
-                <tbody>
-                <tr th:each="pairing : ${roundPairings}">
-                    <td th:text="${pairing.tableNumber}">1</td>
-                    <td th:text="${pairing.blackPlayer}">Schwarz</td>
-                    <td th:text="${pairing.whitePlayer}">Weiß</td>
-                    <td>
-                        <span class="badge" th:text="${pairing.resultDisplay}">
-                            offen
-                        </span>
-                    </td>
-                    <td th:text="${pairing.handicapDisplay}">-</td>
-                    <td th:text="${pairing.byeDisplay}">Nein</td>
-                </tr>
-                </tbody>
-            </table>
+    </section>
 
-            <div th:if="${#lists.isEmpty(roundPairings)}"
-                 class="empty-state no-print">
-                Für diese Runde liegen derzeit noch keine veröffentlichten Paarungen vor.
-            </div>
-
-        </section>
-
-    </div>
-
-    <div class="actions no-print">
+    <div class="actions">
         <a class="btn btn-secondary"
            th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
             Zurück zur Turnierseite

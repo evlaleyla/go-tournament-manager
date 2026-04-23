@@ -18,6 +18,10 @@
     box-sizing: border-box;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
@@ -49,6 +53,10 @@ a:hover {
     font-size: 1.2rem;
 }
 
+.app-title a {
+    color: inherit;
+}
+
 .app-nav {
     display: flex;
     gap: 1rem;
@@ -58,6 +66,14 @@ a:hover {
 .app-nav a {
     font-weight: 600;
     color: var(--text);
+}
+
+.public-header {
+    background: #ffffff;
+}
+
+.public-header .app-title a {
+    color: var(--primary);
 }
 
 .container {
@@ -93,6 +109,7 @@ a:hover {
     box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
 }
 
+.card h1:first-child,
 .card h2,
 .card h3 {
     margin-top: 0;
@@ -114,6 +131,10 @@ a:hover {
     align-items: center;
 }
 
+.actions form {
+    margin: 0;
+}
+
 .btn,
 button {
     display: inline-block;
@@ -125,6 +146,7 @@ button {
     font-weight: 600;
     cursor: pointer;
     font-size: 0.95rem;
+    line-height: 1.2;
 }
 
 .btn:hover,
@@ -145,6 +167,13 @@ button:hover {
 .btn-danger {
     background: var(--danger);
     border-color: var(--danger);
+}
+
+.btn-danger:hover,
+button.btn-danger:hover {
+    background: #991b1b;
+    border-color: #991b1b;
+    text-decoration: none;
 }
 
 table {
@@ -177,6 +206,11 @@ tr:hover td {
     background: #eef4ff;
 }
 
+td .btn {
+    padding: 0.35rem 0.65rem;
+    font-size: 0.85rem;
+}
+
 .form-grid {
     display: grid;
     gap: 1rem;
@@ -201,10 +235,23 @@ textarea {
     border-radius: 8px;
     font-size: 1rem;
     background: white;
+    color: var(--text);
 }
 
 textarea {
     min-height: 120px;
+}
+
+input[type="file"] {
+    cursor: pointer;
+}
+
+.card form {
+    margin-top: 1rem;
+}
+
+.form-grid + .actions {
+    margin-top: 1rem;
 }
 
 .field-error {
@@ -228,6 +275,11 @@ textarea {
 .flash-error {
     background: var(--error-bg);
     color: var(--error-text);
+}
+
+.flash-error p,
+.flash-success p {
+    margin: 0;
 }
 
 .badge {
@@ -272,74 +324,6 @@ textarea {
     margin: 0;
 }
 
-@media (max-width: 700px) {
-    .app-header {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .page-header {
-        flex-direction: column;
-    }
-
-    table {
-        display: block;
-        overflow-x: auto;
-    }
-}
-td .btn {
-    padding: 0.35rem 0.65rem;
-    font-size: 0.85rem;
-}
-
-.card form {
-    margin-top: 1rem;
-}
-
-.form-grid + .actions {
-    margin-top: 1rem;
-}
-
-input[type="file"] {
-    cursor: pointer;
-}
-
-html {
-    scroll-behavior: smooth;
-}
-
-section[id^="round-"] {
-    scroll-margin-top: 1.5rem;
-}
-
-.btn-danger:hover,
-button.btn-danger:hover {
-    background: #991b1b;
-    border-color: #991b1b;
-    text-decoration: none;
-}
-
-.public-header {
-    background: #ffffff;
-}
-
-.public-header .app-title a {
-    color: var(--primary);
-}
-
-.card > h1:first-child {
-    margin-top: 0;
-}
-
-.actions form {
-    margin: 0;
-}
-
-.flash-error p,
-.flash-success p {
-    margin: 0;
-}
-
 summary {
     cursor: pointer;
     font-weight: 700;
@@ -379,79 +363,9 @@ details[open] summary {
     display: none;
 }
 
-@media print {
-    @page {
-        margin: 1.2cm;
-    }
-
-    body {
-        background: white;
-        color: black;
-    }
-
-    body * {
-        visibility: hidden !important;
-    }
-
-    .print-area,
-    .print-area * {
-        visibility: visible !important;
-    }
-
-    .print-hide-empty {
-        display: none !important;
-    }
-
-    .print-area {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-    }
-
-    .no-print,
-    .no-print * {
-        display: none !important;
-        visibility: hidden !important;
-    }
-
-    .print-only {
-        display: block !important;
-        visibility: visible !important;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        border: 1px solid black;
-        background: white;
-    }
-
-    th,
-    td {
-        border: 1px solid black;
-        padding: 0.35rem;
-        color: black;
-        background: white !important;
-        font-size: 10pt;
-    }
-
-    th {
-        font-weight: 700;
-    }
-
-    tr {
-        page-break-inside: avoid;
-    }
-
-    .card {
-        border: none;
-        box-shadow: none;
-        padding: 0;
-        margin: 0;
-    }
+section[id^="round-"],
+.round-print-section {
+    scroll-margin-top: 1.5rem;
 }
 
 .breadcrumb {
@@ -597,6 +511,45 @@ details[open] summary {
     gap: 1rem;
 }
 
+.round-tools {
+    display: grid;
+    gap: 1rem;
+}
+
+.round-links {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.round-links .btn {
+    padding: 0.45rem 0.8rem;
+}
+
+.print-round-controls {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+.print-round-field {
+    min-width: 220px;
+}
+
+.print-round-controls select {
+    min-width: 180px;
+    width: auto;
+}
+
+.print-round-controls button {
+    white-space: nowrap;
+}
+
+#printRoundTitle:empty {
+    display: none;
+}
+
 @media (max-width: 800px) {
     .tournament-hero,
     .danger-zone {
@@ -609,5 +562,130 @@ details[open] summary {
 
     .vertical-actions .btn {
         width: auto;
+    }
+}
+
+@media (max-width: 700px) {
+    .app-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .page-header {
+        flex-direction: column;
+    }
+
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+
+    .print-round-controls {
+        align-items: stretch;
+    }
+
+    .print-round-field {
+        min-width: 100%;
+    }
+
+    .print-round-controls select,
+    .print-round-controls button {
+        width: 100%;
+    }
+}
+
+@media print {
+    @page {
+        margin: 1.2cm;
+    }
+
+    body {
+        background: white;
+        color: black;
+    }
+
+    body * {
+        visibility: hidden !important;
+    }
+
+    .print-area,
+    .print-area * {
+        visibility: visible !important;
+    }
+
+    .print-area {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    .no-print,
+    .no-print * {
+        display: none !important;
+        visibility: hidden !important;
+    }
+
+    .print-only {
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    .print-hide-empty {
+        display: none !important;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid black;
+        background: white;
+        border-radius: 0;
+    }
+
+    th,
+    td {
+        border: 1px solid black;
+        padding: 0.35rem;
+        color: black;
+        background: white !important;
+        font-size: 10pt;
+    }
+
+    th {
+        font-weight: 700;
+    }
+
+    tr {
+        page-break-inside: avoid;
+    }
+
+    .card {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        background: white;
+    }
+
+    .badge {
+        background: white !important;
+        color: black !important;
+        border: none;
+        padding: 0;
+    }
+
+    body.print-single-round .round-print-section.print-hidden-round {
+        display: none !important;
+    }
+
+    body.print-single-round .round-print-section.print-target {
+        display: block !important;
+    }
+
+    body.print-single-round .round-print-section.print-target > h2 {
+        display: none !important;
     }
 }

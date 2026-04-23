@@ -20,10 +20,6 @@
         </div>
 
         <div class="actions">
-            <button type="button" onclick="window.print()">
-                Paarungen drucken
-            </button>
-
             <a class="btn btn-secondary"
                th:href="@{/tournaments/{id}(id=${tournament.id})}">
                 Zurück zum Turnier
@@ -84,18 +80,57 @@
         </form>
     </section>
 
+    <section class="card no-print">
+        <h2>Rundenübersicht</h2>
+        <p class="page-subtitle">
+            Zwischen den Runden springen oder eine einzelne Runde als Aushang drucken.
+        </p>
+
+        <div class="round-tools">
+            <div class="round-links">
+                <a class="btn btn-secondary"
+                   th:each="round : ${availableRounds}"
+                   th:href="|#round-${round}|"
+                   th:text="|Runde ${round}|">
+                    Runde
+                </a>
+            </div>
+
+            <div class="print-round-controls">
+                <div class="form-row print-round-field">
+                    <label for="printRoundSelect">Runde für den Druck</label>
+                    <select id="printRoundSelect">
+                        <option value="">Bitte wählen</option>
+                        <option th:each="round : ${availableRounds}"
+                                th:value="${round}"
+                                th:text="|Runde ${round}|">
+                            Runde
+                        </option>
+                    </select>
+                </div>
+
+                <button type="button" onclick="printSelectedRound()">
+                    Ausgewählte Runde drucken
+                </button>
+            </div>
+        </div>
+    </section>
+
     <div class="print-area">
 
         <h1 class="print-only print-area-title">
             Paarungen und Ergebnisse -
-            <span th:text="${tournament.name}"></span>
+            <span th:text="${tournament.name}">Turniername</span>
         </h1>
+
+        <h2 class="print-only" id="printRoundTitle"></h2>
 
         <section th:each="round : ${availableRounds}"
                  th:with="roundPairings=${pairingsByRound.get(round)}"
-                 class="card"
+                 class="card round-print-section"
                  th:classappend="${#lists.isEmpty(roundPairings)} ? ' print-hide-empty' : ''"
-                 th:attr="id='round-' + ${round}">
+                 th:id="|round-${round}|"
+                 th:attr="data-round=${round}">
 
             <h2>
                 Runde
@@ -184,6 +219,72 @@
     </div>
 
 </main>
+
+<script>
+    const printRoundSelect = document.getElementById("printRoundSelect");
+    const printRoundTitle = document.getElementById("printRoundTitle");
+
+    function clearRoundPrintState() {
+        document.body.classList.remove("print-single-round");
+
+        document.querySelectorAll(".round-print-section").forEach(function (section) {
+            section.classList.remove("print-target");
+            section.classList.remove("print-hidden-round");
+        });
+
+        if (printRoundTitle) {
+            printRoundTitle.textContent = "";
+        }
+    }
+
+    function printSelectedRound() {
+        const round = printRoundSelect.value;
+
+        if (!round) {
+            alert("Bitte zuerst eine Runde auswählen.");
+            return;
+        }
+
+        clearRoundPrintState();
+
+        const sections = document.querySelectorAll(".round-print-section");
+        const target = document.querySelector('.round-print-section[data-round="' + round + '"]');
+
+        if (!target) {
+            alert("Die ausgewählte Runde konnte nicht gefunden werden.");
+            return;
+        }
+
+        if (!target.querySelector("table")) {
+            alert("Für diese Runde wurden noch keine Paarungen importiert.");
+            return;
+        }
+
+        sections.forEach(function (section) {
+            if (section === target) {
+                section.classList.add("print-target");
+            } else {
+                section.classList.add("print-hidden-round");
+            }
+        });
+
+        document.body.classList.add("print-single-round");
+
+        if (printRoundTitle) {
+            printRoundTitle.textContent = "Runde " + round;
+        }
+
+        void document.body.offsetHeight;
+
+        setTimeout(function () {
+            window.print();
+        }, 80);
+    }
+
+    window.addEventListener("afterprint", function () {
+        clearRoundPrintState();
+    });
+</script>
 
 </body>
 </html>
