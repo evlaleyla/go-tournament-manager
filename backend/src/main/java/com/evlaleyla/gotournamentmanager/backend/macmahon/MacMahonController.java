@@ -20,13 +20,16 @@ public class MacMahonController {
     private final TournamentService tournamentService;
     private final PairingService pairingService;
     private final MacMahonInterfaceService macMahonInterfaceService;
+    private final TournamentStandingService tournamentStandingService;
 
     public MacMahonController(TournamentService tournamentService,
                               PairingService pairingService,
-                              MacMahonInterfaceService macMahonInterfaceService) {
+                              MacMahonInterfaceService macMahonInterfaceService,
+                              TournamentStandingService tournamentStandingService) {
         this.tournamentService = tournamentService;
         this.pairingService = pairingService;
         this.macMahonInterfaceService = macMahonInterfaceService;
+        this.tournamentStandingService = tournamentStandingService;
     }
 
     @PostMapping("/tournaments/{id}/pairings/import-macmahon")
@@ -68,10 +71,16 @@ public class MacMahonController {
     @GetMapping("/tournaments/{id}/walllist")
     public String showWallListUpload(@PathVariable Long id, Model model) {
         Tournament tournament = tournamentService.findById(id);
+        List<TournamentStanding> standings = tournamentStandingService.findByTournamentId(id);
+
+        int roundColumnCount = 0;
+        if (!standings.isEmpty()) {
+            roundColumnCount = standings.get(0).getRoundStatuses().size();
+        }
 
         model.addAttribute("tournament", tournament);
-        model.addAttribute("wallListEntries", null);
-        model.addAttribute("roundColumnCount", 0);
+        model.addAttribute("wallListEntries", standings);
+        model.addAttribute("roundColumnCount", roundColumnCount);
 
         return "macmahon-walllist";
     }
@@ -79,41 +88,26 @@ public class MacMahonController {
     @PostMapping("/tournaments/{id}/walllist/import-macmahon")
     public String importMacMahonWallList(@PathVariable Long id,
                                          @RequestParam("file") MultipartFile file,
-                                         Model model) {
-        Tournament tournament = tournamentService.findById(id);
-
-        model.addAttribute("tournament", tournament);
+                                         RedirectAttributes redirectAttributes) {
 
         if (file == null || file.isEmpty()) {
-            model.addAttribute(
+            redirectAttributes.addFlashAttribute(
                     "errorMessage",
                     "Bitte eine MacMahon-Wall-List-Datei auswählen."
             );
-            model.addAttribute("wallListEntries", null);
-            model.addAttribute("roundColumnCount", 0);
-            return "macmahon-walllist";
+            return "redirect:/tournaments/" + id + "/walllist";
         }
 
         try {
-            List<MacMahonWallListEntry> entries = macMahonInterfaceService.parseWallList(file);
-
-            int roundColumnCount = entries.isEmpty()
-                    ? 0
-                    : entries.get(0).getRoundStatuses().size();
-
-            model.addAttribute("wallListEntries", entries);
-            model.addAttribute("roundColumnCount", roundColumnCount);
-            model.addAttribute(
+            tournamentStandingService.importCurrentWallList(id, file);
+            redirectAttributes.addFlashAttribute(
                     "successMessage",
-                    "MacMahon-Wall-List wurde erfolgreich eingelesen."
+                    "Die aktuelle Wall-List wurde erfolgreich importiert."
             );
-
         } catch (IllegalArgumentException e) {
-            model.addAttribute("errorMessage", e.getMessage());
-            model.addAttribute("wallListEntries", null);
-            model.addAttribute("roundColumnCount", 0);
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
         }
 
-        return "macmahon-walllist";
+        return "redirect:/tournaments/" + id + "/walllist";
     }
 }

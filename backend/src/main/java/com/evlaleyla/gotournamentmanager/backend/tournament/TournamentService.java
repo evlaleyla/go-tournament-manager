@@ -1,5 +1,6 @@
 package com.evlaleyla.gotournamentmanager.backend.tournament;
 
+import com.evlaleyla.gotournamentmanager.backend.macmahon.TournamentStandingRepository;
 import com.evlaleyla.gotournamentmanager.backend.pairing.PairingRepository;
 import com.evlaleyla.gotournamentmanager.backend.registration.RegistrationRepository;
 import org.springframework.stereotype.Service;
@@ -13,13 +14,16 @@ public class TournamentService {
     private final TournamentRepository tournamentRepository;
     private final RegistrationRepository registrationRepository;
     private final PairingRepository pairingRepository;
+    private final TournamentStandingRepository tournamentStandingRepository;
 
     public TournamentService(TournamentRepository tournamentRepository,
                              RegistrationRepository registrationRepository,
-                             PairingRepository pairingRepository) {
+                             PairingRepository pairingRepository,
+                             TournamentStandingRepository tournamentStandingRepository) {
         this.tournamentRepository = tournamentRepository;
         this.registrationRepository = registrationRepository;
         this.pairingRepository = pairingRepository;
+        this.tournamentStandingRepository = tournamentStandingRepository;
     }
 
     public List<Tournament> findAll() {
@@ -78,6 +82,7 @@ public class TournamentService {
     public void deleteById(Long id) {
         pairingRepository.deleteByTournamentId(id);
         registrationRepository.deleteByTournamentId(id);
+        tournamentStandingRepository.deleteByTournamentId(id);
         tournamentRepository.deleteById(id);
     }
 }
