@@ -689,3 +689,47 @@ section[id^="round-"],
         display: none !important;
     }
 }
+.filter-form {
+    max-width: none;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 0.3rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    line-height: 1.35;
+}
+
+.field-label-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+
+.filter-context-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    border: 1px solid var(--border);
+    background: #f3f4f6;
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.filter-context-badge-active {
+    background: #eaf2ff;
+    border-color: #bfd3ea;
+    color: var(--primary);
+}
+
+@media (max-width: 700px) {
+    .field-label-row {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}

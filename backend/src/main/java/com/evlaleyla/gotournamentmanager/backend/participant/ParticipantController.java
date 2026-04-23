@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -23,8 +24,23 @@ public class ParticipantController {
     }
 
     @GetMapping("/participants")
-    public String showParticipants(Model model) {
-        model.addAttribute("participants", participantService.findAll());
+    public String showParticipants(@RequestParam(required = false) String firstName,
+                                   @RequestParam(required = false) String lastName,
+                                   @RequestParam(required = false) String country,
+                                   @RequestParam(required = false) String club,
+                                   @RequestParam(required = false) String rank,
+                                   Model model) {
+
+        model.addAttribute("participants", participantService.search(firstName, lastName, country, club, rank));
+        model.addAttribute("firstName", firstName);
+        model.addAttribute("lastName", lastName);
+        model.addAttribute("selectedCountry", country);
+        model.addAttribute("selectedClub", club);
+        model.addAttribute("selectedRank", rank);
+        model.addAttribute("countryOptions", CountryOptions.all());
+        model.addAttribute("rankOptions", RankOptions.all());
+        model.addAttribute("clubsByCountry", ClubOptions.byCountry());
+
         return "participants";
     }
 

@@ -25,6 +25,27 @@ public class ParticipantService {
         return participantRepository.findAll();
     }
 
+    public List<Participant> search(String firstName,
+                                    String lastName,
+                                    String country,
+                                    String club,
+                                    String rank) {
+
+        String normalizedFirstName = normalizeSearch(firstName);
+        String normalizedLastName = normalizeSearch(lastName);
+        String normalizedCountry = normalizeOptionalCountry(country);
+        String normalizedClub = normalizeOptionalClub(club);
+        String normalizedRank = normalizeOptionalRank(rank);
+
+        return participantRepository.search(
+                normalizedFirstName,
+                normalizedLastName,
+                normalizedCountry,
+                normalizedClub,
+                normalizedRank
+        );
+    }
+
     public Participant save(Participant participant) {
         String normalizedEmail = normalizeEmail(participant.getEmail());
         String normalizedCountry = CountryOptions.normalize(participant.getCountry());
@@ -64,7 +85,6 @@ public class ParticipantService {
 
         validateClubMatchesCountry(normalizedCountry, normalizedClub);
 
-
         existingParticipant.setFirstName(updatedParticipant.getFirstName());
         existingParticipant.setLastName(updatedParticipant.getLastName());
         existingParticipant.setEmail(normalizedEmail);
@@ -93,6 +113,34 @@ public class ParticipantService {
             return null;
         }
         return email.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizeSearch(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private String normalizeOptionalCountry(String country) {
+        if (country == null || country.isBlank()) {
+            return null;
+        }
+        return CountryOptions.normalize(country);
+    }
+
+    private String normalizeOptionalClub(String club) {
+        if (club == null || club.isBlank()) {
+            return null;
+        }
+        return ClubOptions.normalize(club);
+    }
+
+    private String normalizeOptionalRank(String rank) {
+        if (rank == null || rank.isBlank()) {
+            return null;
+        }
+        return RankOptions.normalize(rank);
     }
 
     private void validateClubMatchesCountry(String country, String club) {
