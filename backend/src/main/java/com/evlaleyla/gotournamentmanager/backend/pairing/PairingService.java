@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -67,25 +66,19 @@ public class PairingService {
 
         validateUniqueTableNumbersFromRows(importedRows);
 
-        List<Pairing> entitiesToSave = new ArrayList<>();
-
         for (MacMahonPairingImportRow imported : importedRows) {
-            Pairing existing = pairingRepository
-                    .findByTournamentIdAndRoundNumberAndTableNumber(
-                            tournamentId,
-                            imported.roundNumber(),
-                            imported.tableNumber()
-                    )
-                    .orElse(null);
-
-            if (existing == null) {
-                entitiesToSave.add(mapImportRowToPairing(tournament, imported));
-                continue;
+            if (!roundNumber.equals(imported.roundNumber())) {
+                throw new IllegalArgumentException(
+                        "Die importierte Datei enthält Paarungen für eine andere Runde als die ausgewählte Runde " + roundNumber + "."
+                );
             }
-
-            updatePairingFromImportRow(existing, imported);
-            entitiesToSave.add(existing);
         }
+
+        pairingRepository.deleteByTournamentIdAndRoundNumber(tournamentId, roundNumber);
+
+        List<Pairing> entitiesToSave = importedRows.stream()
+                .map(imported -> mapImportRowToPairing(tournament, imported))
+                .toList();
 
         pairingRepository.saveAll(entitiesToSave);
     }
@@ -134,16 +127,6 @@ public class PairingService {
                 normalizeHandicap(imported.handicap()),
                 imported.bye()
         );
-    }
-
-    private void updatePairingFromImportRow(Pairing existing, MacMahonPairingImportRow imported) {
-        validateImportRow(imported);
-
-        existing.setBlackPlayer(imported.blackPlayer().trim());
-        existing.setWhitePlayer(imported.whitePlayer().trim());
-        existing.setResult(normalizeAndValidateSimpleResult(imported.result()));
-        existing.setHandicap(normalizeHandicap(imported.handicap()));
-        existing.setBye(imported.bye());
     }
 
     private void validateImportRow(MacMahonPairingImportRow imported) {

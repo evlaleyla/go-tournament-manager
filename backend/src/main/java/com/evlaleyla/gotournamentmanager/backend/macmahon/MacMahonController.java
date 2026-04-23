@@ -53,7 +53,7 @@ public class MacMahonController {
             pairingService.importPairingsFromMacMahon(id, roundNumber, file);
             redirectAttributes.addFlashAttribute(
                     "successMessage",
-                    "MacMahon-Paarungen wurden erfolgreich importiert bzw. aktualisiert."
+                    "Die Paarungen für Runde " + roundNumber + " wurden erfolgreich aus MacMahon importiert."
             );
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute(
