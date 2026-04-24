@@ -52,7 +52,7 @@
     <section th:each="round : ${availableRounds}"
              th:with="roundPairings=${pairingsByRound.get(round)}"
              class="card"
-             th:attr="id='round-' + ${round}">
+             th:id="|round-${round}|">
 
         <h2>
             Runde
