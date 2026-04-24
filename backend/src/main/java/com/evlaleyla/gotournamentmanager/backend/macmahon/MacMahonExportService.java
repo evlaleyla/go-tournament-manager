@@ -213,7 +213,7 @@ public class MacMahonExportService {
             );
         }
     }
-    
+
     private String buildReadableFullName(String firstName, String lastName) {
         String readableFirstName = firstName == null ? "" : firstName.trim();
         String readableLastName = lastName == null ? "" : lastName.trim();

@@ -77,7 +77,7 @@
 
       <div class="form-row">
         <label for="club">Verein</label>
-        <select id="club" th:field="*{club}">
+        <select id="club" th:field="*{club}" disabled>
           <option value="">Bitte zuerst Land wählen</option>
         </select>
       </div>
@@ -111,10 +111,15 @@
   const countrySelect = document.getElementById("country");
   const clubSelect = document.getElementById("club");
 
+  function clearClubSelection() {
+    selectedClub = "";
+    clubSelect.value = "";
+  }
+
   function updateClubOptions(clearInvalidClub) {
     const selectedCountry = countrySelect.value;
     const clubs = clubsByCountry[selectedCountry] || [];
-    const currentClub = (selectedClub || "").trim();
+    const currentClub = (selectedClub || "").trim().toLowerCase();
 
     clubSelect.innerHTML = "";
 
@@ -122,7 +127,7 @@
     defaultOption.value = "";
 
     if (!selectedCountry) {
-      selectedClub = "";
+      clearClubSelection();
       defaultOption.textContent = "Bitte zuerst Land wählen";
       clubSelect.appendChild(defaultOption);
       clubSelect.disabled = true;
@@ -130,7 +135,7 @@
     }
 
     if (clubs.length === 0) {
-      selectedClub = "";
+      clearClubSelection();
       defaultOption.textContent = "Für dieses Land sind keine Vereine hinterlegt";
       clubSelect.appendChild(defaultOption);
       clubSelect.disabled = true;
@@ -147,7 +152,7 @@
       option.value = club;
       option.textContent = club;
 
-      if (currentClub && club.toLowerCase() === currentClub.toLowerCase()) {
+      if (currentClub && club.trim().toLowerCase() === currentClub) {
         option.selected = true;
         currentClubStillValid = true;
       }
@@ -156,8 +161,7 @@
     });
 
     if (clearInvalidClub && !currentClubStillValid) {
-      selectedClub = "";
-      clubSelect.value = "";
+      clearClubSelection();
     }
 
     clubSelect.disabled = false;
@@ -167,6 +171,7 @@
     updateClubOptions(false);
 
     countrySelect.addEventListener("change", function () {
+      clearClubSelection();
       updateClubOptions(true);
     });
 
