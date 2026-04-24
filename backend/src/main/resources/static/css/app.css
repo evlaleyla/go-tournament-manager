@@ -733,3 +733,23 @@ section[id^="round-"],
         flex-direction: column;
     }
 }
+
+.role-hint {
+    margin-bottom: 1.25rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    font-weight: 500;
+}
+
+.role-hint-admin {
+    background: #eef4ff;
+    border-color: #bfd3ea;
+    color: var(--primary);
+}
+
+.role-hint-public {
+    background: #f8fafc;
+    border-color: var(--border);
+    color: var(--text);
+}
