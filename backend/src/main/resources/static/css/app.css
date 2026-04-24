@@ -158,6 +158,7 @@ button:hover {
 .btn-secondary {
     background: var(--surface);
     color: var(--primary);
+    border-color: var(--primary);
 }
 
 .btn-secondary:hover {
@@ -732,6 +733,32 @@ section[id^="round-"],
         align-items: flex-start;
         flex-direction: column;
     }
+}
+
+.required-mark {
+    color: var(--danger);
+    margin-left: 0.2rem;
+    font-weight: 700;
+}
+
+input:disabled,
+select:disabled,
+textarea:disabled {
+    background: #f3f4f6;
+    color: var(--muted);
+    cursor: not-allowed;
+    opacity: 1;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+.btn:focus-visible,
+a:focus-visible {
+    outline: 3px solid rgba(31, 79, 130, 0.22);
+    outline-offset: 2px;
+    border-color: var(--primary);
 }
 
 .role-hint {

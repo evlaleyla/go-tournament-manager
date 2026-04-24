@@ -27,6 +27,9 @@
   </div>
 
   <section class="card">
+    <p class="form-hint">
+      <span class="required-mark">*</span> Pflichtfeld
+    </p>
     <form th:action="@{/registrations}"
           th:object="${registrationForm}"
           method="post"
@@ -37,8 +40,8 @@
       </div>
 
       <div class="form-row">
-        <label for="tournamentId">Turnier</label>
-        <select id="tournamentId" th:field="*{tournamentId}">
+        <label for="tournamentId">Turnier <span class="required-mark">*</span></label>
+        <select id="tournamentId" th:field="*{tournamentId}" required>
           <option value="">Bitte wählen</option>
           <option th:each="tournament : ${tournaments}"
                   th:value="${tournament.id}"
@@ -49,8 +52,8 @@
       </div>
 
       <div class="form-row">
-        <label for="participantId">Teilnehmer</label>
-        <select id="participantId" th:field="*{participantId}">
+        <label for="participantId">Teilnehmer <span class="required-mark">*</span></label>
+        <select id="participantId" th:field="*{participantId}" required>
           <option value="">Bitte wählen</option>
           <option th:each="participant : ${participants}"
                   th:value="${participant.id}"
@@ -61,8 +64,8 @@
       </div>
 
       <div class="form-row">
-        <label for="plannedRounds">Geplante Rundenzahl</label>
-        <input type="number" id="plannedRounds" th:field="*{plannedRounds}" min="1">
+        <label for="plannedRounds">Geplante Rundenzahl <span class="required-mark">*</span></label>
+        <input type="number" id="plannedRounds" th:field="*{plannedRounds}" min="1" required>
         <div class="field-error" th:if="${#fields.hasErrors('plannedRounds')}" th:errors="*{plannedRounds}"></div>
       </div>
 

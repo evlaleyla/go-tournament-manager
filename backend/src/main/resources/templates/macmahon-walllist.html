@@ -26,10 +26,6 @@
         </div>
     </div>
 
-    <div class="role-hint role-hint-admin">
-        Administrationsbereich: Hier wird die Wall-List aus MacMahon importiert und verwaltet.
-    </div>
-
     <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
     <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
 
@@ -40,14 +36,18 @@
             Punkten und Feinwertungen für den aktuellen Turnierstand.
         </p>
 
+        <p class="form-hint no-print">
+            <span class="required-mark">*</span> Pflichtfeld
+        </p>
+
         <form th:action="@{/tournaments/{id}/walllist/import-macmahon(id=${tournament.id})}"
               method="post"
               enctype="multipart/form-data"
               class="form-grid">
 
             <div class="form-row">
-                <label for="file">MacMahon-Wall-List-Datei</label>
-                <input id="file" type="file" name="file">
+                <label for="file">MacMahon-Wall-List-Datei <span class="required-mark">*</span></label>
+                <input id="file" type="file" name="file" required>
             </div>
 
             <div class="actions">

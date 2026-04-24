@@ -53,14 +53,19 @@
 
     <section class="card">
 
+        <h2 class="no-print">
+            Startliste für Runde
+            <span th:text="${selectedRound}">1</span>
+        </h2>
+
         <div class="print-area">
 
-            <h1>
+            <h1 class="print-only">
                 Startliste -
                 <span th:text="${tournament.name}">Turniername</span>
             </h1>
 
-            <h2>
+            <h2 class="print-only">
                 Runde
                 <span th:text="${selectedRound}">1</span>
             </h2>
@@ -80,13 +85,13 @@
 
                 <tbody>
                 <tr th:each="registration, stat : ${registrations}">
-                    <td th:text="${stat.count}"></td>
-                    <td th:text="${registration.participant.lastName}"></td>
-                    <td th:text="${registration.participant.firstName}"></td>
-                    <td th:text="${registration.clubAtRegistration}"></td>
-                    <td th:text="${registration.countryAtRegistration}"></td>
-                    <td th:text="${registration.rankAtRegistration}"></td>
-                    <td th:text="${registration.plannedRounds}"></td>
+                    <td th:text="${stat.count}">1</td>
+                    <td th:text="${registration.participant.lastName}">Nachname</td>
+                    <td th:text="${registration.participant.firstName}">Vorname</td>
+                    <td th:text="${registration.clubAtRegistration}">Verein</td>
+                    <td th:text="${registration.countryAtRegistration}">Land</td>
+                    <td th:text="${registration.rankAtRegistration}">Rang</td>
+                    <td th:text="${registration.plannedRounds}">0</td>
                 </tr>
                 </tbody>
             </table>

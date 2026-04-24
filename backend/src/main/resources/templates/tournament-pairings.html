@@ -32,10 +32,6 @@
         </div>
     </div>
 
-    <div class="role-hint role-hint-admin">
-        Administrationsbereich: Paarungen importieren, Ergebnisse speichern und öffentliche Darstellung prüfen.
-    </div>
-
     <div th:if="${successMessage}"
          class="flash-success no-print"
          th:text="${successMessage}">
@@ -53,14 +49,18 @@
             Die Paarungen werden in MacMahon erzeugt und anschließend in diese Anwendung übernommen.
         </p>
 
+        <p class="form-hint no-print">
+            <span class="required-mark">*</span> Pflichtfeld
+        </p>
+
         <form th:action="@{/tournaments/{id}/pairings/import-macmahon(id=${tournament.id})}"
               method="post"
               enctype="multipart/form-data"
               class="form-grid">
 
             <div class="form-row">
-                <label for="roundNumber">Runde</label>
-                <select id="roundNumber" name="roundNumber">
+                <label for="roundNumber">Runde <span class="required-mark">*</span></label>
+                <select id="roundNumber" name="roundNumber" required>
                     <option value="">Bitte wählen</option>
                     <option th:each="round : ${availableRounds}"
                             th:value="${round}"
@@ -70,8 +70,8 @@
             </div>
 
             <div class="form-row">
-                <label for="file">MacMahon-Paarungsdatei</label>
-                <input id="file" type="file" name="file">
+                <label for="file">MacMahon-Paarungsdatei <span class="required-mark">*</span></label>
+                <input id="file" type="file" name="file" required>
             </div>
 
             <div class="actions">
@@ -95,7 +95,7 @@
             <div class="round-links">
                 <a class="btn btn-secondary"
                    th:each="round : ${availableRounds}"
-                   th:href="|#round-${round}|"
+                   th:href="'#round-' + ${round}"
                    th:text="|Runde ${round}|">
                     Runde
                 </a>
