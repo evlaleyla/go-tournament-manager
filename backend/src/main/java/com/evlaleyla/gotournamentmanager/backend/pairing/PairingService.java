@@ -2,15 +2,15 @@ package com.evlaleyla.gotournamentmanager.backend.pairing;
 
 import com.evlaleyla.gotournamentmanager.backend.macmahon.MacMahonInterfaceService;
 import com.evlaleyla.gotournamentmanager.backend.macmahon.MacMahonPairingImportRow;
+import com.evlaleyla.gotournamentmanager.backend.registration.Registration;
+import com.evlaleyla.gotournamentmanager.backend.registration.RegistrationService;
 import com.evlaleyla.gotournamentmanager.backend.tournament.Tournament;
 import com.evlaleyla.gotournamentmanager.backend.tournament.TournamentRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Service
 public class PairingService {
@@ -18,13 +18,16 @@ public class PairingService {
     private final PairingRepository pairingRepository;
     private final TournamentRepository tournamentRepository;
     private final MacMahonInterfaceService macMahonInterfaceService;
+    private final RegistrationService registrationService;
 
     public PairingService(PairingRepository pairingRepository,
                           TournamentRepository tournamentRepository,
-                          MacMahonInterfaceService macMahonInterfaceService) {
+                          MacMahonInterfaceService macMahonInterfaceService,
+                          RegistrationService registrationService) {
         this.pairingRepository = pairingRepository;
         this.tournamentRepository = tournamentRepository;
         this.macMahonInterfaceService = macMahonInterfaceService;
+        this.registrationService = registrationService;
     }
 
     public List<Pairing> findByTournamentId(Long tournamentId) {
@@ -73,6 +76,7 @@ public class PairingService {
                 );
             }
         }
+        validateImportedPlayersAgainstRegistrations(tournamentId, roundNumber, importedRows);
 
         pairingRepository.deleteByTournamentIdAndRoundNumber(tournamentId, roundNumber);
 
@@ -169,5 +173,125 @@ public class PairingService {
         }
 
         return normalized;
+    }
+
+    private void validateImportedPlayersAgainstRegistrations(Long tournamentId,
+                                                             Integer roundNumber,
+                                                             List<MacMahonPairingImportRow> importedRows) {
+        List<Registration> allRegistrations =
+                registrationService.findStartListByTournamentId(tournamentId);
+
+        List<Registration> registrationsForRound =
+                registrationService.findStartListByTournamentIdAndRound(tournamentId, roundNumber);
+
+        Map<String, Registration> allRegistrationsByName =
+                buildUniqueRegistrationMap(allRegistrations, "dieses Turnier");
+
+        Map<String, Registration> roundRegistrationsByName =
+                buildUniqueRegistrationMap(registrationsForRound, "Runde " + roundNumber);
+
+        Set<String> usedPlayersInRound = new HashSet<>();
+
+        for (MacMahonPairingImportRow row : importedRows) {
+            validateImportedPlayer(
+                    row.blackPlayer(),
+                    row.tableNumber(),
+                    "Schwarz",
+                    roundNumber,
+                    allRegistrationsByName,
+                    roundRegistrationsByName,
+                    usedPlayersInRound
+            );
+
+            if (!row.bye()) {
+                validateImportedPlayer(
+                        row.whitePlayer(),
+                        row.tableNumber(),
+                        "Weiß",
+                        roundNumber,
+                        allRegistrationsByName,
+                        roundRegistrationsByName,
+                        usedPlayersInRound
+                );
+            }
+        }
+    }
+
+    private void validateImportedPlayer(String importedName,
+                                        Integer tableNumber,
+                                        String color,
+                                        Integer roundNumber,
+                                        Map<String, Registration> allRegistrationsByName,
+                                        Map<String, Registration> roundRegistrationsByName,
+                                        Set<String> usedPlayersInRound) {
+
+        String normalizedName = normalizeNameForLookup(importedName);
+
+        if (normalizedName.isBlank()) {
+            throw new IllegalArgumentException(
+                    "Für Tisch " + tableNumber + " fehlt der Name von " + color + "."
+            );
+        }
+
+        if (!allRegistrationsByName.containsKey(normalizedName)) {
+            throw new IllegalArgumentException(
+                    "Die Person '" + importedName + "' an Tisch " + tableNumber +
+                            " (" + color + ") ist für dieses Turnier nicht angemeldet."
+            );
+        }
+
+        if (!roundRegistrationsByName.containsKey(normalizedName)) {
+            throw new IllegalArgumentException(
+                    "Die Person '" + importedName + "' an Tisch " + tableNumber +
+                            " (" + color + ") ist nicht für Runde " + roundNumber + " spielberechtigt."
+            );
+        }
+
+        if (!usedPlayersInRound.add(normalizedName)) {
+            throw new IllegalArgumentException(
+                    "Die Person '" + importedName + "' kommt in Runde " + roundNumber + " mehrfach vor."
+            );
+        }
+    }
+
+    private Map<String, Registration> buildUniqueRegistrationMap(List<Registration> registrations,
+                                                                 String contextLabel) {
+        Map<String, Registration> registrationsByName = new HashMap<>();
+
+        for (Registration registration : registrations) {
+            String fullName = registration.getParticipant().getFullName();
+            String normalizedName = normalizeNameForLookup(fullName);
+
+            Registration existing = registrationsByName.putIfAbsent(normalizedName, registration);
+
+            if (existing != null) {
+                throw new IllegalArgumentException(
+                        "Der Name '" + fullName + "' kommt in den Anmeldungen für " +
+                                contextLabel +
+                                " mehrfach vor. Der MacMahon-Import ist damit nicht eindeutig möglich."
+                );
+            }
+        }
+
+        return registrationsByName;
+    }
+
+    private String normalizeNameForLookup(String value) {
+        if (value == null) {
+            return "";
+        }
+
+        String normalized = value
+                .trim()
+                .replaceAll("\\s+", " ");
+
+        if (normalized.contains(",")) {
+            String[] parts = normalized.split(",", 2);
+            String lastName = parts[0].trim();
+            String firstName = parts[1].trim();
+            normalized = (firstName + " " + lastName).trim();
+        }
+
+        return normalized.toLowerCase(Locale.ROOT);
     }
 }

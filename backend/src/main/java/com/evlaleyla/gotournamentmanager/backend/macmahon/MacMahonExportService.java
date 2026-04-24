@@ -46,6 +46,8 @@ public class MacMahonExportService {
 
         int totalRounds = tournament.getNumberOfRounds();
 
+        validateUniqueParticipantNamesForMacMahon(registrations);
+
         for (Registration registration : registrations) {
             Participant participant = registration.getParticipant();
 
@@ -168,5 +170,66 @@ public class MacMahonExportService {
         }
 
         return normalizedClub;
+    }
+
+    private void validateUniqueParticipantNamesForMacMahon(List<Registration> registrations) {
+        java.util.Map<String, Integer> counts = new java.util.HashMap<>();
+        java.util.Map<String, String> displayNames = new java.util.HashMap<>();
+
+        for (Registration registration : registrations) {
+            Participant participant = registration.getParticipant();
+
+            String displayName = buildReadableFullName(
+                    participant.getFirstName(),
+                    participant.getLastName()
+            );
+
+            String normalizedName = normalizeFullName(
+                    participant.getFirstName(),
+                    participant.getLastName()
+            );
+
+            if (normalizedName.isBlank()) {
+                throw new IllegalArgumentException(
+                        "Ein Teilnehmer hat keinen eindeutig nutzbaren Namen für den MacMahon-Export."
+                );
+            }
+
+            counts.put(normalizedName, counts.getOrDefault(normalizedName, 0) + 1);
+            displayNames.putIfAbsent(normalizedName, displayName);
+        }
+
+        List<String> duplicateNames = counts.entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(entry -> displayNames.get(entry.getKey()))
+                .sorted()
+                .toList();
+
+        if (!duplicateNames.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Der MacMahon-Export ist nicht eindeutig möglich, da folgende Namen im Turnier mehrfach vorkommen: "
+                            + String.join(", ", duplicateNames)
+                            + ". Bitte diese Teilnehmenden vor dem Export manuell unterscheiden."
+            );
+        }
+    }
+    
+    private String buildReadableFullName(String firstName, String lastName) {
+        String readableFirstName = firstName == null ? "" : firstName.trim();
+        String readableLastName = lastName == null ? "" : lastName.trim();
+
+        return (readableFirstName + " " + readableLastName)
+                .trim()
+                .replaceAll("\\s+", " ");
+    }
+
+    private String normalizeFullName(String firstName, String lastName) {
+        String normalizedFirstName = firstName == null ? "" : firstName.trim();
+        String normalizedLastName = lastName == null ? "" : lastName.trim();
+
+        return (normalizedFirstName + " " + normalizedLastName)
+                .trim()
+                .replaceAll("\\s+", " ")
+                .toLowerCase(java.util.Locale.ROOT);
     }
 }
