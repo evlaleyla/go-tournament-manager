@@ -1,13 +1,14 @@
 package com.evlaleyla.gotournamentmanager.backend.registration;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.PastOrPresent;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SelfRegistrationForm {
 
@@ -36,9 +37,8 @@ public class SelfRegistrationForm {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate birthDate;
 
-    @NotNull(message = "Bitte die geplante Rundenzahl angeben.")
-    @Min(value = 1, message = "Die geplante Rundenzahl muss mindestens 1 sein.")
-    private Integer plannedRounds;
+    @NotEmpty(message = "Bitte mindestens eine Runde auswählen.")
+    private List<Integer> selectedRounds = new ArrayList<>();
 
     private String notes;
 
@@ -73,8 +73,16 @@ public class SelfRegistrationForm {
         return birthDate;
     }
 
+    public List<Integer> getSelectedRounds() {
+        return selectedRounds;
+    }
+
+    public void setSelectedRounds(List<Integer> selectedRounds) {
+        this.selectedRounds = selectedRounds != null ? selectedRounds : new ArrayList<>();
+    }
+
     public Integer getPlannedRounds() {
-        return plannedRounds;
+        return selectedRounds != null ? selectedRounds.size() : 0;
     }
 
     public String getNotes() {
@@ -107,10 +115,6 @@ public class SelfRegistrationForm {
 
     public void setBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
-    }
-
-    public void setPlannedRounds(Integer plannedRounds) {
-        this.plannedRounds = plannedRounds;
     }
 
     public void setNotes(String notes) {

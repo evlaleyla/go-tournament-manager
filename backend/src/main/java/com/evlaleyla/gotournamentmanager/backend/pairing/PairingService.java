@@ -72,19 +72,26 @@ public class PairingService {
         for (MacMahonPairingImportRow imported : importedRows) {
             if (!roundNumber.equals(imported.roundNumber())) {
                 throw new IllegalArgumentException(
-                        "Die importierte Datei enthält Paarungen für eine andere Runde als die ausgewählte Runde " + roundNumber + "."
+                        "Die importierte Datei enthält Paarungen für eine andere Runde als die ausgewählte Runde "
+                                + roundNumber + "."
                 );
             }
         }
+
         validateImportedPlayersAgainstRegistrations(tournamentId, roundNumber, importedRows);
 
+        // Alte Paarungen der Runde vollständig löschen
         pairingRepository.deleteByTournamentIdAndRoundNumber(tournamentId, roundNumber);
+
+        // Wichtig: Delete sofort an DB senden, bevor neue Datensätze eingefügt werden
+        pairingRepository.flush();
 
         List<Pairing> entitiesToSave = importedRows.stream()
                 .map(imported -> mapImportRowToPairing(tournament, imported))
                 .toList();
 
         pairingRepository.saveAll(entitiesToSave);
+        pairingRepository.flush();
     }
 
     private String normalizeAndValidateSimpleResult(String result) {

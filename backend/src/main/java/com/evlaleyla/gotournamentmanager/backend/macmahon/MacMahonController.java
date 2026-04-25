@@ -49,6 +49,7 @@ public class MacMahonController {
             );
             return "redirect:/tournaments/" + id + "/pairings#round-" + roundNumber;
         }
+
         try {
             pairingService.importPairingsFromMacMahon(id, roundNumber, file);
             redirectAttributes.addFlashAttribute(
@@ -106,5 +107,22 @@ public class MacMahonController {
         }
 
         return "redirect:/tournaments/" + id + "/walllist";
+    }
+
+    @GetMapping("/public/tournaments/{id}/walllist")
+    public String showPublicWallList(@PathVariable Long id, Model model) {
+        Tournament tournament = tournamentService.findById(id);
+        List<TournamentStanding> standings = tournamentStandingService.findByTournamentId(id);
+
+        int roundColumnCount = 0;
+        if (!standings.isEmpty()) {
+            roundColumnCount = standings.get(0).getRoundStatuses().size();
+        }
+
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("wallListEntries", standings);
+        model.addAttribute("roundColumnCount", roundColumnCount);
+
+        return "public-tournament-walllist";
     }
 }

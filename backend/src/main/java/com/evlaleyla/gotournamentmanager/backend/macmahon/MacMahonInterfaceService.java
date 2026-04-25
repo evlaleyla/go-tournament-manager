@@ -57,18 +57,39 @@ public class MacMahonInterfaceService {
             throw new IllegalArgumentException("Kein Wall-List-Header gefunden.");
         }
 
-        List<String> headerTokens = splitByWhitespace(headerLine);
+        List<String> headerTokens = extractHeaderTokens(headerLine);
+        List<Integer> columnStarts = extractColumnStarts(headerLine);
 
-        int pointsIndex = headerTokens.indexOf("Points");
-        int scoreXIndex = headerTokens.indexOf("ScoreX");
-        int sosIndex = headerTokens.indexOf("SOS");
-        int sososIndex = headerTokens.indexOf("SOSOS");
+        List<String> normalizedHeaders = headerTokens.stream()
+                .map(token -> token.toLowerCase(java.util.Locale.ROOT))
+                .toList();
 
-        if (pointsIndex < 0 || scoreXIndex < 0 || sosIndex < 0 || sososIndex < 0) {
-            throw new IllegalArgumentException("Die Endspalten der Wall List konnten nicht erkannt werden.");
+        int placeIndex = normalizedHeaders.indexOf("place");
+        int nameIndex = normalizedHeaders.indexOf("name");
+        int clubIndex = normalizedHeaders.indexOf("club");
+        int levelIndex = normalizedHeaders.indexOf("level");
+        int scoreIndex = normalizedHeaders.indexOf("score");
+        int pointsIndex = normalizedHeaders.indexOf("points");
+        int scoreXIndex = normalizedHeaders.indexOf("scorex");
+        int sosIndex = normalizedHeaders.indexOf("sos");
+        int sososIndex = normalizedHeaders.indexOf("sosos");
+
+        if (placeIndex < 0
+                || nameIndex < 0
+                || clubIndex < 0
+                || levelIndex < 0
+                || scoreIndex < 0
+                || pointsIndex < 0
+                || scoreXIndex < 0
+                || sosIndex < 0
+                || sososIndex < 0) {
+            throw new IllegalArgumentException("Die Wall-List-Spalten konnten nicht vollständig erkannt werden.");
         }
 
-        int roundColumnCount = pointsIndex - 5;
+        int roundColumnStartIndex = scoreIndex + 1;
+        int roundColumnEndExclusive = pointsIndex;
+        int roundColumnCount = roundColumnEndExclusive - roundColumnStartIndex;
+
         if (roundColumnCount < 0) {
             throw new IllegalArgumentException("Die Rundenspalten der Wall List konnten nicht erkannt werden.");
         }
@@ -78,39 +99,42 @@ public class MacMahonInterfaceService {
                 continue;
             }
 
-            if (line.startsWith("[")) {
+            String trimmed = line.trim();
+
+            if (trimmed.startsWith("[")) {
                 continue;
             }
 
-            if (line.trim().startsWith("Place")) {
+            if (line.equals(headerLine) || trimmed.startsWith("Place")) {
                 continue;
             }
 
-            List<String> tokens = splitByWhitespace(line);
+            List<String> columns = splitFixedWidthColumns(line, columnStarts);
 
-            if (tokens.size() < 9) {
+            if (columns.size() < headerTokens.size()) {
                 continue;
             }
 
-            String placeToken = tokens.get(0).replace("(", "").replace(")", "");
+            String placeToken = columns.get(placeIndex)
+                    .replace("(", "")
+                    .replace(")", "")
+                    .trim();
+
             Integer place;
-
             try {
                 place = Integer.parseInt(placeToken);
             } catch (NumberFormatException e) {
                 continue;
             }
 
-            int minimumTokens = 1 + 4 + roundColumnCount + 4;
-            if (tokens.size() < minimumTokens) {
-                continue;
-            }
-
-            String score = tokens.get(tokens.size() - (4 + roundColumnCount + 1));
-            String pointsToken = tokens.get(tokens.size() - 4);
-            String scoreX = tokens.get(tokens.size() - 3);
-            String sos = tokens.get(tokens.size() - 2);
-            String sosos = tokens.get(tokens.size() - 1);
+            String name = columns.get(nameIndex).trim();
+            String club = columns.get(clubIndex).trim();
+            String level = columns.get(levelIndex).trim();
+            String score = columns.get(scoreIndex).trim();
+            String pointsToken = columns.get(pointsIndex).trim();
+            String scoreX = columns.get(scoreXIndex).trim();
+            String sos = columns.get(sosIndex).trim();
+            String sosos = columns.get(sososIndex).trim();
 
             Integer points;
             try {
@@ -119,33 +143,14 @@ public class MacMahonInterfaceService {
                 continue;
             }
 
-            int roundStartIndex = tokens.size() - 4 - roundColumnCount;
-            int scoreIndex = roundStartIndex - 1;
-            int clubIndex = scoreIndex - 3;
-
-            if (clubIndex <= 1) {
-                continue;
-            }
-
-            String club = tokens.get(clubIndex);
-            String level = tokens.get(clubIndex + 1) + " " + tokens.get(clubIndex + 2);
-
-            StringBuilder nameBuilder = new StringBuilder();
-            for (int i = 1; i < clubIndex; i++) {
-                if (i > 1) {
-                    nameBuilder.append(" ");
-                }
-                nameBuilder.append(tokens.get(i));
-            }
-
             List<String> roundStatuses = new ArrayList<>();
-            for (int i = roundStartIndex; i < roundStartIndex + roundColumnCount; i++) {
-                roundStatuses.add(tokens.get(i));
+            for (int i = roundColumnStartIndex; i < roundColumnEndExclusive; i++) {
+                roundStatuses.add(columns.get(i).trim());
             }
 
             entries.add(new MacMahonWallListEntry(
                     place,
-                    nameBuilder.toString().trim(),
+                    name,
                     club,
                     level,
                     score,
@@ -158,10 +163,53 @@ public class MacMahonInterfaceService {
         }
 
         if (entries.isEmpty()) {
-            throw new IllegalArgumentException("Die Datei enthält keine lesbaren Wall-List-Daten im erwarteten MacMahon-Format.");
+            throw new IllegalArgumentException(
+                    "Die Datei enthält keine lesbaren Wall-List-Daten im erwarteten MacMahon-Format."
+            );
         }
 
         return entries;
+    }
+
+    private List<String> extractHeaderTokens(String headerLine) {
+        List<String> tokens = new ArrayList<>();
+        Matcher matcher = Pattern.compile("\\S+").matcher(headerLine);
+
+        while (matcher.find()) {
+            tokens.add(matcher.group());
+        }
+
+        return tokens;
+    }
+
+    private List<Integer> extractColumnStarts(String headerLine) {
+        List<Integer> starts = new ArrayList<>();
+        Matcher matcher = Pattern.compile("\\S+").matcher(headerLine);
+
+        while (matcher.find()) {
+            starts.add(matcher.start());
+        }
+
+        return starts;
+    }
+
+    private List<String> splitFixedWidthColumns(String line, List<Integer> columnStarts) {
+        List<String> columns = new ArrayList<>();
+
+        for (int i = 0; i < columnStarts.size(); i++) {
+            int start = Math.min(columnStarts.get(i), line.length());
+            int end = (i + 1 < columnStarts.size())
+                    ? Math.min(columnStarts.get(i + 1), line.length())
+                    : line.length();
+
+            if (start >= end) {
+                columns.add("");
+            } else {
+                columns.add(line.substring(start, end).trim());
+            }
+        }
+
+        return columns;
     }
 
     private List<String> splitByWhitespace(String line) {

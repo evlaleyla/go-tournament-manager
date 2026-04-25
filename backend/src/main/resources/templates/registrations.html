@@ -62,7 +62,7 @@
                 <th>Turnier</th>
                 <th>Teilnehmer</th>
                 <th>Anmeldedatum</th>
-                <th>Geplante Runden</th>
+                <th>Ausgewählte Runden</th>
                 <th>Verein</th>
                 <th>Land</th>
                 <th>Rang</th>
@@ -75,7 +75,7 @@
                 <td th:text="${registration.tournament.name}"></td>
                 <td th:text="${registration.participant.fullName}"></td>
                 <td th:text="${registration.registrationDate}"></td>
-                <td th:text="${registration.plannedRounds}"></td>
+                <td th:text="${registration.selectedRoundsDisplayShort}"></td>
                 <td th:text="${registration.clubAtRegistration}"></td>
                 <td th:text="${registration.countryAtRegistration}"></td>
                 <td th:text="${registration.rankAtRegistration}"></td>

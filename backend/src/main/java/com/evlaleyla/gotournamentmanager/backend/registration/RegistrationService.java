@@ -10,7 +10,10 @@ import com.evlaleyla.gotournamentmanager.backend.tournament.TournamentRepository
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Service
@@ -39,15 +42,17 @@ public class RegistrationService {
     public List<Registration> findStartListByTournamentId(Long tournamentId) {
         return registrationRepository.findByTournamentIdOrderByParticipantLastNameAscParticipantFirstNameAsc(tournamentId);
     }
+
     public Registration findById(Long id) {
         return registrationRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Anmeldung nicht gefunden: " + id));
+                .orElseThrow(() -> new IllegalArgumentException("Registration not found: " + id));
     }
 
     public boolean existsByTournamentIdAndParticipantId(Long tournamentId, Long participantId) {
         if (tournamentId == null || participantId == null) {
             return false;
         }
+
         return registrationRepository.existsByTournamentIdAndParticipantId(tournamentId, participantId);
     }
 
@@ -78,14 +83,16 @@ public class RegistrationService {
                 tournament,
                 participant,
                 LocalDate.now(),
-                registrationForm.getPlannedRounds(),
+                normalizeSelectedRounds(registrationForm.getSelectedRounds()),
                 normalizedRank,
                 normalizedClub,
                 normalizedCountry,
                 registrationForm.getNotes()
         );
+
         return registrationRepository.save(registration);
     }
+
     public Registration createPublicRegistration(Long tournamentId, SelfRegistrationForm form) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new IllegalArgumentException("Turnier nicht gefunden: " + tournamentId));
@@ -97,29 +104,24 @@ public class RegistrationService {
 
         validateClubMatchesCountry(normalizedCountry, normalizedClub);
 
-        if (participantRepository.existsByEmailIgnoreCase(normalizedEmail)) {
-            throw new IllegalArgumentException(
-                    "Zu dieser E-Mail-Adresse existiert bereits ein Teilnehmerdatensatz. " +
-                            "Bitte wenden Sie sich an die Turnierorganisation."
-            );
-        }
-
-        Participant participant = new Participant();
-        participant.setFirstName(form.getFirstName().trim());
-        participant.setLastName(form.getLastName().trim());
-        participant.setEmail(normalizedEmail);
-        participant.setClub(normalizedClub);
-        participant.setCountry(normalizedCountry);
-        participant.setRank(normalizedRank);
-        participant.setBirthDate(form.getBirthDate());
-
-        participant = participantRepository.save(participant);
+        Participant participant = participantRepository.findByEmailIgnoreCase(normalizedEmail)
+                .orElseGet(() -> {
+                    Participant newParticipant = new Participant();
+                    newParticipant.setFirstName(form.getFirstName());
+                    newParticipant.setLastName(form.getLastName());
+                    newParticipant.setEmail(normalizedEmail);
+                    newParticipant.setClub(normalizedClub);
+                    newParticipant.setCountry(normalizedCountry);
+                    newParticipant.setRank(normalizedRank);
+                    newParticipant.setBirthDate(form.getBirthDate());
+                    return participantRepository.save(newParticipant);
+                });
 
         Registration registration = new Registration(
                 tournament,
                 participant,
                 LocalDate.now(),
-                form.getPlannedRounds(),
+                normalizeSelectedRounds(form.getSelectedRounds()),
                 normalizedRank,
                 normalizedClub,
                 normalizedCountry,
@@ -137,9 +139,16 @@ public class RegistrationService {
         return registrationRepository
                 .findByTournamentIdOrderByParticipantLastNameAscParticipantFirstNameAsc(tournamentId)
                 .stream()
-                .filter(registration -> registration.getPlannedRounds() != null
-                        && registration.getPlannedRounds() >= roundNumber)
+                .filter(registration -> registration.isPlayingInRound(roundNumber))
                 .collect(Collectors.toList());
+    }
+
+    private Set<Integer> normalizeSelectedRounds(List<Integer> selectedRounds) {
+        if (selectedRounds == null || selectedRounds.isEmpty()) {
+            throw new IllegalArgumentException("Bitte mindestens eine Runde auswählen.");
+        }
+
+        return new LinkedHashSet<>(new TreeSet<>(selectedRounds));
     }
 
     private void validateClubMatchesCountry(String country, String club) {

@@ -1,8 +1,6 @@
 package com.evlaleyla.gotournamentmanager.backend.tournament;
 
 import com.evlaleyla.gotournamentmanager.backend.macmahon.MacMahonExportService;
-import com.evlaleyla.gotournamentmanager.backend.participant.Participant;
-import com.evlaleyla.gotournamentmanager.backend.registration.Registration;
 import com.evlaleyla.gotournamentmanager.backend.registration.RegistrationService;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
@@ -18,9 +16,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
-import java.nio.charset.StandardCharsets;
-import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.stream.IntStream;
 
 @Controller
@@ -175,43 +170,6 @@ public class TournamentController {
         return "tournament-startlist";
     }
 
-    @GetMapping("/tournaments/{id}/startlist/export")
-    public ResponseEntity<byte[]> exportTournamentStartList(@PathVariable Long id,
-                                                            @RequestParam(required = false) Integer round) {
-        Tournament tournament = tournamentService.findById(id);
-        int selectedRound = normalizeRound(round, tournament);
-        List<Registration> registrations =
-                registrationService.findStartListByTournamentIdAndRound(id, selectedRound);
-
-        StringBuilder csv = new StringBuilder();
-
-        csv.append("Nr;Nachname;Vorname;E-Mail;Verein;Land;Rang;Geburtsdatum;Anmeldedatum;GeplanteRunden\n");
-
-        for (int i = 0; i < registrations.size(); i++) {
-            Registration registration = registrations.get(i);
-            Participant participant = registration.getParticipant();
-
-            csv.append(i + 1).append(";");
-            csv.append(escapeCsv(participant.getLastName())).append(";");
-            csv.append(escapeCsv(participant.getFirstName())).append(";");
-            csv.append(escapeCsv(participant.getEmail())).append(";");
-            csv.append(escapeCsv(registration.getClubAtRegistration())).append(";");
-            csv.append(escapeCsv(registration.getCountryAtRegistration())).append(";");
-            csv.append(escapeCsv(registration.getRankAtRegistration())).append(";");
-            csv.append(escapeCsv(formatDate(participant.getBirthDate()))).append(";");
-            csv.append(escapeCsv(formatDate(registration.getRegistrationDate()))).append(";");
-            csv.append(escapeCsv(String.valueOf(registration.getPlannedRounds()))).append("\n");
-        }
-
-        String safeTournamentName = tournament.getName().replaceAll("[^a-zA-Z0-9-_]", "_");
-        String fileName = "startliste_runde_" + selectedRound + "_" + safeTournamentName + ".csv";
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
-                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
-                .body(addUtf8Bom(csv.toString()));
-    }
-
     private int normalizeRound(Integer round, Tournament tournament) {
         Integer numberOfRounds = tournament.getNumberOfRounds();
 
@@ -231,33 +189,6 @@ public class TournamentController {
         }
 
         return round;
-    }
-
-    private byte[] addUtf8Bom(String content) {
-        byte[] bom = {(byte) 0xEF, (byte) 0xBB, (byte) 0xBF};
-        byte[] bytes = content.getBytes(StandardCharsets.UTF_8);
-
-        byte[] result = new byte[bom.length + bytes.length];
-        System.arraycopy(bom, 0, result, 0, bom.length);
-        System.arraycopy(bytes, 0, result, bom.length, bytes.length);
-
-        return result;
-    }
-
-    private String escapeCsv(String value) {
-        if (value == null) {
-            return "";
-        }
-
-        String escapedValue = value.replace("\"", "\"\"");
-        return "\"" + escapedValue + "\"";
-    }
-
-    private String formatDate(java.time.LocalDate date) {
-        if (date == null) {
-            return "";
-        }
-        return date.format(DateTimeFormatter.ISO_DATE);
     }
 
     @GetMapping("/tournaments/{id}/startlist/export-macmahon")

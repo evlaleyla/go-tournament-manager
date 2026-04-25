@@ -20,10 +20,6 @@
         </div>
 
         <div class="actions">
-            <button type="button" onclick="window.print()">
-                Startliste drucken
-            </button>
-
             <a class="btn btn-secondary"
                th:href="@{/tournaments/{id}(id=${tournament.id})}">
                 Zurück zum Turnier
@@ -48,7 +44,7 @@
     </section>
 
     <section class="card no-print">
-        <h2>Runde auswählen</h2>
+        <h2>Runde auswählen und drucken</h2>
 
         <form th:action="@{/tournaments/{id}/startlist(id=${tournament.id})}"
               method="get"
@@ -66,12 +62,10 @@
             </div>
 
             <div class="actions">
-                <button type="submit">Anzeigen</button>
-
-                <a class="btn btn-secondary"
-                   th:href="@{/tournaments/{id}/startlist/export(id=${tournament.id}, round=${selectedRound})}">
-                    CSV exportieren
-                </a>
+                <button type="submit">Runde anzeigen</button>
+                <button type="button" onclick="window.print()">
+                    Aktuelle Runde drucken
+                </button>
             </div>
         </form>
     </section>

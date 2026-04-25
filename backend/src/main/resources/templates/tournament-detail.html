@@ -207,10 +207,6 @@
     </div>
 
     <div class="actions">
-      <a class="btn btn-secondary"
-         th:href="@{/tournaments/{id}/edit(id=${tournament.id})}">
-        Turnier bearbeiten
-      </a>
 
       <form th:action="@{/tournaments/{id}/delete(id=${tournament.id})}"
             method="post"

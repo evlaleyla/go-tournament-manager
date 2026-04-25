@@ -71,7 +71,7 @@ public class MacMahonExportService {
             String rating = "";
             String registrationFlag = "f";
             String playingInRounds = buildPlayingInRounds(
-                    registration.getPlannedRounds(),
+                    registration.getSelectedRounds(),
                     totalRounds
             );
 
@@ -130,16 +130,15 @@ public class MacMahonExportService {
         }
     }
 
-    private String buildPlayingInRounds(Integer plannedRounds, Integer totalRounds) {
-        if (plannedRounds == null || totalRounds == null || totalRounds < 1) {
+    private String buildPlayingInRounds(java.util.Set<Integer> selectedRounds, Integer totalRounds) {
+        if (selectedRounds == null || selectedRounds.isEmpty() || totalRounds == null || totalRounds < 1) {
             return "";
         }
 
-        int roundsToPlay = Math.max(0, Math.min(plannedRounds, totalRounds));
         StringBuilder sb = new StringBuilder(totalRounds);
 
-        for (int i = 0; i < totalRounds; i++) {
-            sb.append(i < roundsToPlay ? '1' : '0');
+        for (int round = 1; round <= totalRounds; round++) {
+            sb.append(selectedRounds.contains(round) ? '1' : '0');
         }
 
         return sb.toString();

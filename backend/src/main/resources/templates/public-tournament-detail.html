@@ -71,6 +71,11 @@
                th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
                 Paarungen und Ergebnisse ansehen
             </a>
+
+            <a class="btn btn-secondary"
+               th:href="@{/public/tournaments/{id}/walllist(id=${tournament.id})}">
+                Aktuelle Rangliste ansehen
+            </a>
         </div>
 
         <p th:if="${tournament.status.name() != 'REGISTRATION_OPEN'}"

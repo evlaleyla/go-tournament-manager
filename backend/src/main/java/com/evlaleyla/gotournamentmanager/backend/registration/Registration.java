@@ -2,13 +2,28 @@ package com.evlaleyla.gotournamentmanager.backend.registration;
 
 import com.evlaleyla.gotournamentmanager.backend.participant.Participant;
 import com.evlaleyla.gotournamentmanager.backend.tournament.Tournament;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Min;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.Transient;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotEmpty;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(
@@ -31,9 +46,14 @@ public class Registration {
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate registrationDate;
 
-    @NotNull(message = "Die geplante Rundenzahl ist erforderlich.")
-    @Min(value = 1, message = "Die geplante Rundenzahl muss mindestens 1 sein.")
-    private Integer plannedRounds;
+    @NotEmpty(message = "Mindestens eine ausgewählte Runde ist erforderlich.")
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(
+            name = "registration_selected_rounds",
+            joinColumns = @JoinColumn(name = "registration_id")
+    )
+    @Column(name = "round_number", nullable = false)
+    private Set<Integer> selectedRounds = new LinkedHashSet<>();
 
     @NotBlank(message = "Der Rang ist erforderlich.")
     private String rankAtRegistration;
@@ -51,7 +71,7 @@ public class Registration {
     public Registration(Tournament tournament,
                         Participant participant,
                         LocalDate registrationDate,
-                        Integer plannedRounds,
+                        Set<Integer> selectedRounds,
                         String rankAtRegistration,
                         String clubAtRegistration,
                         String countryAtRegistration,
@@ -59,7 +79,7 @@ public class Registration {
         this.tournament = tournament;
         this.participant = participant;
         this.registrationDate = registrationDate;
-        this.plannedRounds = plannedRounds;
+        setSelectedRounds(selectedRounds);
         this.rankAtRegistration = rankAtRegistration;
         this.clubAtRegistration = clubAtRegistration;
         this.countryAtRegistration = countryAtRegistration;
@@ -82,8 +102,10 @@ public class Registration {
         return registrationDate;
     }
 
-    public Integer getPlannedRounds() {
-        return plannedRounds;
+    public Set<Integer> getSelectedRounds() {
+        return selectedRounds.stream()
+                .sorted()
+                .collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public String getRankAtRegistration() {
@@ -102,6 +124,28 @@ public class Registration {
         return notes;
     }
 
+    @Transient
+    public Integer getPlannedRounds() {
+        return selectedRounds != null ? selectedRounds.size() : 0;
+    }
+
+    @Transient
+    public boolean isPlayingInRound(int roundNumber) {
+        return selectedRounds != null && selectedRounds.contains(roundNumber);
+    }
+
+    @Transient
+    public String getSelectedRoundsDisplay() {
+        if (selectedRounds == null || selectedRounds.isEmpty()) {
+            return "";
+        }
+
+        return selectedRounds.stream()
+                .sorted()
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "));
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -118,8 +162,12 @@ public class Registration {
         this.registrationDate = registrationDate;
     }
 
-    public void setPlannedRounds(Integer plannedRounds) {
-        this.plannedRounds = plannedRounds;
+    public void setSelectedRounds(Set<Integer> selectedRounds) {
+        this.selectedRounds.clear();
+
+        if (selectedRounds != null) {
+            this.selectedRounds.addAll(new TreeSet<>(selectedRounds));
+        }
     }
 
     public void setRankAtRegistration(String rankAtRegistration) {
@@ -136,5 +184,36 @@ public class Registration {
 
     public void setNotes(String notes) {
         this.notes = notes;
+    }
+
+    @Transient
+    public String getSelectedRoundsDisplayShort() {
+        if (selectedRounds == null || selectedRounds.isEmpty()) {
+            return "-";
+        }
+
+        Integer totalRounds = tournament != null ? tournament.getNumberOfRounds() : null;
+
+        if (totalRounds != null && totalRounds > 0) {
+            boolean allRoundsSelected = selectedRounds.size() == totalRounds;
+
+            if (allRoundsSelected) {
+                for (int round = 1; round <= totalRounds; round++) {
+                    if (!selectedRounds.contains(round)) {
+                        allRoundsSelected = false;
+                        break;
+                    }
+                }
+            }
+
+            if (allRoundsSelected) {
+                return "Alle Runden";
+            }
+        }
+
+        return selectedRounds.stream()
+                .sorted()
+                .map(String::valueOf)
+                .collect(Collectors.joining(", "));
     }
 }

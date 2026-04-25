@@ -33,7 +33,7 @@
         <form th:action="${isEdit} ? @{/tournaments/{id}(id=${tournament.id})} : @{/tournaments}"
               th:object="${tournament}"
               method="post"
-              class="form-grid">
+              class="form-grid form-grid-wide">
 
             <input type="hidden" th:field="*{id}">
 

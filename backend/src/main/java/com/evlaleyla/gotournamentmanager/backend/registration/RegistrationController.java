@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.IntStream;
 
 @Controller
 public class RegistrationController {
@@ -55,12 +59,21 @@ public class RegistrationController {
     public String showRegistrationForm(@RequestParam(required = false) Long tournamentId,
                                        Model model) {
         RegistrationForm registrationForm = new RegistrationForm();
+        Tournament selectedTournament = null;
 
         if (tournamentId != null) {
             registrationForm.setTournamentId(tournamentId);
+            selectedTournament = tournamentService.findById(tournamentId);
         }
 
         model.addAttribute("registrationForm", registrationForm);
+        model.addAttribute("selectedTournament", selectedTournament);
+
+        if (selectedTournament != null && selectedTournament.getNumberOfRounds() != null) {
+            model.addAttribute("availableRounds",
+                    IntStream.rangeClosed(1, selectedTournament.getNumberOfRounds()).boxed().toList());
+        }
+
         addFormData(model);
         return "registration-form";
     }
@@ -71,13 +84,26 @@ public class RegistrationController {
                                      Model model,
                                      RedirectAttributes redirectAttributes) {
 
+        Tournament selectedTournament = null;
+
+        if (registrationForm.getTournamentId() != null) {
+            selectedTournament = tournamentService.findById(registrationForm.getTournamentId());
+        }
+
         validateRegistrationDate(registrationForm, bindingResult);
-        validatePlannedRounds(registrationForm.getTournamentId(), registrationForm.getPlannedRounds(), bindingResult);
+        validateSelectedRounds(
+                registrationForm.getTournamentId(),
+                registrationForm.getSelectedRounds(),
+                "selectedRounds",
+                bindingResult
+        );
 
-
-        if (registrationService.existsByTournamentIdAndParticipantId(
+        if (registrationForm.getTournamentId() != null
+                && registrationForm.getParticipantId() != null
+                && registrationService.existsByTournamentIdAndParticipantId(
                 registrationForm.getTournamentId(),
                 registrationForm.getParticipantId())) {
+
             bindingResult.rejectValue(
                     "participantId",
                     "registration.duplicate",
@@ -87,6 +113,13 @@ public class RegistrationController {
 
         if (bindingResult.hasErrors()) {
             addFormData(model);
+            model.addAttribute("selectedTournament", selectedTournament);
+
+            if (selectedTournament != null && selectedTournament.getNumberOfRounds() != null) {
+                model.addAttribute("availableRounds",
+                        IntStream.rangeClosed(1, selectedTournament.getNumberOfRounds()).boxed().toList());
+            }
+
             return "registration-form";
         }
 
@@ -95,28 +128,18 @@ public class RegistrationController {
         return "redirect:/registrations/" + registration.getId();
     }
 
-    private void validatePlannedRounds(Long tournamentId, Integer plannedRounds, BindingResult bindingResult) {
-        if (tournamentId == null || plannedRounds == null) {
-            return;
-        }
-
-        Tournament tournament = tournamentService.findById(tournamentId);
-
-        if (tournament.getNumberOfRounds() != null && plannedRounds > tournament.getNumberOfRounds()) {
-            bindingResult.rejectValue(
-                    "plannedRounds",
-                    "registration.plannedRounds.tooHigh",
-                    "Die geplante Rundenzahl darf nicht größer als die Anzahl der Turnierrunden sein."
-            );
-        }
-    }
-
     @GetMapping("/public/tournaments/{id}/register")
     public String showPublicRegistrationForm(@PathVariable Long id, Model model) {
         Tournament tournament = tournamentService.findById(id);
 
         model.addAttribute("tournament", tournament);
         model.addAttribute("selfRegistrationForm", new SelfRegistrationForm());
+
+        if (tournament.getNumberOfRounds() != null) {
+            model.addAttribute("availableRounds",
+                    IntStream.rangeClosed(1, tournament.getNumberOfRounds()).boxed().toList());
+        }
+
         addPublicRegistrationFormOptions(model);
         return "public-registration-form";
     }
@@ -134,6 +157,12 @@ public class RegistrationController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("tournament", tournament);
+
+            if (tournament.getNumberOfRounds() != null) {
+                model.addAttribute("availableRounds",
+                        IntStream.rangeClosed(1, tournament.getNumberOfRounds()).boxed().toList());
+            }
+
             addPublicRegistrationFormOptions(model);
             return "public-registration-form";
         }
@@ -143,9 +172,16 @@ public class RegistrationController {
         } catch (IllegalArgumentException e) {
             bindingResult.reject("registration.invalid", e.getMessage());
             model.addAttribute("tournament", tournament);
+
+            if (tournament.getNumberOfRounds() != null) {
+                model.addAttribute("availableRounds",
+                        IntStream.rangeClosed(1, tournament.getNumberOfRounds()).boxed().toList());
+            }
+
             addPublicRegistrationFormOptions(model);
             return "public-registration-form";
         }
+
         redirectAttributes.addFlashAttribute("successMessage", "Die Anmeldung wurde erfolgreich abgesendet.");
         return "redirect:/public/tournaments/" + id + "/register";
     }
@@ -213,16 +249,73 @@ public class RegistrationController {
             );
         }
 
-        if (form.getPlannedRounds() != null
-                && tournament.getNumberOfRounds() != null
-                && form.getPlannedRounds() > tournament.getNumberOfRounds()) {
-            bindingResult.rejectValue(
-                    "plannedRounds",
-                    "registration.plannedRounds.tooHigh",
-                    "Die geplante Rundenzahl darf nicht größer als die Anzahl der Turnierrunden sein."
-            );
+        validateSelectedRounds(
+                tournament.getId(),
+                form.getSelectedRounds(),
+                "selectedRounds",
+                bindingResult
+        );
+    }
+
+    private void validateSelectedRounds(Long tournamentId,
+                                        List<Integer> selectedRounds,
+                                        String fieldName,
+                                        BindingResult bindingResult) {
+
+        if (tournamentId == null) {
+            return;
         }
 
+        Tournament tournament = tournamentService.findById(tournamentId);
+
+        if (selectedRounds == null || selectedRounds.isEmpty()) {
+            bindingResult.rejectValue(
+                    fieldName,
+                    "registration.selectedRounds.empty",
+                    "Bitte mindestens eine Runde auswählen."
+            );
+            return;
+        }
+
+        if (tournament.getNumberOfRounds() == null || tournament.getNumberOfRounds() < 1) {
+            bindingResult.rejectValue(
+                    fieldName,
+                    "registration.selectedRounds.invalidTournament",
+                    "Für dieses Turnier sind keine gültigen Runden hinterlegt."
+            );
+            return;
+        }
+
+        Set<Integer> uniqueRounds = new LinkedHashSet<>(selectedRounds);
+
+        if (uniqueRounds.size() != selectedRounds.size()) {
+            bindingResult.rejectValue(
+                    fieldName,
+                    "registration.selectedRounds.duplicate",
+                    "Jede Runde darf nur einmal ausgewählt werden."
+            );
+            return;
+        }
+
+        for (Integer round : uniqueRounds) {
+            if (round == null) {
+                bindingResult.rejectValue(
+                        fieldName,
+                        "registration.selectedRounds.null",
+                        "Die ausgewählte Runde ist ungültig."
+                );
+                return;
+            }
+
+            if (round < 1 || round > tournament.getNumberOfRounds()) {
+                bindingResult.rejectValue(
+                        fieldName,
+                        "registration.selectedRounds.outOfRange",
+                        "Es dürfen nur vorhandene Turnierrunden ausgewählt werden."
+                );
+                return;
+            }
+        }
     }
 
     private void addPublicRegistrationFormOptions(Model model) {

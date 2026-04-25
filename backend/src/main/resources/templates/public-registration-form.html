@@ -4,6 +4,38 @@
     <meta charset="UTF-8">
     <title>Online-Anmeldung</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        .round-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.35rem;
+        }
+
+        .round-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.7rem 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface);
+        }
+
+        .round-checkbox input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+
+        .round-checkbox label,
+        .round-checkbox span {
+            margin: 0;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
 
@@ -72,7 +104,7 @@
         <form th:action="@{/public/tournaments/{id}/register(id=${tournament.id})}"
               th:object="${selfRegistrationForm}"
               method="post"
-              class="form-grid">
+              class="form-grid form-grid-wide">
 
             <div th:if="${#fields.hasGlobalErrors()}" class="flash-error">
                 <p th:each="err : ${#fields.globalErrors()}"
@@ -97,7 +129,11 @@
 
                 <div class="form-row">
                     <label for="lastName">Nachname <span class="required-mark">*</span></label>
-                    <input type="text" id="lastName" th:field="*{lastName}" autocomplete="family-name" required>
+                    <input type="text"
+                           id="lastName"
+                           th:field="*{lastName}"
+                           autocomplete="family-name"
+                           required>
 
                     <div class="field-error"
                          th:if="${#fields.hasErrors('lastName')}"
@@ -108,7 +144,11 @@
 
             <div class="form-row">
                 <label for="email">E-Mail <span class="required-mark">*</span></label>
-                <input type="email" id="email" th:field="*{email}" autocomplete="email" required>
+                <input type="email"
+                       id="email"
+                       th:field="*{email}"
+                       autocomplete="email"
+                       required>
 
                 <div class="field-error"
                      th:if="${#fields.hasErrors('email')}"
@@ -149,8 +189,7 @@
             <div class="grid grid-2">
                 <div class="form-row">
                     <label for="country">Land</label>
-                    <select id="country"
-                            th:field="*{country}">
+                    <select id="country" th:field="*{country}">
                         <option value="">Bitte wählen</option>
                         <option th:each="country : ${countryOptions}"
                                 th:value="${country.code}"
@@ -185,23 +224,29 @@
             </div>
 
             <div class="form-row">
-                <label for="plannedRounds">Wie viele Runden spielst du mit? <span class="required-mark">*</span></label>
-                <input type="number"
-                       id="plannedRounds"
-                       th:field="*{plannedRounds}"
-                       min="1"
-                       th:attr="max=${tournament.numberOfRounds}"
-                       required>
+                <label>Welche Runden spielst du mit? <span class="required-mark">*</span></label>
 
                 <p class="table-note">
-                    Maximal möglich:
-                    <span th:text="${tournament.numberOfRounds}">0</span>
-                    Runden.
+                    Wähle genau die Runden aus, an denen du teilnehmen möchtest.
                 </p>
 
+                <div class="round-selection-grid"
+                     th:if="${availableRounds != null and !#lists.isEmpty(availableRounds)}">
+                    <div class="round-checkbox"
+                         th:each="round : ${availableRounds}">
+                        <input type="checkbox"
+                               th:field="*{selectedRounds}"
+                               th:value="${round}"
+                               th:id="'selectedRound-' + ${round}">
+                        <label th:for="'selectedRound-' + ${round}">
+                            <span th:text="|Runde ${round}|">Runde 1</span>
+                        </label>
+                    </div>
+                </div>
+
                 <div class="field-error"
-                     th:if="${#fields.hasErrors('plannedRounds')}"
-                     th:errors="*{plannedRounds}">
+                     th:if="${#fields.hasErrors('selectedRounds')}"
+                     th:errors="*{selectedRounds}">
                 </div>
             </div>
 
@@ -209,8 +254,7 @@
                 <label for="notes">Notizen</label>
                 <textarea id="notes"
                           th:field="*{notes}"
-                          placeholder="Optionale Hinweise, z. B. spätere Anreise oder besondere organisatorische Hinweise.">
-                </textarea>
+                          placeholder="Optionale Hinweise, z. B. spätere Anreise oder besondere organisatorische Hinweise."></textarea>
             </div>
 
             <div class="actions">
