@@ -35,6 +35,10 @@
               method="post"
               class="form-grid form-grid-wide">
 
+            <div th:if="${#fields.hasGlobalErrors()}" class="flash-error">
+                <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+            </div>
+
             <input type="hidden" th:field="*{id}">
 
             <div class="form-row">

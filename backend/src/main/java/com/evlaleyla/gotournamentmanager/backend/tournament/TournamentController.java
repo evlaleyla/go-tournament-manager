@@ -106,7 +106,15 @@ public class TournamentController {
             return "tournament-form";
         }
 
-        tournamentService.update(id, tournament);
+        try {
+            tournamentService.update(id, tournament);
+        } catch (IllegalArgumentException e) {
+            bindingResult.reject("tournament.invalid", e.getMessage());
+            model.addAttribute("isEdit", true);
+            model.addAttribute("statuses", TournamentStatus.values());
+            return "tournament-form";
+        }
+
         redirectAttributes.addFlashAttribute("successMessage", "Turnier wurde erfolgreich aktualisiert.");
         return "redirect:/tournaments/" + id;
     }
