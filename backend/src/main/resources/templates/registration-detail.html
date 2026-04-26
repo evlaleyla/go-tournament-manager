@@ -68,6 +68,12 @@
   <section class="card">
     <h2>Administration</h2>
 
+    <div class="actions">
+      <a class="btn btn-secondary"
+         th:href="@{/registrations/{id}/edit(id=${registration.id})}">
+        Anmeldung bearbeiten
+      </a>
+
     <form th:action="@{/registrations/{id}/delete(id=${registration.id})}"
           method="post"
           onsubmit="return confirm('Möchten Sie diese Anmeldung wirklich löschen?');">

@@ -158,4 +158,48 @@ public class RegistrationService {
             );
         }
     }
+
+    public boolean existsByTournamentIdAndParticipantIdAndIdNot(Long tournamentId,
+                                                                Long participantId,
+                                                                Long registrationId) {
+        if (tournamentId == null || participantId == null || registrationId == null) {
+            return false;
+        }
+
+        return registrationRepository.existsByTournamentIdAndParticipantIdAndIdNot(
+                tournamentId,
+                participantId,
+                registrationId
+        );
+    }
+
+    public Registration update(Long id, RegistrationForm registrationForm) {
+        Registration existingRegistration = findById(id);
+
+        Tournament tournament = tournamentRepository.findById(registrationForm.getTournamentId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Turnier nicht gefunden: " + registrationForm.getTournamentId()
+                ));
+
+        Participant participant = participantRepository.findById(registrationForm.getParticipantId())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Teilnehmer nicht gefunden: " + registrationForm.getParticipantId()
+                ));
+
+        String normalizedCountry = CountryOptions.normalize(participant.getCountry());
+        String normalizedRank = RankOptions.normalize(participant.getRank());
+        String normalizedClub = ClubOptions.normalize(participant.getClub());
+
+        validateClubMatchesCountry(normalizedCountry, normalizedClub);
+
+        existingRegistration.setTournament(tournament);
+        existingRegistration.setParticipant(participant);
+        existingRegistration.setSelectedRounds(normalizeSelectedRounds(registrationForm.getSelectedRounds()));
+        existingRegistration.setRankAtRegistration(normalizedRank);
+        existingRegistration.setClubAtRegistration(normalizedClub);
+        existingRegistration.setCountryAtRegistration(normalizedCountry);
+        existingRegistration.setNotes(registrationForm.getNotes());
+
+        return registrationRepository.save(existingRegistration);
+    }
 }

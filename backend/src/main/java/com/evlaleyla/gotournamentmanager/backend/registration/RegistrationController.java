@@ -68,6 +68,9 @@ public class RegistrationController {
 
         model.addAttribute("registrationForm", registrationForm);
         model.addAttribute("selectedTournament", selectedTournament);
+        model.addAttribute("isEdit", false);
+        model.addAttribute("registrationId", null);
+        model.addAttribute("formReloadBaseUrl", "/registrations/new");
 
         if (selectedTournament != null && selectedTournament.getNumberOfRounds() != null) {
             model.addAttribute("availableRounds",
@@ -114,6 +117,9 @@ public class RegistrationController {
         if (bindingResult.hasErrors()) {
             addFormData(model);
             model.addAttribute("selectedTournament", selectedTournament);
+            model.addAttribute("isEdit", false);
+            model.addAttribute("registrationId", null);
+            model.addAttribute("formReloadBaseUrl", "/registrations/new");
 
             if (selectedTournament != null && selectedTournament.getNumberOfRounds() != null) {
                 model.addAttribute("availableRounds",
@@ -323,5 +329,93 @@ public class RegistrationController {
         model.addAttribute("rankOptions", RankOptions.all());
         model.addAttribute("clubOptions", ClubOptions.all());
         model.addAttribute("clubsByCountry", ClubOptions.byCountry());
+    }
+
+    @GetMapping("/registrations/{id}/edit")
+    public String showEditRegistrationForm(@PathVariable Long id,
+                                           @RequestParam(required = false) Long tournamentId,
+                                           Model model) {
+        Registration registration = registrationService.findById(id);
+
+        RegistrationForm registrationForm = new RegistrationForm();
+        registrationForm.setParticipantId(registration.getParticipant().getId());
+        registrationForm.setSelectedRounds(new java.util.ArrayList<>(registration.getSelectedRounds()));
+        registrationForm.setNotes(registration.getNotes());
+
+        Long effectiveTournamentId = tournamentId != null
+                ? tournamentId
+                : registration.getTournament().getId();
+
+        registrationForm.setTournamentId(effectiveTournamentId);
+
+        Tournament selectedTournament = tournamentService.findById(effectiveTournamentId);
+
+        model.addAttribute("registrationForm", registrationForm);
+        model.addAttribute("selectedTournament", selectedTournament);
+        model.addAttribute("isEdit", true);
+        model.addAttribute("registrationId", id);
+        model.addAttribute("formReloadBaseUrl", "/registrations/" + id + "/edit");
+
+        if (selectedTournament.getNumberOfRounds() != null) {
+            model.addAttribute("availableRounds",
+                    IntStream.rangeClosed(1, selectedTournament.getNumberOfRounds()).boxed().toList());
+        }
+
+        addFormData(model);
+        return "registration-form";
+    }
+
+    @PostMapping("/registrations/{id}")
+    public String updateRegistration(@PathVariable Long id,
+                                     @Valid @ModelAttribute("registrationForm") RegistrationForm registrationForm,
+                                     BindingResult bindingResult,
+                                     Model model,
+                                     RedirectAttributes redirectAttributes) {
+
+        Tournament selectedTournament = null;
+
+        if (registrationForm.getTournamentId() != null) {
+            selectedTournament = tournamentService.findById(registrationForm.getTournamentId());
+        }
+
+        validateSelectedRounds(
+                registrationForm.getTournamentId(),
+                registrationForm.getSelectedRounds(),
+                "selectedRounds",
+                bindingResult
+        );
+
+        if (registrationForm.getTournamentId() != null
+                && registrationForm.getParticipantId() != null
+                && registrationService.existsByTournamentIdAndParticipantIdAndIdNot(
+                registrationForm.getTournamentId(),
+                registrationForm.getParticipantId(),
+                id)) {
+
+            bindingResult.rejectValue(
+                    "participantId",
+                    "registration.duplicate",
+                    "Dieser Teilnehmer ist bereits für das ausgewählte Turnier angemeldet."
+            );
+        }
+
+        if (bindingResult.hasErrors()) {
+            addFormData(model);
+            model.addAttribute("selectedTournament", selectedTournament);
+            model.addAttribute("isEdit", true);
+            model.addAttribute("registrationId", id);
+            model.addAttribute("formReloadBaseUrl", "/registrations/" + id + "/edit");
+
+            if (selectedTournament != null && selectedTournament.getNumberOfRounds() != null) {
+                model.addAttribute("availableRounds",
+                        IntStream.rangeClosed(1, selectedTournament.getNumberOfRounds()).boxed().toList());
+            }
+
+            return "registration-form";
+        }
+
+        Registration updatedRegistration = registrationService.update(id, registrationForm);
+        redirectAttributes.addFlashAttribute("successMessage", "Anmeldung wurde erfolgreich aktualisiert.");
+        return "redirect:/registrations/" + updatedRegistration.getId();
     }
 }

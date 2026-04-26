@@ -84,6 +84,11 @@
                        th:href="@{/registrations/{id}(id=${registration.id})}">
                         Details
                     </a>
+
+                    <a class="btn btn-secondary"
+                       th:href="@{/registrations/{id}/edit(id=${registration.id})}">
+                        Bearbeiten
+                    </a>
                 </td>
             </tr>
             </tbody>
