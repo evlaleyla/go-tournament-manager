@@ -4,6 +4,89 @@
     <meta charset="UTF-8">
     <title>Öffentliche Startliste</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        .startlist-controls-card {
+            padding: 1.25rem;
+        }
+
+        .startlist-controls-header {
+            margin-bottom: 1rem;
+        }
+
+        .startlist-controls-header h2 {
+            margin: 0 0 0.35rem 0;
+        }
+
+        .startlist-controls-header p {
+            margin: 0;
+            color: var(--muted);
+        }
+
+        .startlist-toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.9rem;
+            align-items: end;
+        }
+
+        .startlist-toolbar .form-row {
+            min-width: 220px;
+            margin: 0;
+        }
+
+        .startlist-toolbar .actions {
+            gap: 0.75rem;
+            margin: 0;
+        }
+
+        .startlist-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .startlist-summary h2 {
+            margin-bottom: 0.35rem;
+        }
+
+        .startlist-summary p {
+            margin: 0;
+        }
+
+        .startlist-count {
+            display: inline-block;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            background: var(--surface-soft);
+            color: var(--muted);
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 700px) {
+            .startlist-toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .startlist-toolbar .form-row {
+                min-width: 100%;
+            }
+
+            .startlist-toolbar .actions {
+                width: 100%;
+            }
+
+            .startlist-toolbar .actions .btn,
+            .startlist-toolbar .actions button {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -27,12 +110,17 @@
         </div>
     </div>
 
-    <section class="card no-print">
-        <h2>Runde auswählen</h2>
+    <section class="card no-print startlist-controls-card">
+        <div class="startlist-controls-header">
+            <h2>Startliste anzeigen</h2>
+            <p>
+                Es werden nur Teilnehmende angezeigt, die für die ausgewählte Runde angemeldet sind.
+            </p>
+        </div>
 
         <form th:action="@{/public/tournaments/{id}/startlist(id=${tournament.id})}"
               method="get"
-              class="form-grid">
+              class="startlist-toolbar">
 
             <div class="form-row">
                 <label for="round">Runde</label>
@@ -47,16 +135,28 @@
 
             <div class="actions">
                 <button type="submit">Anzeigen</button>
+                <button type="button" onclick="window.print()">Drucken</button>
             </div>
         </form>
     </section>
 
     <section class="card">
+        <div class="startlist-summary">
+            <div>
+                <h2>
+                    Startliste – Runde
+                    <span th:text="${selectedRound}">1</span>
+                </h2>
+                <p class="page-subtitle">
+                    Übersicht der für diese Runde angemeldeten Teilnehmenden.
+                </p>
+            </div>
 
-        <h2 class="no-print">
-            Startliste für Runde
-            <span th:text="${selectedRound}">1</span>
-        </h2>
+            <div class="startlist-count"
+                 th:text="|${#lists.size(registrations)} Teilnehmende|">
+                0 Teilnehmende
+            </div>
+        </div>
 
         <div class="print-area">
 
@@ -91,7 +191,7 @@
                     <td th:text="${registration.clubAtRegistration}">Verein</td>
                     <td th:text="${registration.countryAtRegistration}">Land</td>
                     <td th:text="${registration.rankAtRegistration}">Rang</td>
-                    <td th:text="${registration.selectedRoundsDisplayShort}"></td>
+                    <td th:text="${registration.selectedRoundsDisplayShort}">Alle Runden</td>
                 </tr>
                 </tbody>
             </table>
@@ -102,7 +202,6 @@
             </div>
 
         </div>
-
     </section>
 
 </main>
