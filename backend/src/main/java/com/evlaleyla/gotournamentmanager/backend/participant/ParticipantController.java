@@ -48,6 +48,7 @@ public class ParticipantController {
     public String showParticipantForm(Model model) {
         model.addAttribute("participant", new Participant());
         model.addAttribute("isEdit", false);
+        model.addAttribute("nameLocked", false);
         addParticipantFormOptions(model);
         return "participant-form";
     }
@@ -60,14 +61,17 @@ public class ParticipantController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("isEdit", false);
+            model.addAttribute("nameLocked", false);
             addParticipantFormOptions(model);
             return "participant-form";
         }
+
         try {
             participantService.save(participant);
         } catch (IllegalArgumentException e) {
             bindingResult.reject("participant.invalid", e.getMessage());
             model.addAttribute("isEdit", false);
+            model.addAttribute("nameLocked", false);
             addParticipantFormOptions(model);
             return "participant-form";
         }
@@ -86,6 +90,7 @@ public class ParticipantController {
     public String showEditForm(@PathVariable Long id, Model model) {
         model.addAttribute("participant", participantService.findById(id));
         model.addAttribute("isEdit", true);
+        model.addAttribute("nameLocked", participantService.isNameLocked(id));
         addParticipantFormOptions(model);
         return "participant-form";
     }
@@ -101,14 +106,17 @@ public class ParticipantController {
 
         if (bindingResult.hasErrors()) {
             model.addAttribute("isEdit", true);
+            model.addAttribute("nameLocked", participantService.isNameLocked(id));
             addParticipantFormOptions(model);
             return "participant-form";
         }
+
         try {
             participantService.update(id, participant);
         } catch (IllegalArgumentException e) {
             bindingResult.reject("participant.invalid", e.getMessage());
             model.addAttribute("isEdit", true);
+            model.addAttribute("nameLocked", participantService.isNameLocked(id));
             addParticipantFormOptions(model);
             return "participant-form";
         }

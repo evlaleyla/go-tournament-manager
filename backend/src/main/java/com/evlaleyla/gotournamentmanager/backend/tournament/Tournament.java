@@ -44,6 +44,12 @@ public class Tournament {
 
     private LocalDateTime lastWallListImportAt;
 
+
+    @Column(nullable = false)
+    private boolean wallListPublished = false;
+
+    private LocalDateTime wallListPublishedAt;
+
     public Tournament() {
     }
 
@@ -138,5 +144,21 @@ public class Tournament {
 
     public void setLastWallListImportAt(LocalDateTime lastWallListImportAt) {
         this.lastWallListImportAt = lastWallListImportAt;
+    }
+
+    public boolean isWallListPublished() {
+        return wallListPublished;
+    }
+
+    public void setWallListPublished(boolean wallListPublished) {
+        this.wallListPublished = wallListPublished;
+    }
+
+    public LocalDateTime getWallListPublishedAt() {
+        return wallListPublishedAt;
+    }
+
+    public void setWallListPublishedAt(LocalDateTime wallListPublishedAt) {
+        this.wallListPublishedAt = wallListPublishedAt;
     }
 }

@@ -78,6 +78,23 @@ public class ParticipantService {
     public Participant update(Long id, Participant updatedParticipant) {
         Participant existingParticipant = findById(id);
 
+        boolean firstNameChanged = !sameText(
+                existingParticipant.getFirstName(),
+                updatedParticipant.getFirstName()
+        );
+
+        boolean lastNameChanged = !sameText(
+                existingParticipant.getLastName(),
+                updatedParticipant.getLastName()
+        );
+
+        if ((firstNameChanged || lastNameChanged) && isNameLocked(existingParticipant)) {
+            throw new IllegalArgumentException(
+                    "Vorname und Nachname können nicht mehr geändert werden, " +
+                            "da diese Person bereits in importierten Paarungen oder Ranglistendaten verwendet wird."
+            );
+        }
+
         String normalizedEmail = normalizeEmail(updatedParticipant.getEmail());
         String normalizedCountry = CountryOptions.normalize(updatedParticipant.getCountry());
         String normalizedRank = RankOptions.normalize(updatedParticipant.getRank());
@@ -98,6 +115,24 @@ public class ParticipantService {
         existingParticipant.setBirthDate(updatedParticipant.getBirthDate());
 
         return participantRepository.save(existingParticipant);
+    }
+
+    public boolean isNameLocked(Long participantId) {
+        Participant participant = findById(participantId);
+        return isNameLocked(participant);
+    }
+
+    private boolean isNameLocked(Participant participant) {
+        String participantName = participant.getFullName();
+
+        return tournamentDataReferenceService.hasPairingReferenceForParticipantName(participantName)
+                || tournamentDataReferenceService.hasStandingReferenceForParticipantName(participantName);
+    }
+
+    private boolean sameText(String a, String b) {
+        String normalizedA = a == null ? "" : a.trim().replaceAll("\\s+", " ");
+        String normalizedB = b == null ? "" : b.trim().replaceAll("\\s+", " ");
+        return normalizedA.equals(normalizedB);
     }
 
     public void deleteById(Long id) {

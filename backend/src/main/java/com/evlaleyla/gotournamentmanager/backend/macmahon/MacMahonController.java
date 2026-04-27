@@ -112,11 +112,16 @@ public class MacMahonController {
     @GetMapping("/public/tournaments/{id}/walllist")
     public String showPublicWallList(@PathVariable Long id, Model model) {
         Tournament tournament = tournamentService.findById(id);
-        List<TournamentStanding> standings = tournamentStandingService.findByTournamentId(id);
 
+        List<TournamentStanding> standings = List.of();
         int roundColumnCount = 0;
-        if (!standings.isEmpty()) {
-            roundColumnCount = standings.get(0).getRoundStatuses().size();
+
+        if (tournament.isWallListPublished()) {
+            standings = tournamentStandingService.findByTournamentId(id);
+
+            if (!standings.isEmpty()) {
+                roundColumnCount = standings.get(0).getRoundStatuses().size();
+            }
         }
 
         model.addAttribute("tournament", tournament);
@@ -124,5 +129,37 @@ public class MacMahonController {
         model.addAttribute("roundColumnCount", roundColumnCount);
 
         return "public-tournament-walllist";
+    }
+
+    @PostMapping("/tournaments/{id}/walllist/publish")
+    public String publishWallList(@PathVariable Long id,
+                                  RedirectAttributes redirectAttributes) {
+        try {
+            tournamentStandingService.publishWallList(id);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Die Wall-List wurde veröffentlicht."
+            );
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+
+        return "redirect:/tournaments/" + id + "/walllist";
+    }
+
+    @PostMapping("/tournaments/{id}/walllist/unpublish")
+    public String unpublishWallList(@PathVariable Long id,
+                                    RedirectAttributes redirectAttributes) {
+        try {
+            tournamentStandingService.unpublishWallList(id);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Die Veröffentlichung der Wall-List wurde zurückgenommen."
+            );
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+
+        return "redirect:/tournaments/" + id + "/walllist";
     }
 }

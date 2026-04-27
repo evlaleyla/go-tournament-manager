@@ -71,6 +71,7 @@ public class RegistrationController {
         model.addAttribute("isEdit", false);
         model.addAttribute("registrationId", null);
         model.addAttribute("formReloadBaseUrl", "/registrations/new");
+        model.addAttribute("participantAndTournamentLocked", false);
 
         if (selectedTournament != null && selectedTournament.getNumberOfRounds() != null) {
             model.addAttribute("availableRounds",
@@ -120,18 +121,41 @@ public class RegistrationController {
             model.addAttribute("isEdit", false);
             model.addAttribute("registrationId", null);
             model.addAttribute("formReloadBaseUrl", "/registrations/new");
+            model.addAttribute("participantAndTournamentLocked", false);
 
             if (selectedTournament != null && selectedTournament.getNumberOfRounds() != null) {
-                model.addAttribute("availableRounds",
-                        IntStream.rangeClosed(1, selectedTournament.getNumberOfRounds()).boxed().toList());
+                model.addAttribute(
+                        "availableRounds",
+                        IntStream.rangeClosed(1, selectedTournament.getNumberOfRounds()).boxed().toList()
+                );
             }
 
             return "registration-form";
         }
 
-        Registration registration = registrationService.create(registrationForm);
-        redirectAttributes.addFlashAttribute("successMessage", "Anmeldung wurde erfolgreich gespeichert.");
-        return "redirect:/registrations/" + registration.getId();
+        try {
+            Registration registration = registrationService.create(registrationForm);
+            redirectAttributes.addFlashAttribute("successMessage", "Anmeldung wurde erfolgreich gespeichert.");
+            return "redirect:/registrations/" + registration.getId();
+        } catch (IllegalArgumentException e) {
+            bindingResult.reject("registration.invalid", e.getMessage());
+
+            addFormData(model);
+            model.addAttribute("selectedTournament", selectedTournament);
+            model.addAttribute("isEdit", false);
+            model.addAttribute("registrationId", null);
+            model.addAttribute("formReloadBaseUrl", "/registrations/new");
+            model.addAttribute("participantAndTournamentLocked", false);
+
+            if (selectedTournament != null && selectedTournament.getNumberOfRounds() != null) {
+                model.addAttribute(
+                        "availableRounds",
+                        IntStream.rangeClosed(1, selectedTournament.getNumberOfRounds()).boxed().toList()
+                );
+            }
+
+            return "registration-form";
+        }
     }
 
     @GetMapping("/public/tournaments/{id}/register")
@@ -360,6 +384,10 @@ public class RegistrationController {
         model.addAttribute("isEdit", true);
         model.addAttribute("registrationId", id);
         model.addAttribute("formReloadBaseUrl", "/registrations/" + id + "/edit");
+        model.addAttribute(
+                "participantAndTournamentLocked",
+                registrationService.isParticipantOrTournamentLocked(id)
+        );
 
         if (selectedTournament.getNumberOfRounds() != null) {
             model.addAttribute("availableRounds",
@@ -410,17 +438,46 @@ public class RegistrationController {
             model.addAttribute("isEdit", true);
             model.addAttribute("registrationId", id);
             model.addAttribute("formReloadBaseUrl", "/registrations/" + id + "/edit");
+            model.addAttribute(
+                    "participantAndTournamentLocked",
+                    registrationService.isParticipantOrTournamentLocked(id)
+            );
 
             if (selectedTournament != null && selectedTournament.getNumberOfRounds() != null) {
-                model.addAttribute("availableRounds",
-                        IntStream.rangeClosed(1, selectedTournament.getNumberOfRounds()).boxed().toList());
+                model.addAttribute(
+                        "availableRounds",
+                        IntStream.rangeClosed(1, selectedTournament.getNumberOfRounds()).boxed().toList()
+                );
             }
 
             return "registration-form";
         }
 
-        Registration updatedRegistration = registrationService.update(id, registrationForm);
-        redirectAttributes.addFlashAttribute("successMessage", "Anmeldung wurde erfolgreich aktualisiert.");
-        return "redirect:/registrations/" + updatedRegistration.getId();
+        try {
+            Registration updatedRegistration = registrationService.update(id, registrationForm);
+            redirectAttributes.addFlashAttribute("successMessage", "Anmeldung wurde erfolgreich aktualisiert.");
+            return "redirect:/registrations/" + updatedRegistration.getId();
+        } catch (IllegalArgumentException e) {
+            bindingResult.reject("registration.invalid", e.getMessage());
+
+            addFormData(model);
+            model.addAttribute("selectedTournament", selectedTournament);
+            model.addAttribute("isEdit", true);
+            model.addAttribute("registrationId", id);
+            model.addAttribute("formReloadBaseUrl", "/registrations/" + id + "/edit");
+            model.addAttribute(
+                    "participantAndTournamentLocked",
+                    registrationService.isParticipantOrTournamentLocked(id)
+            );
+
+            if (selectedTournament != null && selectedTournament.getNumberOfRounds() != null) {
+                model.addAttribute(
+                        "availableRounds",
+                        IntStream.rangeClosed(1, selectedTournament.getNumberOfRounds()).boxed().toList()
+                );
+            }
+
+            return "registration-form";
+        }
     }
 }

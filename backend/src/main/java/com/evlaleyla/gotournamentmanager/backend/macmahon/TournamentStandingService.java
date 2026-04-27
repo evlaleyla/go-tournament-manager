@@ -43,6 +43,8 @@ public class TournamentStandingService {
         tournamentStandingRepository.saveAll(standings);
 
         tournament.setLastWallListImportAt(LocalDateTime.now());
+        tournament.setWallListPublished(false);
+        tournament.setWallListPublishedAt(null);
         tournamentService.save(tournament);
     }
 
@@ -60,5 +62,37 @@ public class TournamentStandingService {
         standing.setSos(entry.getSos());
         standing.setSosos(entry.getSosos());
         return standing;
+    }
+
+    @Transactional
+    public void publishWallList(Long tournamentId) {
+        Tournament tournament = tournamentService.findById(tournamentId);
+
+        List<TournamentStanding> standings = tournamentStandingRepository.findByTournamentIdOrderByPlaceAsc(tournamentId);
+
+        if (standings.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Für dieses Turnier wurde noch keine Wall-List importiert."
+            );
+        }
+
+        tournament.setWallListPublished(true);
+        tournament.setWallListPublishedAt(LocalDateTime.now());
+        tournamentService.save(tournament);
+    }
+
+    @Transactional
+    public void unpublishWallList(Long tournamentId) {
+        Tournament tournament = tournamentService.findById(tournamentId);
+
+        if (!tournament.isWallListPublished()) {
+            throw new IllegalArgumentException(
+                    "Die Wall-List ist aktuell nicht veröffentlicht."
+            );
+        }
+
+        tournament.setWallListPublished(false);
+        tournament.setWallListPublishedAt(null);
+        tournamentService.save(tournament);
     }
 }

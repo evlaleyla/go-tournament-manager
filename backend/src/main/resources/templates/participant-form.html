@@ -47,7 +47,14 @@
           <input type="text"
                  id="firstName"
                  th:field="*{firstName}"
+                 th:readonly="${isEdit and nameLocked}"
                  required>
+
+          <small class="form-hint"
+                 th:if="${isEdit and nameLocked}">
+            Vorname und Nachname sind gesperrt, da diese Person bereits in importierten Paarungen oder Ranglistendaten verwendet wird.
+          </small>
+
           <div class="field-error"
                th:if="${#fields.hasErrors('firstName')}"
                th:errors="*{firstName}">
@@ -56,8 +63,16 @@
 
         <div class="form-row">
           <label for="lastName">Nachname <span class="required-mark">*</span></label>
-          <input type="text" id="lastName" th:field="*{lastName}" required>
-          <div class="field-error" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+          <input type="text"
+                 id="lastName"
+                 th:field="*{lastName}"
+                 th:readonly="${isEdit and nameLocked}"
+                 required>
+
+          <div class="field-error"
+               th:if="${#fields.hasErrors('lastName')}"
+               th:errors="*{lastName}">
+          </div>
         </div>
       </div>
 

@@ -34,6 +34,7 @@
         <p class="page-subtitle">
             Importiert eine aus MacMahon exportierte Wall-List-Datei mit Platzierungen,
             Punkten und Feinwertungen für den aktuellen Turnierstand.
+            Nach dem Import ist die Rangliste zunächst nur intern sichtbar.
         </p>
 
         <p class="form-hint no-print">
@@ -54,6 +55,47 @@
                 <button type="submit">MacMahon-Rangliste importieren</button>
             </div>
         </form>
+    </section>
+
+    <section class="card">
+        <h2>Veröffentlichungsstatus</h2>
+
+        <p class="page-subtitle">
+            Nach einem Import ist die Wall-List zunächst nur intern sichtbar und muss separat veröffentlicht werden.
+        </p>
+
+        <div class="actions">
+        <span class="badge"
+              th:classappend="${tournament.wallListPublished} ? ' badge-success' : ' badge-open'"
+              th:text="${tournament.wallListPublished} ? 'Veröffentlicht' : 'Noch nicht veröffentlicht'">
+            Status
+        </span>
+
+            <form th:if="${!tournament.wallListPublished and !#lists.isEmpty(wallListEntries)}"
+                  th:action="@{/tournaments/{id}/walllist/publish(id=${tournament.id})}"
+                  method="post">
+                <button type="submit">Wall-List veröffentlichen</button>
+            </form>
+
+            <form th:if="${tournament.wallListPublished}"
+                  th:action="@{/tournaments/{id}/walllist/unpublish(id=${tournament.id})}"
+                  method="post">
+                <button type="submit" class="btn btn-secondary">
+                    Veröffentlichung zurücknehmen
+                </button>
+            </form>
+        </div>
+
+        <p class="table-note" th:if="${tournament.lastWallListImportAt != null}">
+            Letzter Import:
+            <span th:text="${#temporals.format(tournament.lastWallListImportAt, 'dd.MM.yyyy HH:mm')}">
+            25.04.2026 14:30
+        </span>
+        </p>
+
+        <p class="table-note" th:if="${#lists.isEmpty(wallListEntries)}">
+            Eine Veröffentlichung ist erst möglich, nachdem eine Wall-List importiert wurde.
+        </p>
     </section>
 
     <section class="card" th:if="${wallListEntries != null}">

@@ -49,7 +49,7 @@
       <dd th:text="${registration.selectedRoundsDisplayShort}"></dd>
 
       <dt>Anzahl ausgewählter Runden</dt>
-      <dd th:text="${registration.plannedRounds}"></dd>
+      <dd th:text="${registration.selectedRoundCount}"></dd>
 
       <dt>Verein bei Anmeldung</dt>
       <dd th:text="${registration.clubAtRegistration}"></dd>
@@ -74,13 +74,14 @@
         Anmeldung bearbeiten
       </a>
 
-    <form th:action="@{/registrations/{id}/delete(id=${registration.id})}"
-          method="post"
-          onsubmit="return confirm('Möchten Sie diese Anmeldung wirklich löschen?');">
-      <button type="submit" class="btn-danger">
-        Anmeldung löschen
-      </button>
-    </form>
+      <form th:action="@{/registrations/{id}/delete(id=${registration.id})}"
+            method="post"
+            onsubmit="return confirm('Möchten Sie diese Anmeldung wirklich löschen?');">
+        <button type="submit" class="btn-danger">
+          Anmeldung löschen
+        </button>
+      </form>
+    </div>
   </section>
 
 </main>

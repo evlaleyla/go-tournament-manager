@@ -202,6 +202,20 @@ public class RegistrationService {
     public Registration update(Long id, RegistrationForm registrationForm) {
         Registration existingRegistration = findById(id);
 
+        boolean participantChanged = !existingRegistration.getParticipant().getId()
+                .equals(registrationForm.getParticipantId());
+
+        boolean tournamentChanged = !existingRegistration.getTournament().getId()
+                .equals(registrationForm.getTournamentId());
+
+        if ((participantChanged || tournamentChanged) && isParticipantOrTournamentLocked(existingRegistration)) {
+            throw new IllegalArgumentException(
+                    "Teilnehmer und Turnier können nicht mehr geändert werden, " +
+                            "da diese Anmeldung bereits in importierten Paarungen oder Ranglistendaten verwendet wird. " +
+                            "Es können nur noch ausgewählte Runden und Notizen geändert werden."
+            );
+        }
+
         Tournament tournament = tournamentRepository.findById(registrationForm.getTournamentId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Turnier nicht gefunden: " + registrationForm.getTournamentId()
@@ -227,5 +241,20 @@ public class RegistrationService {
         existingRegistration.setNotes(registrationForm.getNotes());
 
         return registrationRepository.save(existingRegistration);
+    }
+
+    public boolean isParticipantOrTournamentLocked(Long registrationId) {
+        Registration registration = findById(registrationId);
+        return isParticipantOrTournamentLocked(registration);
+    }
+
+    private boolean isParticipantOrTournamentLocked(Registration registration) {
+        Long tournamentId = registration.getTournament().getId();
+        String participantName = registration.getParticipant().getFullName();
+
+        return tournamentDataReferenceService
+                .hasPairingReferenceForTournamentAndParticipantName(tournamentId, participantName)
+                || tournamentDataReferenceService
+                .hasStandingReferenceForTournamentAndParticipantName(tournamentId, participantName);
     }
 }
