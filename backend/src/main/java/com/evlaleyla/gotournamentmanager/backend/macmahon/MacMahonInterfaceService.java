@@ -40,7 +40,11 @@ public class MacMahonInterfaceService {
      * and special cases such as both lose / both win.
      */
     private static final Pattern PAIRING_LINE_PATTERN = Pattern.compile(
-            "^\\s*(\\d+)\\s+(.+?)(?:\\s+\\(([^)]*)\\))?\\s+-\\s+(.+?)(?:\\s+\\(([^)]*)\\))?\\s+(\\?-\\?|1-0|0-1|0-0|1-1|=|jigo|Jigo|-|\\?)(?:\\s+(\\S+))?\\s*$"
+            "^\\s*(\\d+)\\s+(.+?)\\s+-\\s+(.+?)\\s+(\\?-\\?|1-0|0-1|0-0|1-1|=|jigo|Jigo|-|\\?)(?:\\s+(.*))?\\s*$"
+    );
+
+    private static final Pattern WALL_LIST_ROW_PATTERN = Pattern.compile(
+            "^\\s*(\\(?\\d+\\)?)\\s+(.+?)\\s{2,}(?:(\\S+)\\s+)?(\\d+\\s+(?:Kyu|Dan|Pro))\\s{2,}(\\S+)\\s+(.*)$"
     );
 
     private static final String HEADER_PLACE = "place";
@@ -85,8 +89,10 @@ public class MacMahonInterfaceService {
     /**
      * Parses a MacMahon wall-list export.
      *
-     * <p>The wall-list parser uses the header line to determine column boundaries
-     * and then reads all valid data rows as fixed-width columns.</p>
+     * <p>The parser first validates the required header columns and derives the
+     * number of round columns from the header. Each data row is then parsed with
+     * a dedicated pattern that supports empty clubs and multi-character round
+     * status values such as "free".</p>
      *
      * @param file the uploaded wall-list file
      * @return parsed wall-list entries
@@ -104,7 +110,6 @@ public class MacMahonInterfaceService {
         }
 
         List<String> headerTokens = extractHeaderTokens(headerLine);
-        List<Integer> columnStarts = extractColumnStarts(headerLine);
         List<String> normalizedHeaders = headerTokens.stream()
                 .map(token -> token.toLowerCase(Locale.ROOT))
                 .toList();
@@ -145,46 +150,11 @@ public class MacMahonInterfaceService {
                 continue;
             }
 
-            List<String> columns = splitFixedWidthColumns(line, columnStarts);
-            if (columns.size() < headerTokens.size()) {
-                continue;
+            MacMahonWallListEntry entry = parseWallListRow(line, roundColumnCount);
+
+            if (entry != null) {
+                entries.add(entry);
             }
-
-            Integer place = tryParsePlace(columns.get(placeIndex));
-            if (place == null) {
-                continue;
-            }
-
-            Integer points = tryParseInteger(columns.get(pointsIndex));
-            if (points == null) {
-                continue;
-            }
-
-            String name = columns.get(nameIndex).trim();
-            String club = columns.get(clubIndex).trim();
-            String level = columns.get(levelIndex).trim();
-            String score = columns.get(scoreIndex).trim();
-            String scoreX = columns.get(scoreXIndex).trim();
-            String sos = columns.get(sosIndex).trim();
-            String sosos = columns.get(sososIndex).trim();
-
-            List<String> roundStatuses = new ArrayList<>();
-            for (int i = roundColumnStartIndex; i < roundColumnEndExclusive; i++) {
-                roundStatuses.add(columns.get(i).trim());
-            }
-
-            entries.add(new MacMahonWallListEntry(
-                    place,
-                    name,
-                    club,
-                    level,
-                    score,
-                    roundStatuses,
-                    points,
-                    scoreX,
-                    sos,
-                    sosos
-            ));
         }
 
         if (entries.isEmpty()) {
@@ -196,6 +166,67 @@ public class MacMahonInterfaceService {
 
         log.info("Successfully parsed {} wall-list entries", entries.size());
         return entries;
+    }
+
+    private MacMahonWallListEntry parseWallListRow(String line, int roundColumnCount) {
+        Matcher matcher = WALL_LIST_ROW_PATTERN.matcher(line);
+
+        if (!matcher.matches()) {
+            log.warn("Wall-list row could not be parsed: {}", line);
+            throw new IllegalArgumentException(
+                    "Die Wall-List-Zeile konnte nicht gelesen werden: " + line
+            );
+        }
+
+        Integer place = tryParsePlace(matcher.group(1));
+        if (place == null) {
+            throw new IllegalArgumentException(
+                    "Die Platz-Spalte der Wall-List konnte nicht gelesen werden: " + line
+            );
+        }
+
+        String name = matcher.group(2).trim();
+        String club = matcher.group(3) == null ? "" : matcher.group(3).trim();
+        String level = matcher.group(4).trim();
+        String score = matcher.group(5).trim();
+
+        List<String> tailTokens = java.util.Arrays.stream(matcher.group(6).trim().split("\\s+"))
+                .toList();
+
+        if (tailTokens.size() != roundColumnCount + 4) {
+            throw new IllegalArgumentException(
+                    "Die Wall-List-Zeile konnte nicht eindeutig gelesen werden: " + line
+            );
+        }
+
+        List<String> roundStatuses = new ArrayList<>();
+        for (int i = 0; i < roundColumnCount; i++) {
+            roundStatuses.add(tailTokens.get(i));
+        }
+
+        Integer points = tryParseInteger(tailTokens.get(roundColumnCount));
+        if (points == null) {
+            throw new IllegalArgumentException(
+                    "Die Punkte-Spalte der Wall-List konnte nicht gelesen werden: " + line
+            );
+        }
+
+        String scoreX = tailTokens.get(roundColumnCount + 1);
+        String sos = tailTokens.get(roundColumnCount + 2);
+        String sosos = tailTokens.get(roundColumnCount + 3);
+
+        return new MacMahonWallListEntry(
+                place,
+                name,
+                club,
+                level,
+                score,
+                roundStatuses,
+                points,
+                scoreX,
+                sos,
+                sosos
+        );
     }
 
     /**
@@ -272,41 +303,6 @@ public class MacMahonInterfaceService {
         return tokens;
     }
 
-    /**
-     * Extracts the start positions of all columns from the wall-list header line.
-     */
-    private List<Integer> extractColumnStarts(String headerLine) {
-        List<Integer> starts = new ArrayList<>();
-        Matcher matcher = NON_WHITESPACE_PATTERN.matcher(headerLine);
-
-        while (matcher.find()) {
-            starts.add(matcher.start());
-        }
-
-        return starts;
-    }
-
-    /**
-     * Splits a line into fixed-width columns based on detected header positions.
-     */
-    private List<String> splitFixedWidthColumns(String line, List<Integer> columnStarts) {
-        List<String> columns = new ArrayList<>();
-
-        for (int i = 0; i < columnStarts.size(); i++) {
-            int start = Math.min(columnStarts.get(i), line.length());
-            int end = (i + 1 < columnStarts.size())
-                    ? Math.min(columnStarts.get(i + 1), line.length())
-                    : line.length();
-
-            if (start >= end) {
-                columns.add("");
-            } else {
-                columns.add(line.substring(start, end).trim());
-            }
-        }
-
-        return columns;
-    }
 
     /**
      * Converts a MacMahon result token into the internal result representation.
@@ -524,14 +520,15 @@ public class MacMahonInterfaceService {
 
             Matcher matcher = PAIRING_LINE_PATTERN.matcher(line);
             if (!matcher.matches()) {
+                log.warn("Skipping unreadable pairing line: {}", line);
                 continue;
             }
 
             Integer tableNumber = Integer.parseInt(matcher.group(1));
             String blackName = cleanMacMahonPlayerDisplay(matcher.group(2));
-            String whiteName = cleanMacMahonPlayerDisplay(matcher.group(4));
-            String result = normalizeMacMahonResult(matcher.group(6));
-            String handicap = matcher.group(7);
+            String whiteName = cleanMacMahonPlayerDisplay(matcher.group(3));
+            String result = normalizeMacMahonResult(matcher.group(4));
+            String handicap = matcher.group(5);
 
             rows.add(new MacMahonPairingImportRow(
                     roundNumber,
@@ -600,7 +597,11 @@ public class MacMahonInterfaceService {
         }
 
         String cleaned = value.trim();
-        cleaned = cleaned.replaceAll("\\s*\\([^)]*\\)\\s*$", "").trim();
+
+        int metadataStart = cleaned.indexOf(" (");
+        if (metadataStart > 0 && cleaned.endsWith(")")) {
+            cleaned = cleaned.substring(0, metadataStart).trim();
+        }
 
         return cleaned;
     }
