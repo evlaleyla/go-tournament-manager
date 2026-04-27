@@ -4,38 +4,6 @@
     <meta charset="UTF-8">
     <title th:text="${isEdit} ? 'Anmeldung bearbeiten' : 'Neue Anmeldung'">Anmeldung</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
-    <style>
-        .round-selection-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 0.75rem;
-            margin-top: 0.35rem;
-        }
-
-        .round-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 0.55rem;
-            padding: 0.7rem 0.85rem;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            background: var(--surface);
-        }
-
-        .round-checkbox input[type="checkbox"] {
-            width: auto;
-            margin: 0;
-            transform: scale(1.05);
-            cursor: pointer;
-        }
-
-        .round-checkbox label,
-        .round-checkbox span {
-            margin: 0;
-            font-weight: 600;
-            cursor: pointer;
-        }
-    </style>
 </head>
 <body>
 
@@ -45,7 +13,9 @@
 
     <div class="page-header">
         <div>
-            <h1 th:text="${isEdit} ? 'Anmeldung bearbeiten' : 'Neue Anmeldung anlegen'"></h1>
+            <h1 th:text="${isEdit} ? 'Anmeldung bearbeiten' : 'Neue Anmeldung anlegen'">
+                Anmeldung
+            </h1>
             <p class="page-subtitle">
                 Einen bestehenden Teilnehmer für ein Turnier anmelden oder eine bestehende Anmeldung korrigieren.
             </p>
@@ -59,12 +29,12 @@
     </div>
 
     <section class="card">
+
         <p class="form-hint">
             <span class="required-mark">*</span> Pflichtfeld
         </p>
 
-        <form th:if="${isEdit}"
-              th:action="@{/registrations/{id}(id=${registrationId})}"
+        <form th:action="@{${isEdit ? '/registrations/' + registrationId : '/registrations'}}"
               th:object="${registrationForm}"
               method="post"
               class="form-grid form-grid-wide">
@@ -75,9 +45,10 @@
 
             <div class="form-row">
                 <label for="tournamentId">Turnier <span class="required-mark">*</span></label>
+
                 <select id="tournamentId"
                         th:field="*{tournamentId}"
-                        th:disabled="${participantAndTournamentLocked}"
+                        th:disabled="${isEdit and participantAndTournamentLocked}"
                         required>
                     <option value="">Bitte wählen</option>
                     <option th:each="tournament : ${tournaments}"
@@ -87,16 +58,16 @@
                 </select>
 
                 <input type="hidden"
-                       th:if="${participantAndTournamentLocked}"
+                       th:if="${isEdit and participantAndTournamentLocked}"
                        th:field="*{tournamentId}">
 
                 <small class="form-hint"
-                       th:if="${!participantAndTournamentLocked}">
+                       th:if="${!(isEdit and participantAndTournamentLocked)}">
                     Nach Auswahl eines Turniers wird die Seite neu geladen, damit die verfügbaren Runden angezeigt werden.
                 </small>
 
                 <small class="form-hint"
-                       th:if="${participantAndTournamentLocked}">
+                       th:if="${isEdit and participantAndTournamentLocked}">
                     Turnier und Teilnehmer sind gesperrt, da diese Anmeldung bereits in importierten Paarungen oder Ranglistendaten verwendet wird.
                 </small>
 
@@ -108,9 +79,10 @@
 
             <div class="form-row">
                 <label for="participantId">Teilnehmer <span class="required-mark">*</span></label>
+
                 <select id="participantId"
                         th:field="*{participantId}"
-                        th:disabled="${participantAndTournamentLocked}"
+                        th:disabled="${isEdit and participantAndTournamentLocked}"
                         required>
                     <option value="">Bitte wählen</option>
                     <option th:each="participant : ${participants}"
@@ -120,13 +92,25 @@
                 </select>
 
                 <input type="hidden"
-                       th:if="${participantAndTournamentLocked}"
+                       th:if="${isEdit and participantAndTournamentLocked}"
                        th:field="*{participantId}">
 
                 <div class="field-error"
                      th:if="${#fields.hasErrors('participantId')}"
                      th:errors="*{participantId}">
                 </div>
+            </div>
+
+            <div class="form-row" th:if="${selectedTournament != null}">
+                <span class="table-note">
+                    Ausgewähltes Turnier:
+                    <strong th:text="${selectedTournament.name}">Turniername</strong>
+                    <span th:if="${selectedTournament.numberOfRounds != null}">
+                        –
+                        <span th:text="${selectedTournament.numberOfRounds}">5</span>
+                        Runden verfügbar
+                    </span>
+                </span>
             </div>
 
             <div class="form-row">
@@ -164,106 +148,21 @@
 
             <div class="form-row">
                 <label for="notes">Notizen</label>
-                <textarea id="notes" th:field="*{notes}"></textarea>
+                <textarea id="notes"
+                          th:field="*{notes}"
+                          rows="5"
+                          placeholder="Optionale Hinweise zur Anmeldung"></textarea>
             </div>
 
             <div class="actions">
-                <button type="submit">Änderungen speichern</button>
-                <a class="btn btn-secondary" th:href="@{/registrations}">Abbrechen</a>
-            </div>
-        </form>
+                <button type="submit"
+                        th:text="${isEdit ? 'Änderungen speichern' : 'Anmeldung speichern'}">
+                    Speichern
+                </button>
 
-        <form th:unless="${isEdit}"
-              th:action="@{/registrations}"
-              th:object="${registrationForm}"
-              method="post"
-              class="form-grid form-grid-wide">
-
-            <div th:if="${#fields.hasGlobalErrors()}" class="flash-error">
-                <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
-            </div>
-
-            <div class="form-row">
-                <label for="tournamentId-create">Turnier <span class="required-mark">*</span></label>
-                <select id="tournamentId-create"
-                        th:field="*{tournamentId}"
-                        required>
-                    <option value="">Bitte wählen</option>
-                    <option th:each="tournament : ${tournaments}"
-                            th:value="${tournament.id}"
-                            th:text="${tournament.name}">
-                    </option>
-                </select>
-
-                <small class="form-hint">
-                    Nach Auswahl eines Turniers wird die Seite neu geladen, damit die verfügbaren Runden angezeigt werden.
-                </small>
-
-                <div class="field-error"
-                     th:if="${#fields.hasErrors('tournamentId')}"
-                     th:errors="*{tournamentId}">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <label for="participantId-create">Teilnehmer <span class="required-mark">*</span></label>
-                <select id="participantId-create"
-                        th:field="*{participantId}"
-                        required>
-                    <option value="">Bitte wählen</option>
-                    <option th:each="participant : ${participants}"
-                            th:value="${participant.id}"
-                            th:text="${participant.fullName}">
-                    </option>
-                </select>
-
-                <div class="field-error"
-                     th:if="${#fields.hasErrors('participantId')}"
-                     th:errors="*{participantId}">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <label>Ausgewählte Runden <span class="required-mark">*</span></label>
-
-                <div th:if="${availableRounds != null and !#lists.isEmpty(availableRounds)}">
-                    <p class="table-note">
-                        Wähle die Runden aus, an denen die teilnehmende Person teilnimmt.
-                    </p>
-
-                    <div class="round-selection-grid">
-                        <div class="round-checkbox"
-                             th:each="round : ${availableRounds}">
-                            <input type="checkbox"
-                                   th:field="*{selectedRounds}"
-                                   th:value="${round}"
-                                   th:id="'selectedRound-create-' + ${round}">
-                            <label th:for="'selectedRound-create-' + ${round}">
-                                <span th:text="|Runde ${round}|">Runde 1</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div th:if="${availableRounds == null or #lists.isEmpty(availableRounds)}"
-                     class="empty-state">
-                    Bitte zuerst ein Turnier auswählen, damit die verfügbaren Runden angezeigt werden.
-                </div>
-
-                <div class="field-error"
-                     th:if="${#fields.hasErrors('selectedRounds')}"
-                     th:errors="*{selectedRounds}">
-                </div>
-            </div>
-
-            <div class="form-row">
-                <label for="notes-create">Notizen</label>
-                <textarea id="notes-create" th:field="*{notes}"></textarea>
-            </div>
-
-            <div class="actions">
-                <button type="submit">Anmeldung speichern</button>
-                <a class="btn btn-secondary" th:href="@{/registrations}">Abbrechen</a>
+                <a class="btn btn-secondary" th:href="@{/registrations}">
+                    Abbrechen
+                </a>
             </div>
         </form>
     </section>
@@ -275,7 +174,7 @@
     const tournamentSelect = document.getElementById("tournamentId");
 
     document.addEventListener("DOMContentLoaded", function () {
-        if (!tournamentSelect) {
+        if (!tournamentSelect || tournamentSelect.disabled) {
             return;
         }
 
