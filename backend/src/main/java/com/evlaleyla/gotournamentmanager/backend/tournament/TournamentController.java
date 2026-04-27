@@ -24,13 +24,16 @@ public class TournamentController {
     private final TournamentService tournamentService;
     private final RegistrationService registrationService;
     private final MacMahonExportService macMahonExportService;
+    private final TournamentDashboardService tournamentDashboardService;
 
     public TournamentController(TournamentService tournamentService,
                                 RegistrationService registrationService,
-                                MacMahonExportService macMahonExportService) {
+                                MacMahonExportService macMahonExportService,
+                                TournamentDashboardService tournamentDashboardService) {
         this.tournamentService = tournamentService;
         this.registrationService = registrationService;
         this.macMahonExportService = macMahonExportService;
+        this.tournamentDashboardService = tournamentDashboardService;
     }
 
     @GetMapping("/tournaments")
@@ -77,7 +80,9 @@ public class TournamentController {
 
     @GetMapping("/tournaments/{id}")
     public String showTournamentDetail(@PathVariable Long id, Model model) {
-        model.addAttribute("tournament", tournamentService.findById(id));
+        Tournament tournament = tournamentService.findById(id);
+        model.addAttribute("tournament", tournament);
+        model.addAttribute("dashboard", tournamentDashboardService.buildDashboard(tournament));
         return "tournament-detail";
     }
 

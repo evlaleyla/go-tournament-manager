@@ -7,6 +7,7 @@ import jakarta.validation.constraints.NotNull;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 public class Tournament {
@@ -40,6 +41,8 @@ public class Tournament {
     @NotNull(message = "Der Status ist erforderlich.")
     @Enumerated(EnumType.STRING)
     private TournamentStatus status;
+
+    private LocalDateTime lastWallListImportAt;
 
     public Tournament() {
     }
@@ -127,5 +130,13 @@ public class Tournament {
 
     public void setStatus(TournamentStatus status) {
         this.status = status;
+    }
+
+    public LocalDateTime getLastWallListImportAt() {
+        return lastWallListImportAt;
+    }
+
+    public void setLastWallListImportAt(LocalDateTime lastWallListImportAt) {
+        this.lastWallListImportAt = lastWallListImportAt;
     }
 }

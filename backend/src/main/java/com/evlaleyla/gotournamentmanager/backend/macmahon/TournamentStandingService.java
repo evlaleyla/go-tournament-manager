@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -40,6 +41,9 @@ public class TournamentStandingService {
                 .toList();
 
         tournamentStandingRepository.saveAll(standings);
+
+        tournament.setLastWallListImportAt(LocalDateTime.now());
+        tournamentService.save(tournament);
     }
 
     private TournamentStanding mapToEntity(Tournament tournament, MacMahonWallListEntry entry) {

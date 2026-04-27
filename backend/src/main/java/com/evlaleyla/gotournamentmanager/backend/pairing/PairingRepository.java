@@ -38,4 +38,18 @@ public interface PairingRepository extends JpaRepository<Pairing, Long> {
            """)
     void deleteByTournamentIdAndRoundNumber(@Param("tournamentId") Long tournamentId,
                                             @Param("roundNumber") Integer roundNumber);
+
+    @Query("""
+       select count(distinct p.roundNumber)
+       from Pairing p
+       where p.tournament.id = :tournamentId
+       """)
+    long countImportedRoundsByTournamentId(@Param("tournamentId") Long tournamentId);
+
+    @Query("""
+       select max(p.roundNumber)
+       from Pairing p
+       where p.tournament.id = :tournamentId
+       """)
+    Integer findLastImportedRoundByTournamentId(@Param("tournamentId") Long tournamentId);
 }
