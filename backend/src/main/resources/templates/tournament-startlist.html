@@ -27,6 +27,10 @@
         </div>
     </div>
 
+    <div class="role-hint role-hint-admin no-print">
+        Die Startliste zeigt nur Teilnehmende, die für die aktuell ausgewählte Runde angemeldet sind.
+    </div>
+
     <section class="card no-print">
         <h2>MacMahon-Export</h2>
         <p class="page-subtitle">
@@ -44,7 +48,10 @@
     </section>
 
     <section class="card no-print">
-        <h2>Runde auswählen und drucken</h2>
+        <h2>Runde auswählen, anzeigen und drucken</h2>
+        <p class="page-subtitle">
+            Nach Auswahl einer Runde werden nur die dafür angemeldeten Teilnehmenden angezeigt.
+        </p>
 
         <form th:action="@{/tournaments/{id}/startlist(id=${tournament.id})}"
               method="get"
