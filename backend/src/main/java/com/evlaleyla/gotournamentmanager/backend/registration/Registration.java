@@ -125,7 +125,7 @@ public class Registration {
     }
 
     @Transient
-    public Integer getPlannedRounds() {
+    public Integer getSelectedRoundCount() {
         return selectedRounds != null ? selectedRounds.size() : 0;
     }
 

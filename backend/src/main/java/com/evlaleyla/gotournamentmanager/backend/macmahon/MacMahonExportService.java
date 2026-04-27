@@ -70,7 +70,7 @@ public class MacMahonExportService {
             );
             String rating = "";
             String registrationFlag = "f";
-            String playingInRounds = buildPlayingInRounds(
+            String playingInRoundsField = buildPlayingInRoundsField(
                     registration.getSelectedRounds(),
                     totalRounds
             );
@@ -83,7 +83,7 @@ public class MacMahonExportService {
                     club,
                     rating,
                     registrationFlag,
-                    playingInRounds
+                    playingInRoundsField
             )).append(nl);
         }
 
@@ -130,7 +130,7 @@ public class MacMahonExportService {
         }
     }
 
-    private String buildPlayingInRounds(java.util.Set<Integer> selectedRounds, Integer totalRounds) {
+    private String buildPlayingInRoundsField(java.util.Set<Integer> selectedRounds, Integer totalRounds) {
         if (selectedRounds == null || selectedRounds.isEmpty() || totalRounds == null || totalRounds < 1) {
             return "";
         }

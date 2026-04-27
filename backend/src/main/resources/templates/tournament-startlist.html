@@ -30,7 +30,7 @@
     <section class="card no-print">
         <h2>MacMahon-Export</h2>
         <p class="page-subtitle">
-            Exportiert die vollständige Turnierstartliste für MacMahon. Die geplanten Runden
+            Exportiert die vollständige Turnierstartliste für MacMahon. Die ausgewählten Runden
             der Teilnehmenden werden automatisch berücksichtigt. Der Export gilt für das
             gesamte Turnier und ist unabhängig von der unten ausgewählten Runde.
         </p>
@@ -100,7 +100,7 @@
                     <th>Rang</th>
                     <th>Geburtsdatum</th>
                     <th>Anmeldedatum</th>
-                    <th>Geplante Runden</th>
+                    <th>Ausgewählte Runden</th>
                 </tr>
                 </thead>
 
@@ -115,7 +115,7 @@
                     <td th:text="${registration.rankAtRegistration}"></td>
                     <td th:text="${registration.participant.birthDate}"></td>
                     <td th:text="${registration.registrationDate}"></td>
-                    <td th:text="${registration.plannedRounds}"></td>
+                    <td th:text="${registration.selectedRoundsDisplayShort}"></td>
                 </tr>
                 </tbody>
             </table>

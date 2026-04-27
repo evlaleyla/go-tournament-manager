@@ -46,7 +46,7 @@ public class RegistrationForm {
         this.selectedRounds = selectedRounds != null ? selectedRounds : new ArrayList<>();
     }
 
-    public Integer getPlannedRounds() {
+    public Integer getSelectedRoundCount() {
         return selectedRounds != null ? selectedRounds.size() : 0;
     }
 
