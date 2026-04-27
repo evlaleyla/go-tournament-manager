@@ -10,7 +10,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 @Service
 public class PairingService {
@@ -38,6 +45,21 @@ public class PairingService {
         return pairingRepository.findByTournamentIdAndRoundNumberOrderByTableNumberAsc(tournamentId, roundNumber);
     }
 
+    public List<Pairing> findPublishedByTournamentIdAndRound(Long tournamentId, Integer roundNumber) {
+        return pairingRepository.findByTournamentIdAndRoundNumberAndPublishedTrueOrderByTableNumberAsc(
+                tournamentId,
+                roundNumber
+        );
+    }
+
+    public Set<Integer> findPublishedRoundNumbers(Long tournamentId) {
+        return pairingRepository.findByTournamentIdOrderByRoundNumberAscTableNumberAsc(tournamentId)
+                .stream()
+                .filter(Pairing::isPublished)
+                .map(Pairing::getRoundNumber)
+                .collect(Collectors.toCollection(TreeSet::new));
+    }
+
     public Pairing findById(Long id) {
         return pairingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Paarung nicht gefunden: " + id));
@@ -50,15 +72,59 @@ public class PairingService {
     }
 
     @Transactional
+    public void publishRound(Long tournamentId, Integer roundNumber) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new IllegalArgumentException("Turnier nicht gefunden: " + tournamentId));
+
+        validateRoundNumber(tournament, roundNumber);
+
+        List<Pairing> roundPairings = pairingRepository
+                .findByTournamentIdAndRoundNumberOrderByTableNumberAsc(tournamentId, roundNumber);
+
+        if (roundPairings.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Für Runde " + roundNumber + " gibt es keine importierten Paarungen zum Veröffentlichen."
+            );
+        }
+
+        for (Pairing pairing : roundPairings) {
+            pairing.setPublished(true);
+        }
+
+        pairingRepository.saveAll(roundPairings);
+        pairingRepository.flush();
+    }
+
+    @Transactional
+    public void unpublishRound(Long tournamentId, Integer roundNumber) {
+        Tournament tournament = tournamentRepository.findById(tournamentId)
+                .orElseThrow(() -> new IllegalArgumentException("Turnier nicht gefunden: " + tournamentId));
+
+        validateRoundNumber(tournament, roundNumber);
+
+        List<Pairing> roundPairings = pairingRepository
+                .findByTournamentIdAndRoundNumberOrderByTableNumberAsc(tournamentId, roundNumber);
+
+        if (roundPairings.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "Für Runde " + roundNumber + " gibt es keine importierten Paarungen."
+            );
+        }
+
+        for (Pairing pairing : roundPairings) {
+            pairing.setPublished(false);
+        }
+
+        pairingRepository.saveAll(roundPairings);
+        pairingRepository.flush();
+    }
+
+    @Transactional
     public void importPairingsFromMacMahon(Long tournamentId, Integer roundNumber, MultipartFile file) {
         Tournament tournament = tournamentRepository.findById(tournamentId)
                 .orElseThrow(() -> new IllegalArgumentException("Turnier nicht gefunden: " + tournamentId));
 
-        if (roundNumber == null || roundNumber < 1 || roundNumber > tournament.getNumberOfRounds()) {
-            throw new IllegalArgumentException(
-                    "Die Runde " + roundNumber + " liegt außerhalb der definierten Turnierrunden."
-            );
-        }
+        validateRoundNumber(tournament, roundNumber);
 
         List<MacMahonPairingImportRow> importedRows =
                 macMahonInterfaceService.parsePairingsExport(file, roundNumber);
@@ -80,10 +146,7 @@ public class PairingService {
 
         validateImportedPlayersAgainstRegistrations(tournamentId, roundNumber, importedRows);
 
-        // Alte Paarungen der Runde vollständig löschen
         pairingRepository.deleteByTournamentIdAndRoundNumber(tournamentId, roundNumber);
-
-        // Wichtig: Delete sofort an DB senden, bevor neue Datensätze eingefügt werden
         pairingRepository.flush();
 
         List<Pairing> entitiesToSave = importedRows.stream()
@@ -92,6 +155,22 @@ public class PairingService {
 
         pairingRepository.saveAll(entitiesToSave);
         pairingRepository.flush();
+    }
+
+    private void validateRoundNumber(Tournament tournament, Integer roundNumber) {
+        if (roundNumber == null) {
+            throw new IllegalArgumentException("Bitte eine Runde auswählen.");
+        }
+
+        if (tournament.getNumberOfRounds() == null || tournament.getNumberOfRounds() < 1) {
+            throw new IllegalArgumentException("Für dieses Turnier ist keine gültige Rundenzahl definiert.");
+        }
+
+        if (roundNumber < 1 || roundNumber > tournament.getNumberOfRounds()) {
+            throw new IllegalArgumentException(
+                    "Die Runde " + roundNumber + " liegt außerhalb der definierten Turnierrunden."
+            );
+        }
     }
 
     private String normalizeAndValidateSimpleResult(String result) {
@@ -118,8 +197,7 @@ public class PairingService {
         for (MacMahonPairingImportRow row : rows) {
             if (!usedTableNumbers.add(row.tableNumber())) {
                 throw new IllegalArgumentException(
-                        "Die Tischnummer " + row.tableNumber() +
-                                " kommt in dieser Runde mehrfach vor."
+                        "Die Tischnummer " + row.tableNumber() + " kommt in dieser Runde mehrfach vor."
                 );
             }
         }
@@ -136,7 +214,8 @@ public class PairingService {
                 imported.whitePlayer().trim(),
                 normalizeAndValidateSimpleResult(imported.result()),
                 normalizeHandicap(imported.handicap()),
-                imported.bye()
+                imported.bye(),
+                false
         );
     }
 

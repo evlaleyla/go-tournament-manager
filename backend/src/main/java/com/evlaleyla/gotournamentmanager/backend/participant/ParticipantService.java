@@ -3,6 +3,7 @@ package com.evlaleyla.gotournamentmanager.backend.participant;
 import com.evlaleyla.gotournamentmanager.backend.ClubOptions;
 import com.evlaleyla.gotournamentmanager.backend.CountryOptions;
 import com.evlaleyla.gotournamentmanager.backend.RankOptions;
+import com.evlaleyla.gotournamentmanager.backend.TournamentDataReferenceService;
 import com.evlaleyla.gotournamentmanager.backend.registration.RegistrationRepository;
 import org.springframework.stereotype.Service;
 
@@ -14,11 +15,14 @@ public class ParticipantService {
 
     private final ParticipantRepository participantRepository;
     private final RegistrationRepository registrationRepository;
+    private final TournamentDataReferenceService tournamentDataReferenceService;
 
     public ParticipantService(ParticipantRepository participantRepository,
-                              RegistrationRepository registrationRepository) {
+                              RegistrationRepository registrationRepository,
+                              TournamentDataReferenceService tournamentDataReferenceService) {
         this.participantRepository = participantRepository;
         this.registrationRepository = registrationRepository;
+        this.tournamentDataReferenceService = tournamentDataReferenceService;
     }
 
     public List<Participant> findAll() {
@@ -98,10 +102,25 @@ public class ParticipantService {
 
     public void deleteById(Long id) {
         Participant participant = findById(id);
+        String participantName = participant.getFullName();
 
         if (registrationRepository.existsByParticipantId(id)) {
             throw new IllegalArgumentException(
-                    "Teilnehmer „" + participant.getFullName() + "“ kann nicht gelöscht werden, da noch Anmeldungen für ihn existieren."
+                    "Teilnehmer „" + participantName + "“ kann nicht gelöscht werden, da noch Anmeldungen für ihn existieren."
+            );
+        }
+
+        if (tournamentDataReferenceService.hasPairingReferenceForParticipantName(participantName)) {
+            throw new IllegalArgumentException(
+                    "Teilnehmer „" + participantName + "“ kann nicht gelöscht werden, " +
+                            "da sein Name bereits in importierten Paarungen verwendet wird."
+            );
+        }
+
+        if (tournamentDataReferenceService.hasStandingReferenceForParticipantName(participantName)) {
+            throw new IllegalArgumentException(
+                    "Teilnehmer „" + participantName + "“ kann nicht gelöscht werden, " +
+                            "da sein Name bereits in importierten Ranglistendaten verwendet wird."
             );
         }
 

@@ -10,6 +10,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 @Controller
@@ -34,12 +35,49 @@ public class PairingController {
             pairingsByRound.put(round, pairingService.findByTournamentIdAndRound(id, round));
         }
 
+        Set<Integer> publishedRounds = pairingService.findPublishedRoundNumbers(id);
+
         model.addAttribute("tournament", tournament);
         model.addAttribute("pairingsByRound", pairingsByRound);
+        model.addAttribute("publishedRounds", publishedRounds);
         model.addAttribute("availableRounds",
                 IntStream.rangeClosed(1, tournament.getNumberOfRounds()).boxed().toList());
 
         return "tournament-pairings";
+    }
+
+    @PostMapping("/tournaments/{tournamentId}/pairings/{roundNumber}/publish")
+    public String publishRound(@PathVariable Long tournamentId,
+                               @PathVariable Integer roundNumber,
+                               RedirectAttributes redirectAttributes) {
+        try {
+            pairingService.publishRound(tournamentId, roundNumber);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Die Paarungen für Runde " + roundNumber + " wurden veröffentlicht."
+            );
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+
+        return "redirect:/tournaments/" + tournamentId + "/pairings#round-" + roundNumber;
+    }
+
+    @PostMapping("/tournaments/{tournamentId}/pairings/{roundNumber}/unpublish")
+    public String unpublishRound(@PathVariable Long tournamentId,
+                                 @PathVariable Integer roundNumber,
+                                 RedirectAttributes redirectAttributes) {
+        try {
+            pairingService.unpublishRound(tournamentId, roundNumber);
+            redirectAttributes.addFlashAttribute(
+                    "successMessage",
+                    "Die Veröffentlichung für Runde " + roundNumber + " wurde zurückgenommen."
+            );
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+        }
+
+        return "redirect:/tournaments/" + tournamentId + "/pairings#round-" + roundNumber;
     }
 
     @PostMapping("/pairings/{id}/result")
@@ -88,7 +126,7 @@ public class PairingController {
         Map<Integer, List<Pairing>> pairingsByRound = new LinkedHashMap<>();
 
         for (int round = 1; round <= tournament.getNumberOfRounds(); round++) {
-            pairingsByRound.put(round, pairingService.findByTournamentIdAndRound(id, round));
+            pairingsByRound.put(round, pairingService.findPublishedByTournamentIdAndRound(id, round));
         }
 
         model.addAttribute("tournament", tournament);

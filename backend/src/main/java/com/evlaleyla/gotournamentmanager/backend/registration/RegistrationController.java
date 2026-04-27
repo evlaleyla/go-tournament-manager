@@ -201,9 +201,14 @@ public class RegistrationController {
     @PostMapping("/registrations/{id}/delete")
     public String deleteRegistration(@PathVariable Long id,
                                      RedirectAttributes redirectAttributes) {
-        registrationService.deleteById(id);
-        redirectAttributes.addFlashAttribute("successMessage", "Anmeldung wurde erfolgreich gelöscht.");
-        return "redirect:/registrations";
+        try {
+            registrationService.deleteById(id);
+            redirectAttributes.addFlashAttribute("successMessage", "Anmeldung wurde erfolgreich gelöscht.");
+            return "redirect:/registrations";
+        } catch (IllegalArgumentException e) {
+            redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
+            return "redirect:/registrations/" + id;
+        }
     }
 
     private void addFormData(Model model) {

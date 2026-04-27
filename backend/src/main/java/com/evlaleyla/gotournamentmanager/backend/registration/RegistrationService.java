@@ -3,6 +3,7 @@ package com.evlaleyla.gotournamentmanager.backend.registration;
 import com.evlaleyla.gotournamentmanager.backend.ClubOptions;
 import com.evlaleyla.gotournamentmanager.backend.CountryOptions;
 import com.evlaleyla.gotournamentmanager.backend.RankOptions;
+import com.evlaleyla.gotournamentmanager.backend.TournamentDataReferenceService;
 import com.evlaleyla.gotournamentmanager.backend.participant.Participant;
 import com.evlaleyla.gotournamentmanager.backend.participant.ParticipantRepository;
 import com.evlaleyla.gotournamentmanager.backend.tournament.Tournament;
@@ -22,13 +23,16 @@ public class RegistrationService {
     private final RegistrationRepository registrationRepository;
     private final TournamentRepository tournamentRepository;
     private final ParticipantRepository participantRepository;
+    private final TournamentDataReferenceService tournamentDataReferenceService;
 
     public RegistrationService(RegistrationRepository registrationRepository,
                                TournamentRepository tournamentRepository,
-                               ParticipantRepository participantRepository) {
+                               ParticipantRepository participantRepository,
+                               TournamentDataReferenceService tournamentDataReferenceService) {
         this.registrationRepository = registrationRepository;
         this.tournamentRepository = tournamentRepository;
         this.participantRepository = participantRepository;
+        this.tournamentDataReferenceService = tournamentDataReferenceService;
     }
 
     public List<Registration> findAll() {
@@ -131,9 +135,30 @@ public class RegistrationService {
         return registrationRepository.save(registration);
     }
 
+
     public void deleteById(Long id) {
+        Registration registration = findById(id);
+
+        Long tournamentId = registration.getTournament().getId();
+        String participantName = registration.getParticipant().getFullName();
+
+        if (tournamentDataReferenceService.hasPairingReferenceForTournamentAndParticipantName(tournamentId, participantName)) {
+            throw new IllegalArgumentException(
+                    "Die Anmeldung von „" + participantName + "“ kann nicht gelöscht werden, " +
+                            "da für dieses Turnier bereits Paarungen mit dieser Person vorliegen."
+            );
+        }
+
+        if (tournamentDataReferenceService.hasStandingReferenceForTournamentAndParticipantName(tournamentId, participantName)) {
+            throw new IllegalArgumentException(
+                    "Die Anmeldung von „" + participantName + "“ kann nicht gelöscht werden, " +
+                            "da für dieses Turnier bereits Ranglistendaten mit dieser Person vorliegen."
+            );
+        }
+
         registrationRepository.deleteById(id);
     }
+
 
     public List<Registration> findStartListByTournamentIdAndRound(Long tournamentId, int roundNumber) {
         return registrationRepository
@@ -142,6 +167,7 @@ public class RegistrationService {
                 .filter(registration -> registration.isPlayingInRound(roundNumber))
                 .collect(Collectors.toList());
     }
+
 
     private Set<Integer> normalizeSelectedRounds(List<Integer> selectedRounds) {
         if (selectedRounds == null || selectedRounds.isEmpty()) {

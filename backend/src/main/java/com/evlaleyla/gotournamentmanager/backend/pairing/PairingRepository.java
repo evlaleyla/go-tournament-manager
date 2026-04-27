@@ -15,9 +15,14 @@ public interface PairingRepository extends JpaRepository<Pairing, Long> {
 
     List<Pairing> findByTournamentIdAndRoundNumberOrderByTableNumberAsc(Long tournamentId, Integer roundNumber);
 
+    List<Pairing> findByTournamentIdAndRoundNumberAndPublishedTrueOrderByTableNumberAsc(Long tournamentId,
+                                                                                        Integer roundNumber);
+
     Optional<Pairing> findByTournamentIdAndRoundNumberAndTableNumber(Long tournamentId,
                                                                      Integer roundNumber,
                                                                      Integer tableNumber);
+
+    boolean existsByTournamentIdAndRoundNumberAndPublishedTrue(Long tournamentId, Integer roundNumber);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Transactional

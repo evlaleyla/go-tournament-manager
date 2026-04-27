@@ -54,6 +54,9 @@ public class Pairing {
     @Column(name = "bye_game", nullable = false)
     private boolean bye;
 
+    @Column(name = "published", nullable = false)
+    private boolean published = false;
+
     public Pairing() {
     }
 
@@ -63,7 +66,7 @@ public class Pairing {
                    String blackPlayer,
                    String whitePlayer,
                    String result) {
-        this(tournament, roundNumber, tableNumber, blackPlayer, whitePlayer, result, null, false);
+        this(tournament, roundNumber, tableNumber, blackPlayer, whitePlayer, result, null, false, false);
     }
 
     public Pairing(Tournament tournament,
@@ -74,6 +77,18 @@ public class Pairing {
                    String result,
                    String handicap,
                    boolean bye) {
+        this(tournament, roundNumber, tableNumber, blackPlayer, whitePlayer, result, handicap, bye, false);
+    }
+
+    public Pairing(Tournament tournament,
+                   Integer roundNumber,
+                   Integer tableNumber,
+                   String blackPlayer,
+                   String whitePlayer,
+                   String result,
+                   String handicap,
+                   boolean bye,
+                   boolean published) {
         this.tournament = tournament;
         this.roundNumber = roundNumber;
         this.tableNumber = tableNumber;
@@ -82,6 +97,7 @@ public class Pairing {
         this.result = result;
         this.handicap = handicap;
         this.bye = bye;
+        this.published = published;
     }
 
     public Long getId() {
@@ -112,6 +128,18 @@ public class Pairing {
         return result;
     }
 
+    public String getHandicap() {
+        return handicap;
+    }
+
+    public boolean isBye() {
+        return bye;
+    }
+
+    public boolean isPublished() {
+        return published;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -140,6 +168,18 @@ public class Pairing {
         this.result = result;
     }
 
+    public void setHandicap(String handicap) {
+        this.handicap = handicap;
+    }
+
+    public void setBye(boolean bye) {
+        this.bye = bye;
+    }
+
+    public void setPublished(boolean published) {
+        this.published = published;
+    }
+
     public String getResultDisplay() {
         if (result == null || result.isBlank()) {
             return "offen";
@@ -155,22 +195,6 @@ public class Pairing {
         };
     }
 
-    public String getHandicap() {
-        return handicap;
-    }
-
-    public void setHandicap(String handicap) {
-        this.handicap = handicap;
-    }
-
-    public boolean isBye() {
-        return bye;
-    }
-
-    public void setBye(boolean bye) {
-        this.bye = bye;
-    }
-
     public String getHandicapDisplay() {
         if (handicap == null || handicap.isBlank()) {
             return "-";
@@ -181,5 +205,9 @@ public class Pairing {
 
     public String getByeDisplay() {
         return bye ? "Ja" : "Nein";
+    }
+
+    public String getPublicationStatusDisplay() {
+        return published ? "Veröffentlicht" : "Nicht veröffentlicht";
     }
 }
