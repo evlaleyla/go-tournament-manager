@@ -116,28 +116,23 @@
             <div class="form-row">
                 <label>Ausgewählte Runden <span class="required-mark">*</span></label>
 
-                <div th:if="${availableRounds != null and !#lists.isEmpty(availableRounds)}">
-                    <p class="table-note">
-                        Wähle die Runden aus, an denen die teilnehmende Person teilnimmt.
-                    </p>
+                <p class="table-note">
+                    Wähle die Runden aus, an denen die teilnehmende Person teilnimmt.
+                </p>
 
-                    <div class="round-selection-grid">
-                        <div class="round-checkbox"
-                             th:each="round : ${availableRounds}">
-                            <input type="checkbox"
-                                   th:field="*{selectedRounds}"
-                                   th:value="${round}"
-                                   th:id="'selectedRound-' + ${round}">
-                            <label th:for="'selectedRound-' + ${round}">
-                                <span th:text="|Runde ${round}|">Runde 1</span>
-                            </label>
-                        </div>
+                <div class="round-selection-grid"
+                     th:if="${availableRounds != null and !#lists.isEmpty(availableRounds)}">
+                    <div class="round-checkbox"
+                         th:each="round : ${availableRounds}">
+                        <input type="checkbox"
+                               th:field="*{selectedRounds}"
+                               th:value="${round}"
+                               th:id="'selectedRound-' + ${round}">
+                        <label th:for="'selectedRound-' + ${round}"
+                               th:text="|Runde ${round}|">
+                            Runde 1
+                        </label>
                     </div>
-                </div>
-
-                <div th:if="${availableRounds == null or #lists.isEmpty(availableRounds)}"
-                     class="empty-state">
-                    Bitte zuerst ein Turnier auswählen, damit die verfügbaren Runden angezeigt werden.
                 </div>
 
                 <div class="field-error"
