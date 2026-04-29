@@ -151,7 +151,6 @@ public class RegistrationController {
 
         Tournament selectedTournament = resolveSelectedTournament(registrationForm.getTournamentId());
 
-        validateRegistrationDate(registrationForm, bindingResult);
         validateSelectedRounds(
                 registrationForm.getTournamentId(),
                 registrationForm.getSelectedRounds(),
