@@ -2,7 +2,7 @@
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>MacMahon-Rangliste</title>
+    <title>Rangliste verwalten</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
@@ -13,7 +13,7 @@
 
     <div class="page-header">
         <div>
-            <h1>MacMahon-Rangliste</h1>
+            <h1>Rangliste verwalten</h1>
             <p class="page-subtitle" th:text="${tournament.name}">
                 Turniername
             </p>
@@ -30,7 +30,7 @@
     <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
 
     <section class="card">
-        <h2>MacMahon-Rangliste importieren</h2>
+        <h2>Rangliste importieren</h2>
         <p class="page-subtitle">
             Importiert eine aus MacMahon exportierte Wall-List-Datei mit Platzierungen,
             Punkten und Feinwertungen für den aktuellen Turnierstand.
@@ -52,7 +52,7 @@
             </div>
 
             <div class="actions">
-                <button type="submit">MacMahon-Rangliste importieren</button>
+                <button type="submit">MRangliste importieren</button>
             </div>
         </form>
     </section>
@@ -61,7 +61,7 @@
         <h2>Veröffentlichungsstatus</h2>
 
         <p class="page-subtitle">
-            Nach einem Import ist die Wall-List zunächst nur intern sichtbar und muss separat veröffentlicht werden.
+            Nach einem Import ist die Rangliste zunächst nur intern sichtbar und muss separat veröffentlicht werden.
         </p>
 
         <div class="actions">
@@ -74,7 +74,7 @@
             <form th:if="${!tournament.wallListPublished and !#lists.isEmpty(wallListEntries)}"
                   th:action="@{/tournaments/{id}/walllist/publish(id=${tournament.id})}"
                   method="post">
-                <button type="submit">Wall-List veröffentlichen</button>
+                <button type="submit">Rangliste veröffentlichen</button>
             </form>
 
             <form th:if="${tournament.wallListPublished}"
@@ -94,12 +94,12 @@
         </p>
 
         <p class="table-note" th:if="${#lists.isEmpty(wallListEntries)}">
-            Eine Veröffentlichung ist erst möglich, nachdem eine Wall-List importiert wurde.
+            Eine Veröffentlichung ist erst möglich, nachdem eine Rangliste importiert wurde.
         </p>
     </section>
 
     <section class="card" th:if="${wallListEntries != null}">
-        <h2>Aktueller Ranglistenstand</h2>
+        <h2>Aktuelle Rangliste</h2>
 
         <table th:if="${!#lists.isEmpty(wallListEntries)}">
             <thead>
@@ -135,7 +135,7 @@
         </table>
 
         <div th:if="${#lists.isEmpty(wallListEntries)}" class="empty-state">
-            Es wurden keine Wall-List-Einträge gefunden.
+            Es wurde noch keine Rangliste importiert.
         </div>
     </section>
 

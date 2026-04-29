@@ -150,14 +150,14 @@
       <article class="workflow-card">
         <div class="workflow-number">4</div>
         <div>
-          <h3>Wall-List importieren</h3>
+          <h3>Rangliste importieren</h3>
           <p>
-            Aktuelle Wall-List aus MacMahon importieren und den Ranglistenstand übernehmen.
+            Aus MacMahon exportierte Wall-List importieren und die aktuelle Rangliste übernehmen.
           </p>
 
           <div class="actions">
             <a class="btn" th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
-              Wall-List öffnen
+              Rangliste öffnen
             </a>
           </div>
         </div>
@@ -186,6 +186,11 @@
       <a class="btn btn-secondary"
          th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
         Öffentliche Paarungen
+      </a>
+
+      <a class="btn btn-secondary"
+         th:href="@{/public/tournaments/{id}/walllist(id=${tournament.id})}">
+        Öffentliche Rangliste
       </a>
     </div>
   </section>
