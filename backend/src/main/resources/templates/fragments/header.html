@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<header class="app-header" th:fragment="adminHeader">
+    <div class="app-title">
+        <a th:href="@{/admin}">Go Tournament Manager – Administration</a>
+    </div>
+
+    <nav class="app-nav">
+        <a th:href="@{/admin}">Dashboard</a>
+        <a th:href="@{/tournaments}">Turniere</a>
+        <a th:href="@{/participants}">Teilnehmende</a>
+        <a th:href="@{/registrations}">Anmeldungen</a>
+        <a th:href="@{/public/tournaments}">Öffentliche Seiten prüfen</a>
+    </nav>
+</header>
+
+<header class="app-header public-header" th:fragment="publicHeader">
+    <div class="app-title">
+        <a th:href="@{/}">Go Tournament Manager – Öffentlich</a>
+    </div>
+
+    <nav class="app-nav">
+        <a th:href="@{/public/tournaments}">Turniere</a>
+    </nav>
+</header>
+
+</body>
+</html>

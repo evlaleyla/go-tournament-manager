@@ -3,20 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <title>Fehler</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1 th:text="${errorTitle}">Fehler</h1>
 
-<p th:text="${errorMessage}">
-    Es ist ein Fehler aufgetreten.
-</p>
+<div th:replace="~{fragments/header :: ${headerFragment}}"></div>
 
-<p>
-    <a href="/">Zur Startseite</a>
-</p>
+<main class="container">
 
-<p>
-    <a href="javascript:history.back()">Zurück zur vorherigen Seite</a>
-</p>
+    <section class="card">
+        <h1 th:text="${errorTitle}">Fehler</h1>
+
+        <p th:text="${errorMessage}">
+            Es ist ein Fehler aufgetreten.
+        </p>
+
+        <div class="actions">
+            <a class="btn" th:href="@{/}">
+                Zur Startseite
+            </a>
+
+            <a class="btn btn-secondary" href="javascript:history.back()">
+                Zurück
+            </a>
+        </div>
+    </section>
+
+</main>
+
 </body>
 </html>

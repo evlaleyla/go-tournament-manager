@@ -3,53 +3,313 @@
 <head>
     <meta charset="UTF-8">
     <title>Teilnehmende</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Teilnehmerliste</h1>
 
-<div th:if="${successMessage}">
-    <p th:text="${successMessage}"></p>
-</div>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<p>
-    <a href="/participants/new">Neuen Teilnehmer anlegen</a>
-</p>
+<main class="container">
 
-<table border="1">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Vorname</th>
-        <th>Nachname</th>
-        <th>E-Mail</th>
-        <th>Verein</th>
-        <th>Land</th>
-        <th>Geburtsdatum</th>
-        <th>Rang</th>
-        <th>Aktionen</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="participant : ${participants}">
-        <td th:text="${participant.id}"></td>
-        <td th:text="${participant.firstName}"></td>
-        <td th:text="${participant.lastName}"></td>
-        <td th:text="${participant.email}"></td>
-        <td th:text="${participant.club}"></td>
-        <td th:text="${participant.countryDisplay}"></td>
-        <td th:text="${participant.birthDate}"></td>
-        <td th:text="${participant.rank}"></td>
-        <td>
-            <a th:href="@{/participants/{id}(id=${participant.id})}">Details</a>
-            |
-            <a th:href="@{/participants/{id}/edit(id=${participant.id})}">Bearbeiten</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+    <div class="page-header">
+        <div>
+            <h1>Teilnehmende</h1>
+            <p class="page-subtitle">
+                Teilnehmende zentral verwalten.
+            </p>
+        </div>
 
-<p>
-    <a href="/">Zur Startseite</a>
-</p>
+        <div class="actions">
+            <a class="btn" th:href="@{/participants/new}">
+                Teilnehmende Person anlegen
+            </a>
+        </div>
+    </div>
+
+    <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
+
+    <section class="card">
+        <h2>Suche und Filter</h2>
+
+        <form th:action="@{/participants}" method="get" class="form-grid filter-form">
+
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="firstName">Vorname</label>
+                    <input type="text"
+                           id="firstName"
+                           name="firstName"
+                           th:value="${firstName}"
+                           placeholder="Vorname eingeben">
+                </div>
+
+                <div class="form-row">
+                    <label for="lastName">Nachname</label>
+                    <input type="text"
+                           id="lastName"
+                           name="lastName"
+                           th:value="${lastName}"
+                           placeholder="Nachname eingeben">
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="country">Land</label>
+                    <select id="country" name="country">
+                        <option value="">Alle</option>
+                        <option th:each="countryOption : ${countryOptions}"
+                                th:value="${countryOption.code}"
+                                th:text="${countryOption.name}"
+                                th:selected="${selectedCountry != null and selectedCountry == countryOption.code}">
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <label for="rank">Rang</label>
+                    <select id="rank" name="rank">
+                        <option value="">Alle</option>
+                        <option th:each="rankOption : ${rankOptions}"
+                                th:value="${rankOption}"
+                                th:text="${rankOption}"
+                                th:selected="${selectedRank != null and selectedRank == rankOption}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="field-label-row">
+                    <label for="club">Verein</label>
+                    <span id="clubContextBadge" class="filter-context-badge">Alle Länder</span>
+                </div>
+
+                <select id="club" name="club"></select>
+
+                <small id="clubHelpText" class="form-hint">
+                    Alle Vereine auswählbar
+                </small>
+            </div>
+
+            <div class="actions">
+                <button type="submit">Filtern</button>
+                <a class="btn btn-secondary" th:href="@{/participants}">
+                    Zurücksetzen
+                </a>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Teilnehmende</h2>
+
+        <table th:if="${!#lists.isEmpty(participants)}">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Vorname</th>
+                <th>Nachname</th>
+                <th>Verein</th>
+                <th>Land</th>
+                <th>Geburtsdatum</th>
+                <th>Rang</th>
+                <th>Aktionen</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="participant : ${participants}">
+                <td th:text="${participant.id}"></td>
+                <td th:text="${participant.firstName}"></td>
+                <td th:text="${participant.lastName}"></td>
+                <td th:text="${participant.club}"></td>
+                <td th:text="${participant.countryDisplay}"></td>
+                <td th:text="${participant.birthDate}"></td>
+                <td th:text="${participant.rank}"></td>
+                <td>
+                    <div class="actions">
+                        <a class="btn btn-secondary"
+                           th:href="@{/participants/{id}(id=${participant.id})}">
+                            Details
+                        </a>
+                        <a class="btn btn-secondary"
+                           th:href="@{/participants/{id}/edit(id=${participant.id})}">
+                            Bearbeiten
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${#lists.isEmpty(participants)}" class="empty-state">
+            Es wurden keine passenden Teilnehmenden gefunden.
+        </div>
+    </section>
+
+</main>
+
+<script th:inline="javascript">
+    const clubsByCountry = /*[[${clubsByCountry}]]*/ {};
+    let selectedClub = /*[[${selectedClub}]]*/ "";
+
+    const countrySelect = document.getElementById("country");
+    const clubSelect = document.getElementById("club");
+    const clubHelpText = document.getElementById("clubHelpText");
+    const clubContextBadge = document.getElementById("clubContextBadge");
+
+    function normalize(value) {
+        return (value || "").trim().toLowerCase();
+    }
+
+    function getCountryNameMap() {
+        const map = {};
+
+        Array.from(countrySelect.options).forEach(function (option) {
+            if (option.value) {
+                map[option.value] = option.textContent.trim();
+            }
+        });
+
+        return map;
+    }
+
+    const countryNameMap = getCountryNameMap();
+
+    function clearClubOptions() {
+        clubSelect.innerHTML = "";
+        clubSelect.disabled = false;
+    }
+
+    function appendDefaultOption(text) {
+        const option = document.createElement("option");
+        option.value = "";
+        option.textContent = text;
+        clubSelect.appendChild(option);
+    }
+
+    function appendClubOption(clubName, isSelected) {
+        const option = document.createElement("option");
+        option.value = clubName;
+        option.textContent = clubName;
+
+        if (isSelected) {
+            option.selected = true;
+        }
+
+        clubSelect.appendChild(option);
+    }
+
+    function buildAllClubGroups() {
+        clearClubOptions();
+        appendDefaultOption("Alle Vereine");
+
+        Object.keys(clubsByCountry)
+            .sort(function (a, b) {
+                return (countryNameMap[a] || a).localeCompare(countryNameMap[b] || b, "de");
+            })
+            .forEach(function (countryCode) {
+                const clubs = clubsByCountry[countryCode] || [];
+
+                if (!clubs.length) {
+                    return;
+                }
+
+                const optgroup = document.createElement("optgroup");
+                optgroup.label = countryNameMap[countryCode] || countryCode;
+
+                clubs
+                    .slice()
+                    .sort(function (a, b) {
+                        return a.localeCompare(b, "de");
+                    })
+                    .forEach(function (club) {
+                        const option = document.createElement("option");
+                        option.value = club;
+                        option.textContent = club;
+
+                        if (normalize(selectedClub) === normalize(club)) {
+                            option.selected = true;
+                        }
+
+                        optgroup.appendChild(option);
+                    });
+
+                clubSelect.appendChild(optgroup);
+            });
+
+        clubHelpText.textContent = "Alle Vereine verfügbar";
+        clubContextBadge.textContent = "Alle Länder";
+        clubContextBadge.classList.remove("filter-context-badge-active");
+    }
+
+    function buildCountryClubOptions(selectedCountry) {
+        clearClubOptions();
+
+        const countryName = countryNameMap[selectedCountry] || selectedCountry;
+        const clubs = (clubsByCountry[selectedCountry] || []).slice().sort(function (a, b) {
+            return a.localeCompare(b, "de");
+        });
+
+        if (clubs.length === 0) {
+            appendDefaultOption("Keine Vereine verfügbar");
+            clubSelect.disabled = true;
+            selectedClub = "";
+
+            clubHelpText.textContent = "Für " + countryName + " sind keine Vereine hinterlegt";
+            clubContextBadge.textContent = countryName;
+            clubContextBadge.classList.add("filter-context-badge-active");
+            return;
+        }
+
+        appendDefaultOption("Alle Vereine in " + countryName);
+
+        let selectedClubStillValid = false;
+
+        clubs.forEach(function (club) {
+            const isSelected = normalize(selectedClub) === normalize(club);
+
+            if (isSelected) {
+                selectedClubStillValid = true;
+            }
+
+            appendClubOption(club, isSelected);
+        });
+
+        if (selectedClub && !selectedClubStillValid) {
+            selectedClub = "";
+            clubSelect.value = "";
+        }
+
+        clubHelpText.textContent = "Nur Vereine aus " + countryName;
+        clubContextBadge.textContent = countryName;
+        clubContextBadge.classList.add("filter-context-badge-active");
+    }
+
+    function updateClubFilterOptions() {
+        const selectedCountry = countrySelect.value;
+
+        if (!selectedCountry) {
+            buildAllClubGroups();
+        } else {
+            buildCountryClubOptions(selectedCountry);
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
+        updateClubFilterOptions();
+
+        countrySelect.addEventListener("change", function () {
+            selectedClub = "";
+            updateClubFilterOptions();
+        });
+
+        clubSelect.addEventListener("change", function () {
+            selectedClub = clubSelect.value;
+        });
+    });
+</script>
+
 </body>
 </html>

@@ -2,66 +2,144 @@
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>MacMahon Wall List</title>
+    <title>Rangliste verwalten</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>MacMahon Wall List</h1>
 
-<h2 th:text="${tournament.name}"></h2>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<div th:if="${successMessage}">
-    <p th:text="${successMessage}"></p>
-</div>
+<main class="container">
 
-<div th:if="${errorMessage}">
-    <p th:text="${errorMessage}"></p>
-</div>
+    <div class="page-header">
+        <div>
+            <h1>Rangliste verwalten</h1>
+            <p class="page-subtitle" th:text="${tournament.name}">
+                Turniername
+            </p>
+        </div>
 
-<form th:action="@{/tournaments/{id}/walllist/import-macmahon(id=${tournament.id})}"
-      method="post"
-      enctype="multipart/form-data">
-    <div>
-        <input type="file" name="file">
-        <button type="submit">MacMahon-Wall-List importieren</button>
+        <div class="actions">
+            <a class="btn btn-secondary" th:href="@{/tournaments/{id}/pairings(id=${tournament.id})}">
+                Zurück zu den Paarungen
+            </a>
+        </div>
     </div>
-</form>
 
-<table border="1" th:if="${wallListEntries != null}">
-    <thead>
-    <tr>
-        <th>Platz</th>
-        <th>Name</th>
-        <th>Club</th>
-        <th>Level</th>
-        <th>Score</th>
-        <th th:each="i : ${#numbers.sequence(1, roundColumnCount)}"
-            th:text="'Runde ' + ${i}"></th>
-        <th>Punkte</th>
-        <th>ScoreX</th>
-        <th>SOS</th>
-        <th>SOSOS</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="entry : ${wallListEntries}">
-        <td th:text="${entry.place}"></td>
-        <td th:text="${entry.name}"></td>
-        <td th:text="${entry.club}"></td>
-        <td th:text="${entry.level}"></td>
-        <td th:text="${entry.score}"></td>
-        <td th:each="status : ${entry.roundStatuses}" th:text="${status}"></td>
-        <td th:text="${entry.points}"></td>
-        <td th:text="${entry.scoreX}"></td>
-        <td th:text="${entry.sos}"></td>
-        <td th:text="${entry.sosos}"></td>
-    </tr>
-    </tbody>
-</table>
+    <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
 
-<p>
-    <a th:href="@{/tournaments/{id}/pairings(id=${tournament.id})}">
-        Zurück zu den Paarungen
-    </a>
-</p>
+    <section class="card">
+        <h2>Rangliste importieren</h2>
+        <p class="page-subtitle">
+            Importiert eine aus MacMahon exportierte Wall-List-Datei mit Platzierungen,
+            Punkten und Feinwertungen für den aktuellen Turnierstand.
+            Nach dem Import ist die Rangliste zunächst nur intern sichtbar.
+        </p>
+
+        <p class="form-hint no-print">
+            <span class="required-mark">*</span> Pflichtfeld
+        </p>
+
+        <form th:action="@{/tournaments/{id}/walllist/import-macmahon(id=${tournament.id})}"
+              method="post"
+              enctype="multipart/form-data"
+              class="form-grid">
+
+            <div class="form-row">
+                <label for="file">MacMahon-Wall-List-Datei <span class="required-mark">*</span></label>
+                <input id="file" type="file" name="file" required>
+            </div>
+
+            <div class="actions">
+                <button type="submit">MRangliste importieren</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Veröffentlichungsstatus</h2>
+
+        <p class="page-subtitle">
+            Nach einem Import ist die Rangliste zunächst nur intern sichtbar und muss separat veröffentlicht werden.
+        </p>
+
+        <div class="actions">
+        <span class="badge"
+              th:classappend="${tournament.wallListPublished} ? ' badge-success' : ' badge-open'"
+              th:text="${tournament.wallListPublished} ? 'Veröffentlicht' : 'Noch nicht veröffentlicht'">
+            Status
+        </span>
+
+            <form th:if="${!tournament.wallListPublished and !#lists.isEmpty(wallListEntries)}"
+                  th:action="@{/tournaments/{id}/walllist/publish(id=${tournament.id})}"
+                  method="post">
+                <button type="submit">Rangliste veröffentlichen</button>
+            </form>
+
+            <form th:if="${tournament.wallListPublished}"
+                  th:action="@{/tournaments/{id}/walllist/unpublish(id=${tournament.id})}"
+                  method="post">
+                <button type="submit" class="btn btn-secondary">
+                    Veröffentlichung zurücknehmen
+                </button>
+            </form>
+        </div>
+
+        <p class="table-note" th:if="${tournament.lastWallListImportAt != null}">
+            Letzter Import:
+            <span th:text="${#temporals.format(tournament.lastWallListImportAt, 'dd.MM.yyyy HH:mm')}">
+            25.04.2026 14:30
+        </span>
+        </p>
+
+        <p class="table-note" th:if="${#lists.isEmpty(wallListEntries)}">
+            Eine Veröffentlichung ist erst möglich, nachdem eine Rangliste importiert wurde.
+        </p>
+    </section>
+
+    <section class="card" th:if="${wallListEntries != null}">
+        <h2>Aktuelle Rangliste</h2>
+
+        <table th:if="${!#lists.isEmpty(wallListEntries)}">
+            <thead>
+            <tr>
+                <th>Platz</th>
+                <th>Name</th>
+                <th>Club</th>
+                <th>Level</th>
+                <th>Score</th>
+                <th th:each="i : ${#numbers.sequence(1, roundColumnCount)}"
+                    th:text="'Runde ' + ${i}">
+                </th>
+                <th>Punkte</th>
+                <th>ScoreX</th>
+                <th>SOS</th>
+                <th>SOSOS</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="entry : ${wallListEntries}">
+                <td th:text="${entry.place}"></td>
+                <td th:text="${entry.name}"></td>
+                <td th:text="${entry.club}"></td>
+                <td th:text="${entry.level}"></td>
+                <td th:text="${entry.score}"></td>
+                <td th:each="status : ${entry.roundStatuses}" th:text="${status}"></td>
+                <td th:text="${entry.points}"></td>
+                <td th:text="${entry.scoreX}"></td>
+                <td th:text="${entry.sos}"></td>
+                <td th:text="${entry.sosos}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${#lists.isEmpty(wallListEntries)}" class="empty-state">
+            Es wurde noch keine Rangliste importiert.
+        </div>
+    </section>
+
+</main>
+
 </body>
 </html>

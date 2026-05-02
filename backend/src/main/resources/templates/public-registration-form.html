@@ -3,157 +3,348 @@
 <head>
     <meta charset="UTF-8">
     <title>Online-Anmeldung</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+    <style>
+        .round-selection-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.75rem;
+            margin-top: 0.35rem;
+        }
+
+        .round-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.55rem;
+            padding: 0.7rem 0.85rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            background: var(--surface);
+        }
+
+        .round-checkbox input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+            transform: scale(1.05);
+            cursor: pointer;
+        }
+
+        .round-checkbox label,
+        .round-checkbox span {
+            margin: 0;
+            font-weight: 600;
+            cursor: pointer;
+        }
+    </style>
 </head>
 <body>
-<h1>Online-Anmeldung</h1>
 
-<div th:if="${successMessage}">
-    <p th:text="${successMessage}"></p>
-</div>
+<div th:replace="~{fragments/header :: publicHeader}"></div>
 
-<h2 th:text="${tournament.name}"></h2>
+<main class="container">
 
-<p><strong>Ort:</strong> <span th:text="${tournament.location}"></span></p>
-<p><strong>Startdatum:</strong> <span th:text="${tournament.startDate}"></span></p>
-<p><strong>Enddatum:</strong> <span th:text="${tournament.endDate}"></span></p>
-<p><strong>Anmeldefrist:</strong> <span th:text="${tournament.registrationDeadline}"></span></p>
-<p><strong>Status:</strong> <span th:text="${tournament.status.displayName}"></span></p>
+    <div class="page-header">
+        <div>
+            <h1>Online-Anmeldung</h1>
+            <p class="page-subtitle" th:text="${tournament.name}">
+                Turniername
+            </p>
+        </div>
 
-<form th:action="@{/tournaments/{id}/register(id=${tournament.id})}"
-      th:object="${selfRegistrationForm}"
-      method="post">
-
-    <div th:if="${#fields.hasGlobalErrors()}">
-        <p th:each="err : ${#fields.globalErrors()}" th:text="${err}"></p>
+        <div class="actions">
+            <a class="btn btn-secondary"
+               th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+                Zurück zur Turnierseite
+            </a>
+        </div>
     </div>
 
-    <div>
-        <label for="firstName">Vorname:</label>
-        <input type="text" id="firstName" th:field="*{firstName}">
-        <div th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+    <div th:if="${successMessage}"
+         class="flash-success"
+         th:text="${successMessage}">
     </div>
 
-    <div>
-        <label for="lastName">Nachname:</label>
-        <input type="text" id="lastName" th:field="*{lastName}">
-        <div th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
-    </div>
+    <section class="card">
+        <h2>Turnierdaten</h2>
 
-    <div>
-        <label for="email">E-Mail:</label>
-        <input type="email" id="email" th:field="*{email}">
-        <div th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
-    </div>
+        <dl class="detail-list">
+            <dt>Ort</dt>
+            <dd th:text="${tournament.location}">Ort</dd>
 
-    <div>
-        <label for="country">Land:</label>
-        <select id="country" th:field="*{country}">
-            <option value="">Bitte wählen</option>
-            <option th:each="country : ${countryOptions}"
-                    th:value="${country.code}"
-                    th:text="${country.name}">
-            </option>
-        </select>
-    </div>
+            <dt>Startdatum</dt>
+            <dd th:text="${tournament.startDate}">Startdatum</dd>
 
-    <div>
-        <label for="club">Verein:</label>
-        <input type="text"
-               id="club"
-               th:field="*{club}"
-               list="clubList"
-               placeholder="Bitte zuerst Land wählen">
+            <dt>Enddatum</dt>
+            <dd th:text="${tournament.endDate}">Enddatum</dd>
 
-        <datalist id="clubList"></datalist>
-    </div>
+            <dt>Anmeldefrist</dt>
+            <dd th:text="${tournament.registrationDeadline}">Anmeldefrist</dd>
 
-    <div>
-        <label for="rank">Rang:</label>
-        <input type="text" id="rank" th:field="*{rank}" list="rankList">
+            <dt>Status</dt>
+            <dd>
+                <span class="badge" th:text="${tournament.status.displayName}">
+                    Status
+                </span>
+            </dd>
 
-        <datalist id="rankList">
-            <option th:each="rank : ${rankOptions}"
-                    th:value="${rank}">
-            </option>
-        </datalist>
+            <dt>Runden</dt>
+            <dd th:text="${tournament.numberOfRounds}">Anzahl der Runden</dd>
+        </dl>
+    </section>
 
-        <div th:if="${#fields.hasErrors('rank')}" th:errors="*{rank}"></div>
-    </div>
+    <section class="card">
+        <h2>Teilnahmedaten</h2>
+        <p class="page-subtitle">
+            Bitte fülle die folgenden Angaben aus, um dich für das Turnier anzumelden.
+        </p>
+        <p class="form-hint">
+            <span class="required-mark">*</span> Pflichtfeld
+        </p>
 
-    <div>
-        <label for="birthDate">Geburtsdatum:</label>
-        <input type="date" id="birthDate" th:field="*{birthDate}">
-        <div th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></div>
-    </div>
+        <form th:action="@{/public/tournaments/{id}/register(id=${tournament.id})}"
+              th:object="${selfRegistrationForm}"
+              method="post"
+              class="form-grid form-grid-wide">
 
-    <div>
-        <label for="plannedRounds">Wie viele Runden spielst du mit?</label>
-        <input type="number" id="plannedRounds" th:field="*{plannedRounds}" min="1">
-        <div th:if="${#fields.hasErrors('plannedRounds')}" th:errors="*{plannedRounds}"></div>
-    </div>
+            <div th:if="${#fields.hasGlobalErrors()}" class="flash-error">
+                <p th:each="err : ${#fields.globalErrors()}"
+                   th:text="${err}">
+                </p>
+            </div>
 
-    <div>
-        <label for="notes">Notizen:</label>
-        <textarea id="notes" th:field="*{notes}"></textarea>
-    </div>
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="firstName">Vorname <span class="required-mark">*</span></label>
+                    <input type="text"
+                           id="firstName"
+                           th:field="*{firstName}"
+                           autocomplete="given-name"
+                           required>
 
-    <div>
-        <button type="submit">Anmeldung absenden</button>
-    </div>
-</form>
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('firstName')}"
+                         th:errors="*{firstName}">
+                    </div>
+                </div>
 
-<p>
-    <a th:href="@{/public/tournaments/{id}(id=${tournament.id})}">Zurück zur Turnierseite</a>
-</p>
+                <div class="form-row">
+                    <label for="lastName">Nachname <span class="required-mark">*</span></label>
+                    <input type="text"
+                           id="lastName"
+                           th:field="*{lastName}"
+                           autocomplete="family-name"
+                           required>
+
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('lastName')}"
+                         th:errors="*{lastName}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="email">E-Mail <span class="required-mark">*</span></label>
+                <input type="email"
+                       id="email"
+                       th:field="*{email}"
+                       autocomplete="email"
+                       required>
+
+                <div class="field-error"
+                     th:if="${#fields.hasErrors('email')}"
+                     th:errors="*{email}">
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="birthDate">Geburtsdatum</label>
+                    <input type="date"
+                           id="birthDate"
+                           th:field="*{birthDate}">
+
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('birthDate')}"
+                         th:errors="*{birthDate}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label for="rank">Rang <span class="required-mark">*</span></label>
+                    <select id="rank" th:field="*{rank}" required>
+                        <option value="">Bitte wählen</option>
+                        <option th:each="rank : ${rankOptions}"
+                                th:value="${rank}"
+                                th:text="${rank}">
+                        </option>
+                    </select>
+
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('rank')}"
+                         th:errors="*{rank}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="country">Land</label>
+                    <select id="country" th:field="*{country}">
+                        <option value="">Bitte wählen</option>
+                        <option th:each="country : ${countryOptions}"
+                                th:value="${country.code}"
+                                th:text="${country.name}">
+                        </option>
+                    </select>
+
+                    <small class="form-hint">
+                        Optional. Erst nach Auswahl eines Landes kann ein Verein gewählt werden.
+                    </small>
+
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('country')}"
+                         th:errors="*{country}">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <label for="club">Verein</label>
+                    <select id="club" th:field="*{club}" disabled>
+                        <option value="">Bitte zuerst Land wählen</option>
+                    </select>
+                    <small class="form-hint">
+                        Optional. Ohne Land bleibt dieses Feld deaktiviert.
+                    </small>
+
+                    <div class="field-error"
+                         th:if="${#fields.hasErrors('club')}"
+                         th:errors="*{club}">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label>Ausgewählte Runden <span class="required-mark">*</span></label>
+
+                <p class="table-note">
+                    Wähle die Runden aus, an denen du teilnehmen möchtest.
+                </p>
+
+                <div class="round-selection-grid"
+                     th:if="${availableRounds != null and !#lists.isEmpty(availableRounds)}">
+                    <div class="round-checkbox"
+                         th:each="round : ${availableRounds}">
+                        <input type="checkbox"
+                               th:field="*{selectedRounds}"
+                               th:value="${round}"
+                               th:id="'selectedRound-' + ${round}">
+                        <label th:for="'selectedRound-' + ${round}">
+                            <span th:text="|Runde ${round}|">Runde 1</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="field-error"
+                     th:if="${#fields.hasErrors('selectedRounds')}"
+                     th:errors="*{selectedRounds}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="notes">Notizen</label>
+                <textarea id="notes"
+                          th:field="*{notes}"
+                          placeholder="Optionale Hinweise, z. B. spätere Anreise oder besondere organisatorische Hinweise."></textarea>
+            </div>
+
+            <div class="actions">
+                <button type="submit">
+                    Anmeldung absenden
+                </button>
+
+                <a class="btn btn-secondary"
+                   th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+                    Abbrechen
+                </a>
+            </div>
+        </form>
+    </section>
+
+</main>
 
 <script th:inline="javascript">
     const clubsByCountry = /*[[${clubsByCountry}]]*/ {};
+    let selectedClub = /*[[${selfRegistrationForm.club}]]*/ "";
 
     const countrySelect = document.getElementById("country");
-    const clubInput = document.getElementById("club");
-    const clubList = document.getElementById("clubList");
+    const clubSelect = document.getElementById("club");
+
+    function clearClubSelection() {
+        selectedClub = "";
+        clubSelect.value = "";
+    }
 
     function updateClubOptions(clearInvalidClub) {
         const selectedCountry = countrySelect.value;
         const clubs = clubsByCountry[selectedCountry] || [];
+        const currentClub = (selectedClub || "").trim().toLowerCase();
 
-        clubList.innerHTML = "";
+        clubSelect.innerHTML = "";
+
+        const defaultOption = document.createElement("option");
+        defaultOption.value = "";
+
+        if (!selectedCountry) {
+            clearClubSelection();
+            defaultOption.textContent = "Bitte zuerst Land wählen";
+            clubSelect.appendChild(defaultOption);
+            clubSelect.disabled = true;
+            return;
+        }
+
+        if (clubs.length === 0) {
+            clearClubSelection();
+            defaultOption.textContent = "Für dieses Land sind keine Vereine hinterlegt";
+            clubSelect.appendChild(defaultOption);
+            clubSelect.disabled = true;
+            return;
+        }
+
+        defaultOption.textContent = "Bitte wählen";
+        clubSelect.appendChild(defaultOption);
+
+        let currentClubStillValid = false;
 
         clubs.forEach(function (club) {
             const option = document.createElement("option");
             option.value = club;
-            clubList.appendChild(option);
+            option.textContent = club;
+
+            if (currentClub && club.trim().toLowerCase() === currentClub) {
+                option.selected = true;
+                currentClubStillValid = true;
+            }
+
+            clubSelect.appendChild(option);
         });
 
-        const currentClub = clubInput.value.trim();
-
-        if (clearInvalidClub && currentClub !== "") {
-            const isStillValid = clubs.some(function (club) {
-                return club.toLowerCase() === currentClub.toLowerCase();
-            });
-
-            if (!isStillValid) {
-                clubInput.value = "";
-            }
+        if (clearInvalidClub && !currentClubStillValid) {
+            clearClubSelection();
         }
 
-        if (!selectedCountry) {
-            clubInput.disabled = true;
-            clubInput.placeholder = "Bitte zuerst Land wählen";
-        } else if (clubs.length === 0) {
-            clubInput.disabled = true;
-            clubInput.placeholder = "Für dieses Land sind keine Vereine hinterlegt";
-        } else {
-            clubInput.disabled = false;
-            clubInput.placeholder = "Verein auswählen";
-        }
+        clubSelect.disabled = false;
     }
 
     document.addEventListener("DOMContentLoaded", function () {
         updateClubOptions(false);
 
         countrySelect.addEventListener("change", function () {
+            clearClubSelection();
             updateClubOptions(true);
+        });
+
+        clubSelect.addEventListener("change", function () {
+            selectedClub = clubSelect.value;
         });
     });
 </script>

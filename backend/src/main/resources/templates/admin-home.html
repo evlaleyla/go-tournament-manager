@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="de" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Organisationsbereich</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<div th:replace="~{fragments/header :: adminHeader}"></div>
+
+<main class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Organisationsbereich</h1>
+            <p class="page-subtitle">
+                Verwaltung von Turnieren, Teilnehmenden, Anmeldungen, Startlisten und Paarungen.
+            </p>
+        </div>
+    </div>
+
+    <div class="grid grid-2">
+
+        <section class="card">
+            <h2>Turniere</h2>
+            <p class="page-subtitle">
+                Turniere anlegen, bearbeiten und zentrale Turnierfunktionen öffnen.
+            </p>
+            <div class="actions">
+                <a class="btn" th:href="@{/tournaments}">Turniere verwalten</a>
+                <a class="btn btn-secondary" th:href="@{/tournaments/new}">Neues Turnier</a>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Teilnehmende</h2>
+            <p class="page-subtitle">
+                Teilnehmende zentral erfassen und bearbeiten.
+            </p>
+            <div class="actions">
+                <a class="btn" th:href="@{/participants}">Teilnehmende verwalten</a>
+                <a class="btn btn-secondary" th:href="@{/participants/new}">Teilnehmende Person anlegen</a>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Anmeldungen</h2>
+            <p class="page-subtitle">
+                Turnieranmeldungen prüfen, filtern und verwalten.
+            </p>
+            <div class="actions">
+                <a class="btn" th:href="@{/registrations}">Anmeldungen anzeigen</a>
+                <a class="btn btn-secondary" th:href="@{/registrations/new}">Neue Anmeldung</a>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>Öffentliche Ansicht</h2>
+            <p class="page-subtitle">
+                Prüfen, wie Turniere für Teilnehmende sichtbar sind.
+            </p>
+            <div class="actions">
+                <a class="btn" th:href="@{/public/tournaments}">Öffentliche Turniere</a>
+            </div>
+        </section>
+
+    </div>
+
+</main>
+
+</body>
+</html>

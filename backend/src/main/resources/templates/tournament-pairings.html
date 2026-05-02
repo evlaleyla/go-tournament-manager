@@ -3,95 +3,316 @@
 <head>
     <meta charset="UTF-8">
     <title>Paarungen</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Paarungen und Ergebnisse</h1>
 
-<h2 th:text="${tournament.name}"></h2>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<div th:if="${successMessage}">
-    <p th:text="${successMessage}"></p>
-</div>
+<main class="container">
 
-<div th:if="${errorMessage}">
-    <p th:text="${errorMessage}"></p>
-</div>
+    <div class="page-header no-print">
+        <div>
+            <h1>Paarungen und Ergebnisse</h1>
+            <p class="page-subtitle" th:text="${tournament.name}">
+                Turniername
+            </p>
+        </div>
 
-<h3>MacMahon-Schnittstelle</h3>
+        <div class="actions">
+            <a class="btn btn-secondary"
+               th:href="@{/tournaments/{id}(id=${tournament.id})}">
+                Zurück zum Turnier
+            </a>
 
-<p>Hier können aus dem MacMahon-Programm exportierte Pairing-Dateien importiert werden.</p>
-
-<form th:action="@{/tournaments/{id}/pairings/import-macmahon(id=${tournament.id})}"
-      method="post"
-      enctype="multipart/form-data">
-
-    <div>
-        <label for="roundNumber">Runde:</label>
-        <select id="roundNumber" name="roundNumber">
-            <option th:each="round : ${availableRounds}"
-                    th:value="${round}"
-                    th:text="${round}">
-            </option>
-        </select>
+            <a class="btn btn-secondary"
+               th:href="@{/public/tournaments/{id}/pairings(id=${tournament.id})}">
+                Öffentliche Ansicht prüfen
+            </a>
+        </div>
     </div>
 
-    <div>
-        <input type="file" name="file">
-        <button type="submit">MacMahon-Pairing-Export importieren</button>
+    <div th:if="${successMessage}"
+         class="flash-success no-print"
+         th:text="${successMessage}">
     </div>
-</form>
 
-<p>
-    <a th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
-        MacMahon-Wall-List importieren und anzeigen
-    </a>
-</p>
+    <div th:if="${errorMessage}"
+         class="flash-error no-print"
+         th:text="${errorMessage}">
+    </div>
 
-<div th:each="round : ${availableRounds}"
-     th:with="roundPairings=${pairingsByRound.get(round)}">
-
-    <details th:attr="id='round-' + ${round}" th:open="${round == 1}">
-        <summary>
-            <strong>Runde <span th:text="${round}"></span></strong>
-        </summary>
-
-        <table border="1">
-            <thead>
-            <tr>
-                <th>Tisch</th>
-                <th>Schwarz</th>
-                <th>Weiß</th>
-                <th>Ergebnis</th>
-                <th>Vorgabe</th>
-                <th>Freilos</th>
-                <th>Aktion</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr th:each="pairing : ${roundPairings}">
-                <td th:text="${pairing.tableNumber}"></td>
-                <td th:text="${pairing.blackPlayer}"></td>
-                <td th:text="${pairing.whitePlayer}"></td>
-                <td th:text="${pairing.resultDisplay}"></td>
-                <td th:text="${pairing.handicapDisplay}"></td>
-                <td th:text="${pairing.byeDisplay}"></td>
-                <td>
-                    <a th:href="@{/pairings/{id}/result(id=${pairing.id})}">Ergebnis bearbeiten</a>
-                </td>
-            </tr>
-            </tbody>
-        </table>
-
-        <p th:if="${#lists.isEmpty(roundPairings)}">
-            Für diese Runde wurden noch keine Paarungen importiert.
+    <section class="card no-print">
+        <h2>MacMahon-Schnittstelle</h2>
+        <p class="page-subtitle">
+            Hier können aus MacMahon exportierte Paarungsdateien für einzelne Runden importiert werden.
+            Die Paarungen werden in MacMahon erzeugt und anschließend in diese Anwendung übernommen.
+            Nach dem Import sind sie zunächst nur intern sichtbar und müssen pro Runde separat veröffentlicht werden.
         </p>
-    </details>
 
-    <hr>
-</div>
+        <p class="form-hint no-print">
+            <span class="required-mark">*</span> Pflichtfeld
+        </p>
 
-<p>
-    <a th:href="@{/tournaments/{id}(id=${tournament.id})}">Zurück zu den Turnierdetails</a>
-</p>
+        <form th:action="@{/tournaments/{id}/pairings/import-macmahon(id=${tournament.id})}"
+              method="post"
+              enctype="multipart/form-data"
+              class="form-grid">
+
+            <div class="form-row">
+                <label for="roundNumber">Runde <span class="required-mark">*</span></label>
+                <select id="roundNumber" name="roundNumber" required>
+                    <option value="">Bitte wählen</option>
+                    <option th:each="round : ${availableRounds}"
+                            th:value="${round}"
+                            th:text="${round}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <label for="file">MacMahon-Paarungsdatei <span class="required-mark">*</span></label>
+                <input id="file" type="file" name="file" required>
+            </div>
+
+            <div class="actions">
+                <button type="submit">Paarungsdatei importieren</button>
+
+                <a class="btn btn-secondary"
+                   th:href="@{/tournaments/{id}/walllist(id=${tournament.id})}">
+                    Rangliste aus MacMahon importieren
+                </a>
+            </div>
+        </form>
+    </section>
+
+    <section class="card no-print">
+        <h2>Rundenübersicht</h2>
+        <p class="page-subtitle">
+            Zwischen den Runden springen oder eine einzelne Runde als Aushang drucken.
+        </p>
+
+        <div class="round-tools">
+            <div class="round-links">
+                <a class="btn btn-secondary"
+                   th:each="round : ${availableRounds}"
+                   th:href="'#round-' + ${round}"
+                   th:text="|Runde ${round}|">
+                    Runde
+                </a>
+            </div>
+
+            <div class="print-round-controls">
+                <div class="form-row print-round-field">
+                    <label for="printRoundSelect">Runde für den Druck</label>
+                    <select id="printRoundSelect">
+                        <option value="">Bitte wählen</option>
+                        <option th:each="round : ${availableRounds}"
+                                th:value="${round}"
+                                th:text="|Runde ${round}|">
+                            Runde
+                        </option>
+                    </select>
+                </div>
+
+                <button type="button" onclick="printSelectedRound()">
+                    Ausgewählte Runde drucken
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div class="print-area">
+
+        <h1 class="print-only print-area-title">
+            Paarungen und Ergebnisse -
+            <span th:text="${tournament.name}">Turniername</span>
+        </h1>
+
+        <h2 class="print-only" id="printRoundTitle"></h2>
+
+        <section th:each="round : ${availableRounds}"
+                 th:with="roundPairings=${pairingsByRound.get(round)}"
+                 class="card round-print-section"
+                 th:classappend="${#lists.isEmpty(roundPairings)} ? ' print-hide-empty' : ''"
+                 th:id="|round-${round}|"
+                 th:attr="data-round=${round}">
+
+            <h2>
+                Runde
+                <span th:text="${round}"></span>
+            </h2>
+
+            <div class="actions no-print" th:if="${!#lists.isEmpty(roundPairings)}">
+    <span class="badge"
+          th:classappend="${publishedRounds.contains(round)} ? ' badge-success' : ' badge-open'"
+          th:text="${publishedRounds.contains(round)} ? 'Veröffentlicht' : 'Noch nicht veröffentlicht'">
+        Status
+    </span>
+
+                <form th:if="${!publishedRounds.contains(round)}"
+                      th:action="@{/tournaments/{tournamentId}/pairings/{roundNumber}/publish(tournamentId=${tournament.id}, roundNumber=${round})}"
+                      method="post">
+                    <button type="submit">Runde veröffentlichen</button>
+                </form>
+
+                <form th:if="${publishedRounds.contains(round)}"
+                      th:action="@{/tournaments/{tournamentId}/pairings/{roundNumber}/unpublish(tournamentId=${tournament.id}, roundNumber=${round})}"
+                      method="post">
+                    <button type="submit" class="btn btn-secondary">
+                        Veröffentlichung zurücknehmen
+                    </button>
+                </form>
+            </div>
+
+            <table th:if="${!#lists.isEmpty(roundPairings)}">
+                <thead>
+                <tr>
+                    <th>Tisch</th>
+                    <th>Schwarz</th>
+                    <th>Weiß</th>
+                    <th>Ergebnis</th>
+                    <th>Vorgabe</th>
+                    <th>Freilos</th>
+                </tr>
+                </thead>
+
+                <tbody>
+                <tr th:each="pairing : ${roundPairings}">
+                    <td th:text="${pairing.tableNumber}"></td>
+                    <td th:text="${pairing.blackPlayer}"></td>
+                    <td th:text="${pairing.whitePlayer}"></td>
+
+                    <td>
+                        <form th:action="@{/pairings/{id}/result(id=${pairing.id})}"
+                              method="post"
+                              class="inline-result-form no-print">
+
+                            <select name="resultOption"
+                                    th:id="'resultOption-' + ${pairing.id}">
+                                <option value=""
+                                        th:selected="${pairing.result == null or #strings.isEmpty(pairing.result)}">
+                                    Offen
+                                </option>
+
+                                <option value="BLACK_WINS"
+                                        th:selected="${pairing.result == 'B'}">
+                                    Schwarz gewinnt
+                                </option>
+
+                                <option value="WHITE_WINS"
+                                        th:selected="${pairing.result == 'W'}">
+                                    Weiß gewinnt
+                                </option>
+
+                                <option value="JIGO"
+                                        th:selected="${pairing.result == 'J'}">
+                                    Jigo
+                                </option>
+
+                                <option value="BOTH_LOSE"
+                                        th:selected="${pairing.result == 'L'}">
+                                    Beide verlieren
+                                </option>
+
+                                <option value="BOTH_WIN"
+                                        th:selected="${pairing.result == 'D'}">
+                                    Beide gewinnen
+                                </option>
+                            </select>
+
+                            <button type="submit" class="btn btn-secondary">
+                                Speichern
+                            </button>
+                        </form>
+
+                        <span class="print-only"
+                              th:text="${pairing.resultDisplay}">
+                            Ergebnis
+                        </span>
+                    </td>
+
+                    <td th:text="${pairing.handicapDisplay}"></td>
+                    <td th:text="${pairing.byeDisplay}"></td>
+                </tr>
+                </tbody>
+            </table>
+
+            <div th:if="${#lists.isEmpty(roundPairings)}"
+                 class="empty-state no-print">
+                Für diese Runde wurden noch keine Paarungen importiert.
+            </div>
+        </section>
+
+    </div>
+
+</main>
+
+<script>
+    const printRoundSelect = document.getElementById("printRoundSelect");
+    const printRoundTitle = document.getElementById("printRoundTitle");
+
+    function clearRoundPrintState() {
+        document.body.classList.remove("print-single-round");
+
+        document.querySelectorAll(".round-print-section").forEach(function (section) {
+            section.classList.remove("print-target");
+            section.classList.remove("print-hidden-round");
+        });
+
+        if (printRoundTitle) {
+            printRoundTitle.textContent = "";
+        }
+    }
+
+    function printSelectedRound() {
+        const round = printRoundSelect.value;
+
+        if (!round) {
+            alert("Bitte zuerst eine Runde auswählen.");
+            return;
+        }
+
+        clearRoundPrintState();
+
+        const sections = document.querySelectorAll(".round-print-section");
+        const target = document.querySelector('.round-print-section[data-round="' + round + '"]');
+
+        if (!target) {
+            alert("Die ausgewählte Runde konnte nicht gefunden werden.");
+            return;
+        }
+
+        if (!target.querySelector("table")) {
+            alert("Für diese Runde wurden noch keine Paarungen importiert.");
+            return;
+        }
+
+        sections.forEach(function (section) {
+            if (section === target) {
+                section.classList.add("print-target");
+            } else {
+                section.classList.add("print-hidden-round");
+            }
+        });
+
+        document.body.classList.add("print-single-round");
+
+        if (printRoundTitle) {
+            printRoundTitle.textContent = "Runde " + round;
+        }
+
+        void document.body.offsetHeight;
+
+        setTimeout(function () {
+            window.print();
+        }, 80);
+    }
+
+    window.addEventListener("afterprint", function () {
+        clearRoundPrintState();
+    });
+</script>
+
 </body>
 </html>

@@ -3,35 +3,64 @@
 <head>
     <meta charset="UTF-8">
     <title>Öffentliche Turnierübersicht</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Öffentliche Turnierübersicht</h1>
 
-<table border="1">
-    <thead>
-    <tr>
-        <th>Name</th>
-        <th>Ort</th>
-        <th>Startdatum</th>
-        <th>Enddatum</th>
-        <th>Anmeldefrist</th>
-        <th>Status</th>
-        <th>Aktion</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="tournament : ${tournaments}">
-        <td th:text="${tournament.name}"></td>
-        <td th:text="${tournament.location}"></td>
-        <td th:text="${tournament.startDate}"></td>
-        <td th:text="${tournament.endDate}"></td>
-        <td th:text="${tournament.registrationDeadline}"></td>
-        <td th:text="${tournament.status.displayName}"></td>
-        <td>
-            <a th:href="@{/public/tournaments/{id}(id=${tournament.id})}">Details</a>
-        </td>
-    </tr>
-    </tbody>
-</table>
+<div th:replace="~{fragments/header :: publicHeader}"></div>
+
+<main class="container">
+
+    <div class="page-header">
+        <div>
+            <h1>Öffentliche Turnierübersicht</h1>
+            <p class="page-subtitle">
+                Turniere ansehen, Informationen abrufen und bei geöffneter Anmeldung teilnehmen.
+            </p>
+        </div>
+    </div>
+
+    <section class="card">
+        <h2>Turniere</h2>
+
+        <table th:if="${!#lists.isEmpty(tournaments)}">
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Ort</th>
+                <th>Startdatum</th>
+                <th>Enddatum</th>
+                <th>Anmeldefrist</th>
+                <th>Status</th>
+                <th>Aktion</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="tournament : ${tournaments}">
+                <td th:text="${tournament.name}"></td>
+                <td th:text="${tournament.location}"></td>
+                <td th:text="${tournament.startDate}"></td>
+                <td th:text="${tournament.endDate}"></td>
+                <td th:text="${tournament.registrationDeadline}"></td>
+                <td>
+                    <span class="badge" th:text="${tournament.status.displayName}"></span>
+                </td>
+                <td>
+                    <a class="btn btn-secondary"
+                       th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
+                        Details
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${#lists.isEmpty(tournaments)}" class="empty-state">
+            Es sind derzeit keine Turniere veröffentlicht.
+        </div>
+    </section>
+
+</main>
+
 </body>
 </html>

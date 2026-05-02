@@ -2,7 +2,7 @@
 <html lang="de" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Paarungen und Ergebnisse</title>
+    <title>Aktuelle Rangliste</title>
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
@@ -13,7 +13,7 @@
 
     <div class="page-header">
         <div>
-            <h1>Paarungen und Ergebnisse</h1>
+            <h1>Aktuelle Rangliste</h1>
             <p class="page-subtitle" th:text="${tournament.name}">
                 Turniername
             </p>
@@ -49,49 +49,49 @@
         </dl>
     </section>
 
-    <section th:each="round : ${availableRounds}"
-             th:with="roundPairings=${pairingsByRound.get(round)}"
-             class="card"
-             th:id="|round-${round}|">
+    <section class="card">
+        <h2>Aktueller Ranglistenstand</h2>
 
-        <h2>
-            Runde
-            <span th:text="${round}">1</span>
-        </h2>
+        <p class="page-subtitle">
+            Angezeigt wird die zuletzt importierte Rangliste.
+        </p>
 
-        <table th:if="${!#lists.isEmpty(roundPairings)}">
+        <table th:if="${!#lists.isEmpty(wallListEntries)}">
             <thead>
             <tr>
-                <th>Tisch</th>
-                <th>Schwarz</th>
-                <th>Weiß</th>
-                <th>Ergebnis</th>
-                <th>Vorgabe</th>
-                <th>Freilos</th>
+                <th>Platz</th>
+                <th>Name</th>
+                <th>Club</th>
+                <th>Level</th>
+                <th>Score</th>
+                <th th:each="i : ${#numbers.sequence(1, roundColumnCount)}"
+                    th:text="'Runde ' + ${i}">
+                </th>
+                <th>Punkte</th>
+                <th>ScoreX</th>
+                <th>SOS</th>
+                <th>SOSOS</th>
             </tr>
             </thead>
-
             <tbody>
-            <tr th:each="pairing : ${roundPairings}">
-                <td th:text="${pairing.tableNumber}">1</td>
-                <td th:text="${pairing.blackPlayer}">Schwarz</td>
-                <td th:text="${pairing.whitePlayer}">Weiß</td>
-                <td>
-                    <span class="badge" th:text="${pairing.resultDisplay}">
-                        offen
-                    </span>
-                </td>
-                <td th:text="${pairing.handicapDisplay}">-</td>
-                <td th:text="${pairing.byeDisplay}">Nein</td>
+            <tr th:each="entry : ${wallListEntries}">
+                <td th:text="${entry.place}"></td>
+                <td th:text="${entry.name}"></td>
+                <td th:text="${entry.club}"></td>
+                <td th:text="${entry.level}"></td>
+                <td th:text="${entry.score}"></td>
+                <td th:each="status : ${entry.roundStatuses}" th:text="${status}"></td>
+                <td th:text="${entry.points}"></td>
+                <td th:text="${entry.scoreX}"></td>
+                <td th:text="${entry.sos}"></td>
+                <td th:text="${entry.sosos}"></td>
             </tr>
             </tbody>
         </table>
 
-        <div th:if="${#lists.isEmpty(roundPairings)}"
-             class="empty-state">
-            Für diese Runde liegen derzeit noch keine veröffentlichten Paarungen vor.
+        <div th:if="${#lists.isEmpty(wallListEntries)}" class="empty-state">
+            Für dieses Turnier wurde noch keine aktuelle Rangliste veröffentlicht.
         </div>
-
     </section>
 
     <div class="actions">

@@ -3,67 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <title>Anmeldungen</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<h1>Anmeldungen</h1>
 
-<div th:if="${successMessage}">
-    <p th:text="${successMessage}"></p>
-</div>
+<div th:replace="~{fragments/header :: adminHeader}"></div>
 
-<p>
-    <a href="/registrations/new">Neue Anmeldung anlegen</a>
-</p>
+<main class="container">
 
-<form th:action="@{/registrations}" method="get">
-    <div>
-        <label for="tournamentId">Nach Turnier filtern:</label>
-        <select id="tournamentId" name="tournamentId">
-            <option value="">Alle</option>
-            <option th:each="tournament : ${tournaments}"
-                    th:value="${tournament.id}"
-                    th:text="${tournament.name}"
-                    th:selected="${selectedTournamentId != null and selectedTournamentId == tournament.id}">
-            </option>
-        </select>
-        <button type="submit">Filtern</button>
-        <a href="/registrations">Zurücksetzen</a>
+    <div class="page-header">
+        <div>
+            <h1>Anmeldungen</h1>
+            <p class="page-subtitle">
+                Turnieranmeldungen anzeigen und filtern.
+            </p>
+        </div>
+
+        <div class="actions">
+            <a class="btn" th:href="@{/registrations/new}">
+                Neue Anmeldung anlegen
+            </a>
+        </div>
     </div>
-</form>
 
-<table border="1">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Turnier</th>
-        <th>Teilnehmer</th>
-        <th>Anmeldedatum</th>
-        <th>Geplante Runden</th>
-        <th>Aktionen</th>
-        <th>Verein</th>
-        <th>Land</th>
-        <th>Rang</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="registration : ${registrations}">
-        <td th:text="${registration.id}"></td>
-        <td th:text="${registration.tournament.name}"></td>
-        <td th:text="${registration.participant.fullName}"></td>
-        <td th:text="${registration.registrationDate}"></td>
-        <td th:text="${registration.plannedRounds}"></td>
-        <td>
-            <a th:href="@{/registrations/{id}(id=${registration.id})}">Details</a>
-        </td>
-        <td th:text="${registration.clubAtRegistration}"></td>
-        <td th:text="${registration.countryAtRegistration}"></td>
-        <td th:text="${registration.rankAtRegistration}"></td>
-    </tr>
-    </tbody>
-</table>
+    <div class="role-hint role-hint-admin">
+        Die Anmeldungsübersicht enthält die vollständigen Turnieranmeldungen unabhängig von der ausgewählten Runde.
+    </div>
 
-<p>
-    <a href="/">Zur Startseite</a>
-</p>
+    <div th:if="${successMessage}" class="flash-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="flash-error" th:text="${errorMessage}"></div>
+
+    <section class="card">
+        <h2>Filter</h2>
+
+        <form th:action="@{/registrations}" method="get" class="form-grid">
+            <div class="form-row">
+                <label for="tournamentId">Nach Turnier filtern</label>
+                <select id="tournamentId" name="tournamentId">
+                    <option value="">Alle</option>
+                    <option th:each="tournament : ${tournaments}"
+                            th:value="${tournament.id}"
+                            th:text="${tournament.name}"
+                            th:selected="${selectedTournamentId != null and selectedTournamentId == tournament.id}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="actions">
+                <button type="submit">Filtern</button>
+                <a class="btn btn-secondary" th:href="@{/registrations}">Zurücksetzen</a>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
+        <h2>Anmeldungen</h2>
+
+        <table th:if="${!#lists.isEmpty(registrations)}">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Turnier</th>
+                <th>Teilnehmer</th>
+                <th>Anmeldedatum</th>
+                <th>Ausgewählte Runden</th>
+                <th>Verein</th>
+                <th>Land</th>
+                <th>Rang</th>
+                <th>Aktionen</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="registration : ${registrations}">
+                <td th:text="${registration.id}"></td>
+                <td th:text="${registration.tournament.name}"></td>
+                <td th:text="${registration.participant.fullName}"></td>
+                <td th:text="${registration.registrationDate}"></td>
+                <td th:text="${registration.selectedRoundsDisplayShort}"></td>
+                <td th:text="${registration.clubAtRegistration}"></td>
+                <td th:text="${registration.countryAtRegistration}"></td>
+                <td th:text="${registration.rankAtRegistration}"></td>
+                <td>
+                    <a class="btn btn-secondary"
+                       th:href="@{/registrations/{id}(id=${registration.id})}">
+                        Details
+                    </a>
+
+                    <a class="btn btn-secondary"
+                       th:href="@{/registrations/{id}/edit(id=${registration.id})}">
+                        Bearbeiten
+                    </a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div th:if="${#lists.isEmpty(registrations)}" class="empty-state">
+            Es liegen keine Anmeldungen vor.
+        </div>
+    </section>
+
+</main>
+
 </body>
 </html>
