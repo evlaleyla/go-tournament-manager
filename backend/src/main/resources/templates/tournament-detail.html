@@ -55,15 +55,15 @@
     <div class="overview-card">
       <span class="overview-label">Zeitraum</span>
       <strong>
-        <span th:text="${tournament.startDate}">2026-04-27</span>
+        <span th:text="${tournament.startDate != null ? #temporals.format(tournament.startDate, 'dd.MM.yyyy') : '-'}">27.04.2026</span>
         –
-        <span th:text="${tournament.endDate}">2026-04-29</span>
+        <span th:text="${tournament.endDate != null ? #temporals.format(tournament.endDate, 'dd.MM.yyyy') : '-'}">29.04.2026</span>
       </strong>
     </div>
 
     <div class="overview-card">
       <span class="overview-label">Anmeldefrist</span>
-      <strong th:text="${tournament.registrationDeadline}">2026-04-26</strong>
+      <strong th:text="${tournament.registrationDeadline != null ? #temporals.format(tournament.registrationDeadline, 'dd.MM.yyyy') : '-'}">26.04.2026</strong>
     </div>
 
     <div class="overview-card">

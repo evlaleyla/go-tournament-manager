@@ -21,6 +21,70 @@
     </div>
 
     <section class="card">
+        <h2>Suche und Filter</h2>
+
+        <form th:action="@{/public/tournaments}" method="get" class="form-grid">
+
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="search">Suche nach Name</label>
+                    <input type="text"
+                           id="search"
+                           name="search"
+                           th:value="${search}"
+                           placeholder="Turniername eingeben">
+                </div>
+
+                <div class="form-row">
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option value="">Alle</option>
+                        <option th:each="statusOption : ${statuses}"
+                                th:value="${statusOption}"
+                                th:text="${statusOption.displayName}"
+                                th:selected="${selectedStatus != null and selectedStatus.name() == statusOption.name()}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="location">Ort</label>
+                    <input type="text"
+                           id="location"
+                           name="location"
+                           th:value="${location}"
+                           placeholder="z. B. Frankfurt">
+                </div>
+
+                <div class="form-row">
+                    <label for="startDateFrom">Startdatum ab</label>
+                    <input type="date"
+                           id="startDateFrom"
+                           name="startDateFrom"
+                           th:value="${startDateFrom}">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label for="startDateTo">Startdatum bis</label>
+                <input type="date"
+                       id="startDateTo"
+                       name="startDateTo"
+                       th:value="${startDateTo}">
+            </div>
+
+            <div class="actions">
+                <button type="submit">Filtern</button>
+                <a class="btn btn-secondary" th:href="@{/public/tournaments}">
+                    Zurücksetzen
+                </a>
+            </div>
+        </form>
+    </section>
+
+    <section class="card">
         <h2>Turniere</h2>
 
         <table th:if="${!#lists.isEmpty(tournaments)}">
@@ -39,9 +103,9 @@
             <tr th:each="tournament : ${tournaments}">
                 <td th:text="${tournament.name}"></td>
                 <td th:text="${tournament.location}"></td>
-                <td th:text="${tournament.startDate}"></td>
-                <td th:text="${tournament.endDate}"></td>
-                <td th:text="${tournament.registrationDeadline}"></td>
+                <td th:text="${tournament.startDate != null ? #temporals.format(tournament.startDate, 'dd.MM.yyyy') : '-'}"></td>
+                <td th:text="${tournament.endDate != null ? #temporals.format(tournament.endDate, 'dd.MM.yyyy') : '-'}"></td>
+                <td th:text="${tournament.registrationDeadline != null ? #temporals.format(tournament.registrationDeadline, 'dd.MM.yyyy') : '-'}"></td>
                 <td>
                     <span class="badge" th:text="${tournament.status.displayName}"></span>
                 </td>

@@ -5,6 +5,7 @@ import com.evlaleyla.gotournamentmanager.backend.registration.RegistrationServic
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -62,22 +63,45 @@ public class TournamentController {
     }
 
     /**
-     * Shows the tournament list in the admin area.
+     * Shows the tournament list in the admin area with optional search and filter criteria.
      *
      * @param search optional search term for tournament names
      * @param status optional tournament status filter
-     * @param model  Spring MVC model
+     * @param location optional location filter
+     * @param startDateFrom optional lower bound for the tournament start date
+     * @param startDateTo optional upper bound for the tournament start date
+     * @param model Spring MVC model
      * @return the tournament list view
      */
     @GetMapping("/tournaments")
     public String showTournaments(@RequestParam(required = false) String search,
                                   @RequestParam(required = false) TournamentStatus status,
+                                  @RequestParam(required = false) String location,
+                                  @RequestParam(required = false)
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate startDateFrom,
+                                  @RequestParam(required = false)
+                                  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) java.time.LocalDate startDateTo,
                                   Model model) {
-        log.debug("Showing tournament list with search='{}' and status={}", search, status);
 
-        model.addAttribute("tournaments", tournamentService.search(search, status));
+        log.debug(
+                "Showing tournament list with search='{}', status={}, location='{}', startDateFrom={}, startDateTo={}",
+                search,
+                status,
+                location,
+                startDateFrom,
+                startDateTo
+        );
+
+        model.addAttribute(
+                "tournaments",
+                tournamentService.search(search, status, location, startDateFrom, startDateTo)
+        );
+
         model.addAttribute("search", search);
         model.addAttribute("selectedStatus", status);
+        model.addAttribute("location", location);
+        model.addAttribute("startDateFrom", startDateFrom);
+        model.addAttribute("startDateTo", startDateTo);
         model.addAttribute("statuses", TournamentStatus.values());
         model.addAttribute("tournamentNames", tournamentService.findDistinctNames());
 
@@ -255,20 +279,6 @@ public class TournamentController {
     }
 
     /**
-     * Shows the public list of all tournaments.
-     *
-     * @param model Spring MVC model
-     * @return the public tournament list view
-     */
-    @GetMapping("/public/tournaments")
-    public String showPublicTournaments(Model model) {
-        log.debug("Showing public tournament list.");
-
-        model.addAttribute("tournaments", tournamentService.findAll());
-        return PUBLIC_TOURNAMENT_LIST_VIEW;
-    }
-
-    /**
      * Shows the admin start list for a selected round.
      *
      * @param id    tournament id
@@ -311,6 +321,48 @@ public class TournamentController {
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
                 .contentType(MediaType.parseMediaType("text/plain;charset=UTF-8"))
                 .body(content);
+    }
+
+    /**
+     * Shows the public tournament list with optional search and filter criteria.
+     *
+     * @param search optional search term for tournament names
+     * @param status optional tournament status filter
+     * @param location optional location filter
+     * @param startDateFrom optional lower bound for the tournament start date
+     * @param startDateTo optional upper bound for the tournament start date
+     * @param model Spring MVC model
+     * @return the public tournament list view
+     */
+    @GetMapping("/public/tournaments")
+    public String showPublicTournaments(@RequestParam(required = false) String search,
+                                        @RequestParam(required = false) TournamentStatus status,
+                                        @RequestParam(required = false) String location,
+                                        @RequestParam(required = false)
+                                        @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+                                        java.time.LocalDate startDateFrom,
+                                        @RequestParam(required = false)
+                                        @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
+                                        java.time.LocalDate startDateTo,
+                                        Model model) {
+        log.debug(
+                "Showing public tournament list with search='{}', status={}, location='{}', startDateFrom={}, startDateTo={}",
+                search, status, location, startDateFrom, startDateTo
+        );
+
+        model.addAttribute(
+                "tournaments",
+                tournamentService.searchPublic(search, status, location, startDateFrom, startDateTo)
+        );
+
+        model.addAttribute("search", search);
+        model.addAttribute("selectedStatus", status);
+        model.addAttribute("location", location);
+        model.addAttribute("startDateFrom", startDateFrom);
+        model.addAttribute("startDateTo", startDateTo);
+        model.addAttribute("statuses", TournamentStatus.values());
+
+        return PUBLIC_TOURNAMENT_LIST_VIEW;
     }
 
     /**

@@ -34,13 +34,13 @@
             <dd th:text="${tournament.location}"></dd>
 
             <dt>Startdatum</dt>
-            <dd th:text="${tournament.startDate}"></dd>
+            <dd th:text="${tournament.startDate != null ? #temporals.format(tournament.startDate, 'dd.MM.yyyy') : '-'}"></dd>
 
             <dt>Enddatum</dt>
-            <dd th:text="${tournament.endDate}"></dd>
+            <dd th:text="${tournament.endDate != null ? #temporals.format(tournament.endDate, 'dd.MM.yyyy') : '-'}"></dd>
 
             <dt>Anmeldefrist</dt>
-            <dd th:text="${tournament.registrationDeadline}"></dd>
+            <dd th:text="${tournament.registrationDeadline != null ? #temporals.format(tournament.registrationDeadline, 'dd.MM.yyyy') : '-'}"></dd>
 
             <dt>Anzahl der Runden</dt>
             <dd th:text="${tournament.numberOfRounds}"></dd>

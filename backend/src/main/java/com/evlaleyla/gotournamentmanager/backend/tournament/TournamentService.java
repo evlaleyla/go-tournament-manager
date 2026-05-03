@@ -123,33 +123,56 @@ public class TournamentService {
     }
 
     /**
-     * Searches tournaments by optional search term and/or status.
+     * Searches tournaments using optional search and filter criteria.
      *
      * @param search optional search term for the tournament name
      * @param status optional tournament status filter
+     * @param location optional location filter
+     * @param startDateFrom optional lower bound for the tournament start date
+     * @param startDateTo optional upper bound for the tournament start date
      * @return list of matching tournaments
      */
-    public List<Tournament> search(String search, TournamentStatus status) {
-        String normalizedSearch = search == null ? null : search.trim();
+    public List<Tournament> search(String search,
+                                   TournamentStatus status,
+                                   String location,
+                                   java.time.LocalDate startDateFrom,
+                                   java.time.LocalDate startDateTo) {
 
-        boolean hasSearch = normalizedSearch != null && !normalizedSearch.isBlank();
-        boolean hasStatus = status != null;
+        String normalizedSearch = normalizeSearch(search);
+        String normalizedLocation = normalizeSearch(location);
 
-        log.debug("Searching tournaments. search='{}', status={}", normalizedSearch, status);
+        log.debug(
+                "Searching tournaments. search='{}', status={}, location='{}', startDateFrom={}, startDateTo={}",
+                normalizedSearch,
+                status,
+                normalizedLocation,
+                startDateFrom,
+                startDateTo
+        );
 
-        if (hasSearch && hasStatus) {
-            return tournamentRepository.findByNameContainingIgnoreCaseAndStatus(normalizedSearch, status);
+        return tournamentRepository.search(
+                normalizedSearch,
+                status,
+                normalizedLocation,
+                startDateFrom,
+                startDateTo
+        );
+    }
+
+    /**
+     * Normalizes an optional search input value.
+     *
+     * <p>If the value is {@code null} or blank, {@code null} is returned.
+     * Otherwise, the trimmed value is returned unchanged.</p>
+     *
+     * @param value the raw search input
+     * @return the normalized search value or {@code null} if the input is blank
+     */
+    private String normalizeSearch(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
         }
-
-        if (hasSearch) {
-            return tournamentRepository.findByNameContainingIgnoreCase(normalizedSearch);
-        }
-
-        if (hasStatus) {
-            return tournamentRepository.findByStatus(status);
-        }
-
-        return tournamentRepository.findAll();
+        return value.trim();
     }
 
     /**
@@ -309,5 +332,60 @@ public class TournamentService {
 
         log.debug("Highest wall-list round count for tournament id={} is {}.", tournamentId, highestRound);
         return highestRound;
+    }
+
+    /**
+     * Searches tournaments for the public overview using optional filter criteria.
+     *
+     * <p>The search supports filtering by tournament name, status, location,
+     * and a start-date range. All filter parameters are optional. If a parameter
+     * is {@code null} or blank, it is ignored.</p>
+     *
+     * <p>The result is sorted by start date in ascending order. Tournaments without
+     * a start date are placed at the end of the result list.</p>
+     *
+     * @param search optional search term for the tournament name
+     * @param status optional tournament status filter
+     * @param location optional location filter
+     * @param startDateFrom optional lower bound for the tournament start date
+     * @param startDateTo optional upper bound for the tournament start date
+     * @return list of matching tournaments for the public overview
+     */
+    public List<Tournament> searchPublic(String search,
+                                         TournamentStatus status,
+                                         String location,
+                                         java.time.LocalDate startDateFrom,
+                                         java.time.LocalDate startDateTo) {
+
+        String normalizedSearch = search == null ? null : search.trim().toLowerCase();
+        String normalizedLocation = location == null ? null : location.trim().toLowerCase();
+
+        return tournamentRepository.findAll().stream()
+                .filter(tournament -> {
+                    if (normalizedSearch == null || normalizedSearch.isBlank()) {
+                        return true;
+                    }
+
+                    return tournament.getName() != null
+                            && tournament.getName().toLowerCase().contains(normalizedSearch);
+                })
+                .filter(tournament -> {
+                    if (normalizedLocation == null || normalizedLocation.isBlank()) {
+                        return true;
+                    }
+
+                    return tournament.getLocation() != null
+                            && tournament.getLocation().toLowerCase().contains(normalizedLocation);
+                })
+                .filter(tournament -> status == null || tournament.getStatus() == status)
+                .filter(tournament -> startDateFrom == null
+                        || (tournament.getStartDate() != null && !tournament.getStartDate().isBefore(startDateFrom)))
+                .filter(tournament -> startDateTo == null
+                        || (tournament.getStartDate() != null && !tournament.getStartDate().isAfter(startDateTo)))
+                .sorted(java.util.Comparator.comparing(
+                        Tournament::getStartDate,
+                        java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())
+                ))
+                .toList();
     }
 }

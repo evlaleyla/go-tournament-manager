@@ -78,7 +78,7 @@
                 <td th:text="${registration.id}"></td>
                 <td th:text="${registration.tournament.name}"></td>
                 <td th:text="${registration.participant.fullName}"></td>
-                <td th:text="${registration.registrationDate}"></td>
+                <td th:text="${registration.registrationDate != null ? #temporals.format(registration.registrationDate, 'dd.MM.yyyy') : '-'}"></td>
                 <td th:text="${registration.selectedRoundsDisplayShort}"></td>
                 <td th:text="${registration.clubAtRegistration}"></td>
                 <td th:text="${registration.countryAtRegistration}"></td>

@@ -2,7 +2,9 @@ package com.evlaleyla.gotournamentmanager.backend.tournament;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -50,4 +52,57 @@ public interface TournamentRepository extends JpaRepository<Tournament, Long> {
      */
     @Query("select distinct t.name from Tournament t order by t.name asc")
     List<String> findDistinctNames();
+
+    /**
+     * Searches tournaments using optional filter criteria.
+     *
+     * <p>Each parameter is optional. If a parameter is {@code null} or empty,
+     * it is ignored in the query.</p>
+     *
+     * @param search optional name search term
+     * @param status optional tournament status filter
+     * @param location optional location filter
+     * @param startDateFrom optional lower bound for the start date
+     * @param startDateTo optional upper bound for the start date
+     * @return list of matching tournaments ordered by start date and name
+     */
+    @Query("""
+            select t
+            from Tournament t
+            where
+                (
+                    :search is null
+                    or :search = ''
+                    or lower(t.name) like lower(concat('%', :search, '%'))
+                )
+            and
+                (
+                    :status is null
+                    or t.status = :status
+                )
+            and
+                (
+                    :location is null
+                    or :location = ''
+                    or lower(t.location) like lower(concat('%', :location, '%'))
+                )
+            and
+                (
+                    :startDateFrom is null
+                    or t.startDate >= :startDateFrom
+                )
+            and
+                (
+                    :startDateTo is null
+                    or t.startDate <= :startDateTo
+                )
+            order by t.startDate asc, t.name asc
+            """)
+    List<Tournament> search(
+            @Param("search") String search,
+            @Param("status") TournamentStatus status,
+            @Param("location") String location,
+            @Param("startDateFrom") LocalDate startDateFrom,
+            @Param("startDateTo") LocalDate startDateTo
+    );
 }

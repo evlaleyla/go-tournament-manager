@@ -43,7 +43,7 @@
       <dd th:text="${registration.participant.fullName}"></dd>
 
       <dt>Anmeldedatum</dt>
-      <dd th:text="${registration.registrationDate}"></dd>
+      <dd th:text="${registration.registrationDate != null ? #temporals.format(registration.registrationDate, 'dd.MM.yyyy') : '-'}"></dd>
 
       <dt>Ausgewählte Runden</dt>
       <dd th:text="${registration.selectedRoundsDisplayShort}"></dd>
