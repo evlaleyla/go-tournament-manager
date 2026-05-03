@@ -50,7 +50,7 @@
             <dd th:text="${participant.email}"></dd>
 
             <dt>Geburtsdatum</dt>
-            <dd th:text="${participant.birthDate}"></dd>
+            <dd th:text="${participant.birthDate != null ? #temporals.format(participant.birthDate, 'dd.MM.yyyy') : '-'}"></dd>
 
             <dt>Verein</dt>
             <dd th:text="${participant.club}"></dd>

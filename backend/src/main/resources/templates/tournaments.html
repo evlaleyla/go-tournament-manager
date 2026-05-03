@@ -33,30 +33,60 @@
         <h2>Suche und Filter</h2>
 
         <form th:action="@{/tournaments}" method="get" class="form-grid">
-            <div class="form-row">
-                <label for="search">Suche nach Name</label>
-                <input type="text"
-                       id="search"
-                       name="search"
-                       th:value="${search}"
-                       list="tournamentNameList"
-                       placeholder="Turniername eingeben">
 
-                <datalist id="tournamentNameList">
-                    <option th:each="name : ${tournamentNames}" th:value="${name}"></option>
-                </datalist>
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="search">Suche nach Name</label>
+                    <input type="text"
+                           id="search"
+                           name="search"
+                           th:value="${search}"
+                           list="tournamentNameList"
+                           placeholder="Turniername eingeben">
+
+                    <datalist id="tournamentNameList">
+                        <option th:each="name : ${tournamentNames}" th:value="${name}"></option>
+                    </datalist>
+                </div>
+
+                <div class="form-row">
+                    <label for="status">Status</label>
+                    <select id="status" name="status">
+                        <option value="">Alle</option>
+                        <option th:each="statusOption : ${statuses}"
+                                th:value="${statusOption}"
+                                th:text="${statusOption.displayName}"
+                                th:selected="${selectedStatus != null and selectedStatus.name() == statusOption.name()}">
+                        </option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="grid grid-2">
+                <div class="form-row">
+                    <label for="location">Ort</label>
+                    <input type="text"
+                           id="location"
+                           name="location"
+                           th:value="${location}"
+                           placeholder="z. B. Frankfurt">
+                </div>
+
+                <div class="form-row">
+                    <label for="startDateFrom">Startdatum ab</label>
+                    <input type="date"
+                           id="startDateFrom"
+                           name="startDateFrom"
+                           th:value="${startDateFrom}">
+                </div>
             </div>
 
             <div class="form-row">
-                <label for="status">Status</label>
-                <select id="status" name="status">
-                    <option value="">Alle</option>
-                    <option th:each="statusOption : ${statuses}"
-                            th:value="${statusOption}"
-                            th:text="${statusOption.displayName}"
-                            th:selected="${selectedStatus != null and selectedStatus.name() == statusOption.name()}">
-                    </option>
-                </select>
+                <label for="startDateTo">Startdatum bis</label>
+                <input type="date"
+                       id="startDateTo"
+                       name="startDateTo"
+                       th:value="${startDateTo}">
             </div>
 
             <div class="actions">
@@ -87,9 +117,9 @@
                 <td th:text="${tournament.id}"></td>
                 <td th:text="${tournament.name}"></td>
                 <td th:text="${tournament.location}"></td>
-                <td th:text="${tournament.startDate}"></td>
-                <td th:text="${tournament.endDate}"></td>
-                <td th:text="${tournament.registrationDeadline}"></td>
+                <td th:text="${tournament.startDate != null ? #temporals.format(tournament.startDate, 'dd.MM.yyyy') : '-'}"></td>
+                <td th:text="${tournament.endDate != null ? #temporals.format(tournament.endDate, 'dd.MM.yyyy') : '-'}"></td>
+                <td th:text="${tournament.registrationDeadline != null ? #temporals.format(tournament.registrationDeadline, 'dd.MM.yyyy') : '-'}"></td>
                 <td>
                     <span class="badge" th:text="${tournament.status.displayName}"></span>
                 </td>

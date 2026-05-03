@@ -125,7 +125,7 @@
                 <td th:text="${participant.lastName}"></td>
                 <td th:text="${participant.club}"></td>
                 <td th:text="${participant.countryDisplay}"></td>
-                <td th:text="${participant.birthDate}"></td>
+                <td th:text="${participant.birthDate != null ? #temporals.format(participant.birthDate, 'dd.MM.yyyy') : '-'}"></td>
                 <td th:text="${participant.rank}"></td>
                 <td>
                     <div class="actions">
