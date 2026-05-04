@@ -35,10 +35,14 @@
             <dd th:text="${tournament.location}">Ort</dd>
 
             <dt>Startdatum</dt>
-            <dd th:text="${tournament.startDate}">Startdatum</dd>
+            <dd th:text="${tournament.startDate != null ? #temporals.format(tournament.startDate, 'dd.MM.yyyy') : '-'}">
+                Startdatum
+            </dd>
 
             <dt>Enddatum</dt>
-            <dd th:text="${tournament.endDate}">Enddatum</dd>
+            <dd th:text="${tournament.endDate != null ? #temporals.format(tournament.endDate, 'dd.MM.yyyy') : '-'}">
+                Enddatum
+            </dd>
 
             <dt>Status</dt>
             <dd>
@@ -93,13 +97,6 @@
             Für dieses Turnier wurde noch keine aktuelle Rangliste veröffentlicht.
         </div>
     </section>
-
-    <div class="actions">
-        <a class="btn btn-secondary"
-           th:href="@{/public/tournaments/{id}(id=${tournament.id})}">
-            Zurück zur Turnierseite
-        </a>
-    </div>
 
 </main>
 
