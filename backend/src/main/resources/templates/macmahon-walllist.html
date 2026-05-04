@@ -34,7 +34,7 @@
         <p class="page-subtitle">
             Importiert eine aus MacMahon exportierte Wall-List-Datei mit Platzierungen,
             Punkten und Feinwertungen für den aktuellen Turnierstand.
-            Nach dem Import ist die Rangliste zunächst nur intern sichtbar.
+            Nach dem Import ist die Rangliste zunächst nur intern sichtbar und muss seperat veröffentlicht werden.
         </p>
 
         <p class="form-hint no-print">
@@ -52,26 +52,22 @@
             </div>
 
             <div class="actions">
-                <button type="submit">MRangliste importieren</button>
+                <button type="submit">Rangliste importieren</button>
             </div>
         </form>
     </section>
 
     <section class="card">
-        <h2>Veröffentlichungsstatus</h2>
+        <h2>Aktuelle Rangliste</h2>
 
-        <p class="page-subtitle">
-            Nach einem Import ist die Rangliste zunächst nur intern sichtbar und muss separat veröffentlicht werden.
-        </p>
-
-        <div class="actions">
+        <div class="actions" th:if="${!#lists.isEmpty(wallListEntries)}">
         <span class="badge"
               th:classappend="${tournament.wallListPublished} ? ' badge-success' : ' badge-open'"
               th:text="${tournament.wallListPublished} ? 'Veröffentlicht' : 'Noch nicht veröffentlicht'">
             Status
         </span>
 
-            <form th:if="${!tournament.wallListPublished and !#lists.isEmpty(wallListEntries)}"
+            <form th:if="${!tournament.wallListPublished}"
                   th:action="@{/tournaments/{id}/walllist/publish(id=${tournament.id})}"
                   method="post">
                 <button type="submit">Rangliste veröffentlichen</button>
@@ -92,14 +88,6 @@
             25.04.2026 14:30
         </span>
         </p>
-
-        <p class="table-note" th:if="${#lists.isEmpty(wallListEntries)}">
-            Eine Veröffentlichung ist erst möglich, nachdem eine Rangliste importiert wurde.
-        </p>
-    </section>
-
-    <section class="card" th:if="${wallListEntries != null}">
-        <h2>Aktuelle Rangliste</h2>
 
         <table th:if="${!#lists.isEmpty(wallListEntries)}">
             <thead>
